@@ -29,6 +29,7 @@ set(libcaffeine_SOURCES
     src/audiodevice.hpp
     src/audiodevicedefaultimpl.hpp
     src/caffeine.cpp
+    src/caffeine-helpers.hpp
     src/iceinfo.hpp
     src/interface.cpp
     src/interface.hpp
