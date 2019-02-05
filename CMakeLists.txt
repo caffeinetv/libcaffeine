@@ -8,10 +8,16 @@ project(libcaffeine)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 find_package(WebRTC REQUIRED)
+find_package(Libcurl REQUIRED) # TODO: use a C++ http library
+
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(nlohmann_json)
 
 include_directories(
     include
     x264/include #TODO find externally
+
+    ${LIBCURL_INCLUDE_DIRS}
 
 	${WEBRTC_INCLUDE_DIR}
 	${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
@@ -29,6 +35,8 @@ set(libcaffeine_SOURCES
     src/audiodevice.hpp
     src/audiodevicedefaultimpl.hpp
     src/caffeine.cpp
+    src/caffeine-api.cpp
+    src/caffeine-api.hpp
     src/caffeine-helpers.hpp
     src/iceinfo.hpp
     src/interface.cpp
@@ -69,8 +77,10 @@ add_library(libcaffeine SHARED
 	${libcaffeine_SOURCES}
 )
 
-target_link_libraries(libcaffeine
+target_link_libraries(libcaffeine PRIVATE
+    ${PROJECT_SOURCE_DIR}/x264/lib/win64/libx264.lib #TODO find externally
+    ${LIBCURL_LIBRARIES}
     ${WEBRTC_LIBRARIES}
 	${WEBRTC_DEPENDENCIES}
-    ${PROJECT_SOURCE_DIR}/x264/lib/win64/libx264.lib #TODO find externally
+    nlohmann_json::nlohmann_json
 )
