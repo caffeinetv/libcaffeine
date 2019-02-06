@@ -66,7 +66,7 @@ using json = nlohmann::json;
  * Error type: (various json formats, occasionally HTML e.g. for 502)
  */
 
-struct caffeine_credentials {
+struct caff_credentials {
     std::string access_token;
     std::string refresh_token;
     std::string caid;
@@ -78,9 +78,9 @@ struct caffeine_credentials {
 struct caffeine_stage_response {
     std::string cursor;
     double retry_in;
-    std::unique_ptr<caffeine_stage> stage;
+    std::unique_ptr<caff_stage> stage;
 
-    caffeine_stage_response(std::string const & cursor, double retry_in, std::unique_ptr<caffeine_stage> && stage)
+    caffeine_stage_response(std::string const & cursor, double retry_in, std::unique_ptr<caff_stage> && stage)
         : cursor(cursor), retry_in(retry_in), stage(std::move(stage))
     {}
 };
@@ -115,7 +115,7 @@ struct caffeine_stage_response_result {
     {}
 };
 
-std::string caffeine_generate_unique_id()
+std::string caff_generate_unique_id()
 {
     const int id_length = 12;
     const char charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -143,13 +143,13 @@ static size_t caffeine_curl_write_callback(char * ptr, size_t size,
     return nmemb;
 }
 
-static struct caffeine_credentials * make_credentials(
+static struct caff_credentials * make_credentials(
     std::string && access_token,
     std::string && caid,
     std::string && refresh_token,
     std::string && credential)
 {
-    return new caffeine_credentials{
+    return new caff_credentials{
         std::move(access_token),
         std::move(caid),
         std::move(refresh_token),
@@ -164,7 +164,7 @@ public:
         applyHeaders();
     }
 
-    ScopedCURL(char const * contentType, caffeine_credentials * creds) : curl(curl_easy_init()) {
+    ScopedCURL(char const * contentType, caff_credentials * creds) : curl(curl_easy_init()) {
         applyHeaders();
     }
 
@@ -193,7 +193,7 @@ private:
 
     static struct curl_slist * authenticatedHeaders(
         char const * content_type,
-        struct caffeine_credentials * creds)
+        struct caff_credentials * creds)
     {
         std::string authorization("Authorization: Bearer ");
         std::string credential("X-Credential: ");
@@ -211,7 +211,7 @@ private:
     }
 };
 
-char const * caffeine_refresh_token(struct caffeine_credentials * creds)
+char const * caff_refresh_token(struct caff_credentials * creds)
 {
     return creds->refresh_token.c_str();
 }
@@ -272,7 +272,7 @@ bool do_caffeine_is_supported_version()
     return true;
 }
 
-bool caffeine_is_supported_version() {
+bool caff_is_supported_version() {
     retry_request(bool, do_caffeine_is_supported_version());
 }
 
@@ -300,7 +300,7 @@ char * cstrdup(std::string const & str) {
 /* TODO: refactor this - lots of dupe code between request types
  * TODO: reuse curl handle across requests
  */
-static struct caffeine_auth_response * do_caffeine_signin(
+static struct caff_auth_response * do_caffeine_signin(
     char const * username,
     char const * password,
     char const * otp)
@@ -361,9 +361,9 @@ static struct caffeine_auth_response * do_caffeine_signin(
         if (otpError != errors->end()) {
             auto error_text = otpError->at(0).get<std::string>();
             log_error("One time password error: %s", error_text.c_str());
-            return new caffeine_auth_response{
+            return new caff_auth_response{
                 nullptr,
-                "mfa_otp_required",
+                cstrdup("mfa_otp_required"),
                 nullptr
             };
         }
@@ -374,7 +374,7 @@ static struct caffeine_auth_response * do_caffeine_signin(
 
     std::string next;
     std::string mfa_otp_method;
-    struct caffeine_credentials * creds = nullptr;
+    struct caff_credentials * creds = nullptr;
 
     auto credsIt = response_json.find("credentials");
     if (credsIt != response_json.end()) {
@@ -403,22 +403,22 @@ static struct caffeine_auth_response * do_caffeine_signin(
         log_error("Sign-in response missing");
     }
 
-    return new caffeine_auth_response{
+    return new caff_auth_response{
         creds,
         cstrdup(next),
         cstrdup(mfa_otp_method)
     };
 }
 
-struct caffeine_auth_response * caffeine_signin(
+struct caff_auth_response * caff_signin(
     char const * username,
     char const * password,
     char const * otp)
 {
-    retry_request(caffeine_auth_response*, do_caffeine_signin(username, password, otp));
+    retry_request(caff_auth_response*, do_caffeine_signin(username, password, otp));
 }
 
-static struct caffeine_credentials * do_caffeine_refresh_auth(
+static struct caff_credentials * do_caffeine_refresh_auth(
     char const * refresh_token)
 {
     trace();
@@ -480,13 +480,13 @@ static struct caffeine_credentials * do_caffeine_refresh_auth(
     return nullptr;
 }
 
-struct caffeine_credentials * caffeine_refresh_auth(
+struct caff_credentials * caff_refresh_auth(
     char const * refresh_token)
 {
-    retry_request(caffeine_credentials*, do_caffeine_refresh_auth(refresh_token));
+    retry_request(caff_credentials*, do_caffeine_refresh_auth(refresh_token));
 }
 
-void caffeine_free_credentials(struct caffeine_credentials ** credentials)
+void caff_free_credentials(struct caff_credentials ** credentials)
 {
     trace();
     if (!credentials || !*credentials)
@@ -503,13 +503,13 @@ void caffeine_free_credentials(struct caffeine_credentials ** credentials)
     *credentials = nullptr;
 }
 
-void caffeine_free_auth_response(struct caffeine_auth_response ** auth_response)
+void caff_free_auth_response(struct caff_auth_response ** auth_response)
 {
     trace();
     if (!auth_response || !*auth_response)
         return;
 
-    caffeine_free_credentials(&(*auth_response)->credentials);
+    caff_free_credentials(&(*auth_response)->credentials);
 
     delete[](*auth_response)->next;
     delete[](*auth_response)->mfa_otp_method;
@@ -518,7 +518,7 @@ void caffeine_free_auth_response(struct caffeine_auth_response ** auth_response)
     *auth_response = nullptr;
 }
 
-static bool do_refresh_credentials(struct caffeine_credentials * creds)
+static bool do_refresh_credentials(struct caff_credentials * creds)
 {
     trace();
     std::string refresh_token;
@@ -527,7 +527,7 @@ static bool do_refresh_credentials(struct caffeine_credentials * creds)
         refresh_token = creds->refresh_token;
     }
 
-    struct caffeine_credentials * new_creds = caffeine_refresh_auth(refresh_token.c_str());
+    struct caff_credentials * new_creds = caff_refresh_auth(refresh_token.c_str());
 
     if (!new_creds)
         return false;
@@ -541,16 +541,16 @@ static bool do_refresh_credentials(struct caffeine_credentials * creds)
     }
 
     // TODO see if this is needed (need a body for post)
-    caffeine_free_credentials(&new_creds);
+    caff_free_credentials(&new_creds);
     return true;
 }
 
-bool refresh_credentials(struct caffeine_credentials * creds)
+bool refresh_credentials(struct caff_credentials * creds)
 {
     retry_request(bool, do_refresh_credentials(creds));
 }
 
-static struct caffeine_user_info * do_caffeine_getuser(struct caffeine_credentials * creds)
+static struct caff_user_info * do_caffeine_getuser(struct caff_credentials * creds)
 {
     trace();
     if (creds == nullptr) {
@@ -596,7 +596,7 @@ static struct caffeine_user_info * do_caffeine_getuser(struct caffeine_credentia
     auto userIt = response_json.find("user");
     if (userIt != response_json.end()) {
         log_debug("Got user details");
-        return new caffeine_user_info{
+        return new caff_user_info{
             cstrdup(userIt->at("caid").get<std::string>()),
             cstrdup(userIt->at("username").get<std::string>()),
             cstrdup(userIt->at("stage_id").get<std::string>()),
@@ -608,12 +608,12 @@ static struct caffeine_user_info * do_caffeine_getuser(struct caffeine_credentia
     return nullptr;
 }
 
-struct caffeine_user_info * caffeine_getuser(struct caffeine_credentials * creds)
+struct caff_user_info * caff_getuser(struct caff_credentials * creds)
 {
-    retry_request(caffeine_user_info*, do_caffeine_getuser(creds));
+    retry_request(caff_user_info*, do_caffeine_getuser(creds));
 }
 
-void caffeine_free_user_info(struct caffeine_user_info ** user_info)
+void caff_free_user_info(struct caff_user_info ** user_info)
 {
     trace();
     if (!user_info || !*user_info)
@@ -626,9 +626,9 @@ void caffeine_free_user_info(struct caffeine_user_info ** user_info)
     *user_info = nullptr;
 }
 
-static struct caffeine_games * do_caffeine_get_supported_games()
+static struct caff_games * do_caffeine_get_supported_games()
 {
-    struct caffeine_games * response = nullptr;
+    struct caff_games * response = nullptr;
 
     ScopedCURL curl(CONTENT_TYPE_JSON);
 
@@ -665,8 +665,8 @@ static struct caffeine_games * do_caffeine_get_supported_games()
     }
 
     auto num_games = response_json.size();
-    response = new caffeine_games{
-        new caffeine_game_info *[num_games] {0},
+    response = new caff_games{
+        new caff_game_info *[num_games] {0},
         num_games
     };
 
@@ -678,7 +678,7 @@ static struct caffeine_games * do_caffeine_get_supported_games()
             auto name = value.at("name").get<std::string>();
             auto const & process_names = value["process_names"];
             auto num_processes = process_names.size();
-            if (num_processes = 0) {
+            if (num_processes == 0) {
                 log_warn("No process names found for %s; ignoring", name.c_str());
                 continue;
             }
@@ -686,7 +686,7 @@ static struct caffeine_games * do_caffeine_get_supported_games()
             std::ostringstream id_stream;
             id_stream << id_num;
 
-            auto info = new caffeine_game_info{
+            auto info = new caff_game_info{
                 cstrdup(id_stream.str()),
                 cstrdup(name),
                 new char *[num_processes] {0},
@@ -712,13 +712,13 @@ static struct caffeine_games * do_caffeine_get_supported_games()
     return response;
 }
 
-struct caffeine_games * caffeine_get_supported_games()
+struct caff_games * caff_get_supported_games()
 {
-    retry_request(struct caffeine_games *,
+    retry_request(struct caff_games *,
         do_caffeine_get_supported_games());
 }
 
-void caffeine_free_game_info(struct caffeine_game_info ** info)
+void caff_free_game_info(struct caff_game_info ** info)
 {
     if (!info || !*info)
         return;
@@ -734,14 +734,14 @@ void caffeine_free_game_info(struct caffeine_game_info ** info)
     *info = nullptr;
 }
 
-void caffeine_free_game_list(struct caffeine_games ** games)
+void caff_free_game_list(struct caff_games ** games)
 {
     trace();
     if (!games || !*games)
         return;
 
     for (size_t i = 0; i < (*games)->num_games; ++i) {
-        caffeine_free_game_info(&(*games)->game_infos[i]);
+        caff_free_game_info(&(*games)->game_infos[i]);
     }
 
     delete[](*games)->game_infos;
@@ -753,7 +753,7 @@ static bool do_caffeine_trickle_candidates(
     caff_ice_candidates candidates,
     size_t num_candidates,
     char const * stream_url,
-    struct caffeine_credentials * creds)
+    struct caff_credentials * creds)
 {
     trace();
     auto ice_candidates = json::array({});
@@ -817,24 +817,22 @@ static bool do_caffeine_trickle_candidates(
     return response;
 }
 
-bool caffeine_trickle_candidates(
+bool caff_trickle_candidates(
     caff_ice_candidates candidates,
     size_t num_candidates,
     char const * stream_url,
-    struct caffeine_credentials * creds)
+    struct caff_credentials * creds)
 {
     retry_request(bool,
         do_caffeine_trickle_candidates(candidates, num_candidates,
             stream_url, creds));
 }
 
-static struct caffeine_heartbeat_response * do_caffeine_heartbeat_stream(
+static struct caff_heartbeat_response * do_caffeine_heartbeat_stream(
     char const * stream_url,
-    struct caffeine_credentials * creds)
+    struct caff_credentials * creds)
 {
     trace();
-
-    struct caffeine_heartbeat_response * response = nullptr;
 
     ScopedCURL curl(CONTENT_TYPE_JSON, creds);
 
@@ -884,22 +882,22 @@ static struct caffeine_heartbeat_response * do_caffeine_heartbeat_stream(
     }
 
     log_debug("Stream heartbeat succeeded");
-    return new caffeine_heartbeat_response{
+    return new caff_heartbeat_response{
         cstrdup(response_json.at("connection_quality").get<std::string>())
     };
 }
 
-struct caffeine_heartbeat_response * caffeine_heartbeat_stream(
+struct caff_heartbeat_response * caff_heartbeat_stream(
     char const * stream_url,
-    struct caffeine_credentials * creds)
+    struct caff_credentials * creds)
 {
     retry_request(
-        struct caffeine_heartbeat_response *,
+        struct caff_heartbeat_response *,
         do_caffeine_heartbeat_stream(stream_url, creds));
 }
 
-void caffeine_free_heartbeat_response(
-    struct caffeine_heartbeat_response ** response)
+void caff_free_heartbeat_response(
+    struct caff_heartbeat_response ** response)
 {
     if (!response || !*response) {
         return;
@@ -910,7 +908,7 @@ void caffeine_free_heartbeat_response(
     *response = nullptr;
 }
 
-char * caffeine_annotate_title(char const * title, enum caffeine_rating rating)
+char * caff_annotate_title(char const * title, enum caff_rating rating)
 {
     static const size_t MAX_TITLE_LENGTH = 60; // TODO: policy- should be somewhere else
     static std::string const rating_strings[] = { "", "[17+] " }; // TODO maybe same here
@@ -938,7 +936,7 @@ static bool do_update_broadcast_screenshot(
     char const * broadcast_id,
     uint8_t const * screenshot_data,
     size_t screenshot_size,
-    struct caffeine_credentials * creds)
+    struct caff_credentials * creds)
 {
     trace();
     ScopedCURL curl(CONTENT_TYPE_FORM, creds);
@@ -986,11 +984,11 @@ static bool do_update_broadcast_screenshot(
     return result;
 }
 
-bool caffeine_update_broadcast_screenshot(
+bool caff_update_broadcast_screenshot(
     char const * broadcast_id,
     uint8_t const * screenshot_data,
     size_t screenshot_size,
-    struct caffeine_credentials * creds)
+    struct caff_credentials * creds)
 {
     if (!broadcast_id) {
         log_error("Passed in nullptr broadcast_id");
@@ -1005,7 +1003,7 @@ bool caffeine_update_broadcast_screenshot(
             creds));
 }
 
-static void caffeine_free_feed_contents(struct caffeine_feed * feed)
+static void caffeine_free_feed_contents(struct caff_feed * feed)
 {
     if (!feed) {
         return;
@@ -1025,14 +1023,14 @@ static void caffeine_free_feed_contents(struct caffeine_feed * feed)
     delete[]feed->stream.sdp_answer;
 }
 
-struct caffeine_feed * caffeine_get_stage_feed(struct caffeine_stage * stage, char const * id)
+struct caff_feed * caff_get_stage_feed(struct caff_stage * stage, char const * id)
 {
     if (!stage || !id) {
         return nullptr;
     }
 
     for (size_t i = 0; i < stage->num_feeds; ++i) {
-        struct caffeine_feed * feed = &stage->feeds[i];
+        struct caff_feed * feed = &stage->feeds[i];
         if (strcmp(id, feed->id) == 0) {
             return feed;
         }
@@ -1041,7 +1039,7 @@ struct caffeine_feed * caffeine_get_stage_feed(struct caffeine_stage * stage, ch
     return nullptr;
 }
 
-static void caffeine_copy_feed_contents(struct caffeine_feed const * from, struct caffeine_feed * to)
+static void caffeine_copy_feed_contents(struct caff_feed const * from, struct caff_feed * to)
 {
     to->id = cstrdup(from->id);
     to->client_id = cstrdup(from->client_id);
@@ -1060,20 +1058,20 @@ static void caffeine_copy_feed_contents(struct caffeine_feed const * from, struc
 }
 
 
-void caffeine_set_stage_feed(struct caffeine_stage * stage, struct caffeine_feed const * feed)
+void caff_set_stage_feed(struct caff_stage * stage, struct caff_feed const * feed)
 {
     if (!stage || !feed) {
         return;
     }
 
-    caffeine_clear_stage_feeds(stage);
+    caff_clear_stage_feeds(stage);
 
-    stage->feeds = new caffeine_feed;
+    stage->feeds = new caff_feed;
     caffeine_copy_feed_contents(feed, stage->feeds);
     stage->num_feeds = 1;
 }
 
-void caffeine_clear_stage_feeds(struct caffeine_stage * stage)
+void caff_clear_stage_feeds(struct caff_stage * stage)
 {
     if (!stage || !stage->feeds) {
         return;
@@ -1088,7 +1086,7 @@ void caffeine_clear_stage_feeds(struct caffeine_stage * stage)
     stage->num_feeds = 0;
 }
 
-void caffeine_free_stage(struct caffeine_stage ** stage)
+void caff_free_stage(struct caff_stage ** stage)
 {
     if (!stage || !*stage) {
         return;
@@ -1098,29 +1096,29 @@ void caffeine_free_stage(struct caffeine_stage ** stage)
     delete[](*stage)->username;
     delete[](*stage)->title;
     delete[](*stage)->broadcast_id;
-    caffeine_clear_stage_feeds(*stage);
+    caff_clear_stage_feeds(*stage);
     delete *stage;
     *stage = nullptr;
 }
 
-struct caffeine_stage_request * caffeine_copy_stage_request(
-    struct caffeine_stage_request const * request)
+struct caff_stage_request * caff_copy_stage_request(
+    struct caff_stage_request const * request)
 {
     if (!request) {
         return nullptr;
     }
 
-    struct caffeine_stage * stage = request->stage;
-    struct caffeine_stage * stage_copy = nullptr;
+    struct caff_stage * stage = request->stage;
+    struct caff_stage * stage_copy = nullptr;
     if (stage) {
-        caffeine_feed * feeds_copy = nullptr;
+        caff_feed * feeds_copy = nullptr;
         if (stage->num_feeds > 0) {
-            feeds_copy = new caffeine_feed[stage->num_feeds];
+            feeds_copy = new caff_feed[stage->num_feeds];
             for (size_t i = 0; i < stage_copy->num_feeds; ++i) {
                 caffeine_copy_feed_contents(&stage->feeds[i], &feeds_copy[i]);
             }
         }
-        stage_copy = new caffeine_stage{
+        stage_copy = new caff_stage{
             cstrdup(stage->id),
             cstrdup(stage->username),
             cstrdup(stage->title),
@@ -1132,7 +1130,7 @@ struct caffeine_stage_request * caffeine_copy_stage_request(
         };
     }
 
-    return new caffeine_stage_request{
+    return new caff_stage_request{
         cstrdup(request->username),
         cstrdup(request->client_id),
         cstrdup(request->cursor),
@@ -1140,7 +1138,7 @@ struct caffeine_stage_request * caffeine_copy_stage_request(
     };
 }
 
-void caffeine_free_stage_request(struct caffeine_stage_request ** request)
+void caff_free_stage_request(struct caff_stage_request ** request)
 {
     if (!request || !*request) {
         return;
@@ -1149,7 +1147,7 @@ void caffeine_free_stage_request(struct caffeine_stage_request ** request)
     delete[](*request)->username;
     delete[](*request)->client_id;
     delete[](*request)->cursor;
-    caffeine_free_stage(&(*request)->stage);
+    caff_free_stage(&(*request)->stage);
     delete *request;
     *request = nullptr;
 }
@@ -1174,7 +1172,7 @@ void caffeine_free_failure(struct caffeine_failure_response ** failure)
     *failure = nullptr;
 }
 
-static json caffeine_serialize_stage_request(struct caffeine_stage_request request)
+static json caffeine_serialize_stage_request(struct caff_stage_request request)
 {
     json request_json = {
         {"client", {
@@ -1200,7 +1198,7 @@ static json caffeine_serialize_stage_request(struct caffeine_stage_request reque
         json feeds = json::object();
 
         for (size_t i = 0; i < request.stage->num_feeds; ++i) {
-            struct caffeine_feed * feed = &request.stage->feeds[i];
+            struct caff_feed * feed = &request.stage->feeds[i];
             json json_feed = {
                 {"id", feed->id},
                 {"client_id", feed->client_id},
@@ -1243,7 +1241,6 @@ static json caffeine_serialize_stage_request(struct caffeine_stage_request reque
 
 std::unique_ptr<caffeine_stage_response> caffeine_deserialize_stage_response(json response_json)
 {
-    struct caffeine_stage_response * response = nullptr;
     std::string cursor;
     double retry_in = 0.0;
     try {
@@ -1284,8 +1281,8 @@ std::unique_ptr<caffeine_stage_response> caffeine_deserialize_stage_response(jso
         return nullptr;
     }
 
-    std::unique_ptr<caffeine_stage> stage{
-        new caffeine_stage{
+    std::unique_ptr<caff_stage> stage{
+        new caff_stage{
             cstrdup(id),
             cstrdup(username),
             cstrdup(title),
@@ -1300,9 +1297,9 @@ std::unique_ptr<caffeine_stage_response> caffeine_deserialize_stage_response(jso
     auto feedsIt = payloadIt->find("feeds");
     if (feedsIt != payloadIt->end() && feedsIt->size() > 0) {
         stage->num_feeds = feedsIt->size();
-        stage->feeds = new caffeine_feed[stage->num_feeds]{ 0 };
+        stage->feeds = new caff_feed[stage->num_feeds]{};
 
-        struct caffeine_feed * feed_pointer = stage->feeds;
+        struct caff_feed * feed_pointer = stage->feeds;
         for (auto & feedJson : *feedsIt) {
 
             auto capabilities = feedJson.value("capabilities", json::object());
@@ -1356,8 +1353,8 @@ static bool is_out_of_capacity_failure_type(std::string const & type)
 }
 
 static std::unique_ptr<caffeine_stage_response_result> do_caffeine_stage_update(
-    struct caffeine_stage_request const & request,
-    struct caffeine_credentials * creds)
+    struct caff_stage_request const & request,
+    struct caff_credentials * creds)
 {
     trace();
 
@@ -1368,10 +1365,6 @@ static std::unique_ptr<caffeine_stage_response_result> do_caffeine_stage_update(
 
     auto request_json = caffeine_serialize_stage_request(request);
     auto request_body = request_json.dump();
-
-    struct caffeine_stage_response_result * result = nullptr;
-    struct caffeine_stage_response * stage_response = nullptr;
-    struct caffeine_failure_response * failure_response = nullptr;
 
     ScopedCURL curl(CONTENT_TYPE_JSON, creds);
 
@@ -1452,8 +1445,8 @@ static std::unique_ptr<caffeine_stage_response_result> do_caffeine_stage_update(
 }
 
 std::unique_ptr<caffeine_stage_response_result> caffeine_stage_update(
-    struct caffeine_stage_request const & request,
-    struct caffeine_credentials * creds)
+    struct caff_stage_request const & request,
+    struct caff_credentials * creds)
 {
     retry_request(std::unique_ptr<caffeine_stage_response_result>,
         do_caffeine_stage_update(request, creds));
@@ -1461,19 +1454,19 @@ std::unique_ptr<caffeine_stage_response_result> caffeine_stage_update(
 
 static void transfer_stage_data(
     std::unique_ptr<caffeine_stage_response> && from_response,
-    struct caffeine_stage_request * to_request)
+    struct caff_stage_request * to_request)
 {
     if (to_request->cursor) {
         delete[] to_request->cursor;
     }
-    caffeine_free_stage(&to_request->stage);
+    caff_free_stage(&to_request->stage);
     to_request->cursor = cstrdup(from_response->cursor);
     to_request->stage = from_response->stage.release();
 }
 
-bool caffeine_request_stage_update(
-    struct caffeine_stage_request * request,
-    struct caffeine_credentials * creds,
+bool caff_request_stage_update(
+    struct caff_stage_request * request,
+    struct caff_credentials * creds,
     double * retry_in,
     bool * is_out_of_capacity)
 {
