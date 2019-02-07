@@ -42,7 +42,7 @@ namespace caff {
 
         virtual std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
             const webrtc::SdpVideoFormat& format) override {
-            return rtc::MakeUnique<X264Encoder>(cricket::VideoCodec(format));
+            return std::make_unique<X264Encoder>(cricket::VideoCodec(format));
         }
     };
 
@@ -66,7 +66,7 @@ namespace caff {
             networkThread.get(), workerThread.get(), signalingThread.get(),
             audioDevice, webrtc::CreateBuiltinAudioEncoderFactory(),
             webrtc::CreateBuiltinAudioDecoderFactory(),
-            rtc::MakeUnique<EncoderFactory>(),
+            std::make_unique<EncoderFactory>(),
             webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);
     }
 
