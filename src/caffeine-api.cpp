@@ -1,4 +1,6 @@
-#include "caffeine-api.hpp"
+#define LIBCAFFEINE_LIBRARY
+
+#include "caffeine-api.h"
 
 #include "nlohmann/json.hpp"
 
@@ -8,8 +10,6 @@
 #include <thread>
 #include <chrono>
 
-
-using json = nlohmann::json;
 
 /* TODO: C++ify (namespace, raii, not libcurl, etc) */
 // TODO: get this from client code
@@ -50,7 +50,10 @@ using json = nlohmann::json;
 #define log_info(...) ((void)0)
 #define trace() ((void)0)
 
-/*
+using json = nlohmann::json;
+
+/* Notes for refactoring
+ *
  * Request type: GET, PUT, POST, PATCH
  *
  * Request body format: Form data, JSON
@@ -75,60 +78,130 @@ struct caff_credentials {
     std::mutex mutex;
 };
 
-struct caffeine_stage_response {
-    std::string cursor;
-    double retry_in;
-    std::unique_ptr<caff_stage> stage;
+namespace {
+    struct StageResponse {
+        std::string cursor;
+        double retry_in;
+        std::unique_ptr<caff_stage> stage;
 
-    caffeine_stage_response(std::string const & cursor, double retry_in, std::unique_ptr<caff_stage> && stage)
-        : cursor(cursor), retry_in(retry_in), stage(std::move(stage))
-    {}
-};
+        StageResponse(std::string const & cursor, double retry_in, std::unique_ptr<caff_stage> && stage)
+            : cursor(cursor), retry_in(retry_in), stage(std::move(stage))
+        {}
+    };
 
-struct caffeine_display_message {
-    std::string title;
-    std::string body;
-};
+    struct DisplayMessage {
+        std::string title;
+        std::string body;
+    };
 
-struct caffeine_failure_response {
-    std::string type;
-    std::string reason;
-    struct caffeine_display_message display_message;
+    struct FailureResponse {
+        std::string type;
+        std::string reason;
+        DisplayMessage display_message;
 
-    caffeine_failure_response(
-        std::string const & type,
-        std::string const & reason,
-        struct caffeine_display_message const &display_message)
-        : type(type), reason(reason), display_message(display_message)
-    {}
-};
+        FailureResponse(
+            std::string const & type,
+            std::string const & reason,
+            DisplayMessage const &display_message)
+            : type(type), reason(reason), display_message(display_message)
+        {}
+    };
 
-struct caffeine_stage_response_result {
-    std::unique_ptr<caffeine_stage_response> response;
-    std::unique_ptr<caffeine_failure_response> failure;
+    struct StageResponseResult {
+        std::unique_ptr<StageResponse> response;
+        std::unique_ptr<FailureResponse> failure;
 
-    caffeine_stage_response_result(
-        std::unique_ptr<caffeine_stage_response> && response,
-        std::unique_ptr<caffeine_failure_response> && failure)
-        : response(std::move(response))
-        , failure(std::move(failure))
-    {}
-};
+        StageResponseResult(
+            std::unique_ptr<StageResponse> && response,
+            std::unique_ptr<FailureResponse> && failure)
+            : response(std::move(response))
+            , failure(std::move(failure))
+        {}
+    };
 
-std::string caff_generate_unique_id()
+    // RAII helper to get rid of gotos
+    // TODO use a C++ HTTP library
+    class ScopedCURL {
+    public:
+        ScopedCURL(char const * contentType)
+            : curl(curl_easy_init()), headers(basicHeaders(contentType))
+        {
+            applyHeaders();
+        }
+
+        ScopedCURL(char const * contentType, caff_credentials * creds)
+            : curl(curl_easy_init()), headers(authenticatedHeaders(contentType, creds))
+        {
+            applyHeaders();
+        }
+
+        virtual ~ScopedCURL() {
+            curl_slist_free_all(headers);
+            curl_easy_cleanup(curl);
+        }
+
+        operator CURL *() { return curl; }
+
+    private:
+        CURL * curl;
+        curl_slist * headers;
+
+        void applyHeaders() {
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        }
+
+        static curl_slist * basicHeaders(char const * content_type) {
+            curl_slist * headers = nullptr;
+            headers = curl_slist_append(headers, content_type);
+            headers = curl_slist_append(headers, "X-Client-Type: obs"); // TODO client type parameter
+            headers = curl_slist_append(headers, "X-Client-Version: " API_VERSION);
+            return headers;
+        }
+
+        static curl_slist * authenticatedHeaders(
+            char const * content_type,
+            caff_credentials * creds)
+        {
+            std::string authorization("Authorization: Bearer ");
+            std::string credential("X-Credential: ");
+
+            {
+                std::lock_guard<std::mutex> lock(creds->mutex);
+                authorization += creds->access_token;
+                credential += creds->credential;
+            }
+
+            curl_slist * headers = basicHeaders(content_type);
+            headers = curl_slist_append(headers, authorization.c_str());
+            headers = curl_slist_append(headers, credential.c_str());
+            return headers;
+        }
+    };
+
+}
+
+// TODO something better
+CAFFEINE_API char * caff_create_unique_id()
 {
     const int id_length = 12;
     const char charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-    std::string id;
-    id.reserve(id_length + 1);
+    auto id = new char[id_length + 1]{};
 
     for (int i = 0; i < id_length; ++i) {
         int random_index = rand() % (sizeof(charset) - 1);
-        char character = charset[random_index];
-        id += character;
+        id += charset[random_index];
     }
 
     return id;
+} // anonymous namespace
+
+CAFFEINE_API void caff_free_unique_id(char ** id)
+{
+    if (!id || !*id)
+        return;
+
+    delete[](*id);
+    *id = nullptr;
 }
 
 static size_t caffeine_curl_write_callback(char * ptr, size_t size,
@@ -143,7 +216,7 @@ static size_t caffeine_curl_write_callback(char * ptr, size_t size,
     return nmemb;
 }
 
-static struct caff_credentials * make_credentials(
+static caff_credentials_handle make_credentials(
     std::string && access_token,
     std::string && caid,
     std::string && refresh_token,
@@ -157,62 +230,11 @@ static struct caff_credentials * make_credentials(
     };
 }
 
-// RAII helper to get rid of gotos
-class ScopedCURL {
-public:
-    ScopedCURL(char const * contentType) : curl(curl_easy_init()), headers(basicHeaders(contentType)) {
-        applyHeaders();
-    }
-
-    ScopedCURL(char const * contentType, caff_credentials * creds) : curl(curl_easy_init()) {
-        applyHeaders();
-    }
-
-    virtual ~ScopedCURL() {
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-    }
-
-    operator CURL *() { return curl; }
-
-private:
-    CURL * curl;
-    curl_slist * headers;
-
-    void applyHeaders() {
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    }
-
-    static struct curl_slist * basicHeaders(char const * content_type) {
-        struct curl_slist * headers = nullptr;
-        headers = curl_slist_append(headers, content_type);
-        headers = curl_slist_append(headers, "X-Client-Type: obs"); // TODO client type parameter
-        headers = curl_slist_append(headers, "X-Client-Version: " API_VERSION);
-        return headers;
-    }
-
-    static struct curl_slist * authenticatedHeaders(
-        char const * content_type,
-        struct caff_credentials * creds)
-    {
-        std::string authorization("Authorization: Bearer ");
-        std::string credential("X-Credential: ");
-
-        {
-            std::lock_guard<std::mutex> lock(creds->mutex);
-            authorization += creds->access_token;
-            credential += creds->credential;
-        }
-
-        struct curl_slist * headers = basicHeaders(content_type);
-        headers = curl_slist_append(headers, authorization.c_str());
-        headers = curl_slist_append(headers, credential.c_str());
-        return headers;
-    }
-};
-
-char const * caff_refresh_token(struct caff_credentials * creds)
+CAFFEINE_API char const * caff_refresh_token(caff_credentials_handle handle)
 {
+    if (!handle) return nullptr;
+
+    auto creds = reinterpret_cast<caff_credentials *>(handle);
     return creds->refresh_token.c_str();
 }
 
@@ -222,15 +244,15 @@ char const * caff_refresh_token(struct caff_credentials * creds)
  * never be recoverable and should not be retried
  */
 #define retry_request(result_t, request) \
-	for (int try_num = 0; try_num < RETRY_MAX; ++try_num) { \
-		result_t result = request; \
-		if (result) \
-			return result; \
-        std::this_thread::sleep_for(std::chrono::seconds(1 + 1 * try_num)); \
-	} \
-	return {}
+        for (int try_num = 0; try_num < RETRY_MAX; ++try_num) { \
+            result_t result = request; \
+            if (result) \
+                return result; \
+            std::this_thread::sleep_for(std::chrono::seconds(1 + 1 * try_num)); \
+        } \
+        return {}
 
-bool do_caffeine_is_supported_version()
+static bool do_caffeine_is_supported_version()
 {
     trace();
 
@@ -272,12 +294,12 @@ bool do_caffeine_is_supported_version()
     return true;
 }
 
-bool caff_is_supported_version() {
+CAFFEINE_API bool caff_is_supported_version() {
     retry_request(bool, do_caffeine_is_supported_version());
 }
 
 /* TODO holdovers from C */
-char * cstrdup(char const * str) {
+static char * cstrdup(char const * str) {
     if (!str)
         return nullptr;
 
@@ -287,7 +309,7 @@ char * cstrdup(char const * str) {
     return result;
 }
 
-char * cstrdup(std::string const & str) {
+static char * cstrdup(std::string const & str) {
     if (str.empty())
         return nullptr;
 
@@ -300,7 +322,7 @@ char * cstrdup(std::string const & str) {
 /* TODO: refactor this - lots of dupe code between request types
  * TODO: reuse curl handle across requests
  */
-static struct caff_auth_response * do_caffeine_signin(
+static caff_auth_response * do_caffeine_signin(
     char const * username,
     char const * password,
     char const * otp)
@@ -374,7 +396,7 @@ static struct caff_auth_response * do_caffeine_signin(
 
     std::string next;
     std::string mfa_otp_method;
-    struct caff_credentials * creds = nullptr;
+    caff_credentials_handle creds = nullptr;
 
     auto credsIt = response_json.find("credentials");
     if (credsIt != response_json.end()) {
@@ -410,7 +432,7 @@ static struct caff_auth_response * do_caffeine_signin(
     };
 }
 
-struct caff_auth_response * caff_signin(
+CAFFEINE_API caff_auth_response * caff_signin(
     char const * username,
     char const * password,
     char const * otp)
@@ -418,7 +440,7 @@ struct caff_auth_response * caff_signin(
     retry_request(caff_auth_response*, do_caffeine_signin(username, password, otp));
 }
 
-static struct caff_credentials * do_caffeine_refresh_auth(
+static caff_credentials_handle do_caffeine_refresh_auth(
     char const * refresh_token)
 {
     trace();
@@ -480,17 +502,18 @@ static struct caff_credentials * do_caffeine_refresh_auth(
     return nullptr;
 }
 
-struct caff_credentials * caff_refresh_auth(
+CAFFEINE_API caff_credentials_handle caff_refresh_auth(
     char const * refresh_token)
 {
-    retry_request(caff_credentials*, do_caffeine_refresh_auth(refresh_token));
+    retry_request(caff_credentials_handle, do_caffeine_refresh_auth(refresh_token));
 }
 
-void caff_free_credentials(struct caff_credentials ** credentials)
+CAFFEINE_API void caff_free_credentials(caff_credentials_handle* handle)
 {
     trace();
-    if (!credentials || !*credentials)
+    if (!handle || !*handle)
         return;
+    caff_credentials ** credentials = handle;
 
     {
         std::lock_guard<std::mutex> lock((*credentials)->mutex);
@@ -500,10 +523,10 @@ void caff_free_credentials(struct caff_credentials ** credentials)
         (*credentials)->credential.erase();
     }
     delete *credentials;
-    *credentials = nullptr;
+    *handle = nullptr;
 }
 
-void caff_free_auth_response(struct caff_auth_response ** auth_response)
+CAFFEINE_API void caff_free_auth_response(caff_auth_response ** auth_response)
 {
     trace();
     if (!auth_response || !*auth_response)
@@ -518,7 +541,7 @@ void caff_free_auth_response(struct caff_auth_response ** auth_response)
     *auth_response = nullptr;
 }
 
-static bool do_refresh_credentials(struct caff_credentials * creds)
+static bool do_refresh_credentials(caff_credentials_handle creds)
 {
     trace();
     std::string refresh_token;
@@ -527,7 +550,7 @@ static bool do_refresh_credentials(struct caff_credentials * creds)
         refresh_token = creds->refresh_token;
     }
 
-    struct caff_credentials * new_creds = caff_refresh_auth(refresh_token.c_str());
+    caff_credentials_handle new_creds = caff_refresh_auth(refresh_token.c_str());
 
     if (!new_creds)
         return false;
@@ -545,12 +568,12 @@ static bool do_refresh_credentials(struct caff_credentials * creds)
     return true;
 }
 
-bool refresh_credentials(struct caff_credentials * creds)
+CAFFEINE_API bool refresh_credentials(caff_credentials_handle creds)
 {
     retry_request(bool, do_refresh_credentials(creds));
 }
 
-static struct caff_user_info * do_caffeine_getuser(struct caff_credentials * creds)
+static caff_user_info * do_caffeine_getuser(caff_credentials_handle creds)
 {
     trace();
     if (creds == nullptr) {
@@ -608,12 +631,12 @@ static struct caff_user_info * do_caffeine_getuser(struct caff_credentials * cre
     return nullptr;
 }
 
-struct caff_user_info * caff_getuser(struct caff_credentials * creds)
+CAFFEINE_API caff_user_info * caff_getuser(caff_credentials_handle creds)
 {
     retry_request(caff_user_info*, do_caffeine_getuser(creds));
 }
 
-void caff_free_user_info(struct caff_user_info ** user_info)
+CAFFEINE_API void caff_free_user_info(caff_user_info ** user_info)
 {
     trace();
     if (!user_info || !*user_info)
@@ -626,9 +649,9 @@ void caff_free_user_info(struct caff_user_info ** user_info)
     *user_info = nullptr;
 }
 
-static struct caff_games * do_caffeine_get_supported_games()
+static caff_games * do_caffeine_get_supported_games()
 {
-    struct caff_games * response = nullptr;
+    caff_games * response = nullptr;
 
     ScopedCURL curl(CONTENT_TYPE_JSON);
 
@@ -712,13 +735,13 @@ static struct caff_games * do_caffeine_get_supported_games()
     return response;
 }
 
-struct caff_games * caff_get_supported_games()
+CAFFEINE_API caff_games * caff_get_supported_games()
 {
-    retry_request(struct caff_games *,
+    retry_request(caff_games *,
         do_caffeine_get_supported_games());
 }
 
-void caff_free_game_info(struct caff_game_info ** info)
+CAFFEINE_API void caff_free_game_info(caff_game_info ** info)
 {
     if (!info || !*info)
         return;
@@ -734,7 +757,7 @@ void caff_free_game_info(struct caff_game_info ** info)
     *info = nullptr;
 }
 
-void caff_free_game_list(struct caff_games ** games)
+CAFFEINE_API void caff_free_game_list(caff_games ** games)
 {
     trace();
     if (!games || !*games)
@@ -753,7 +776,7 @@ static bool do_caffeine_trickle_candidates(
     caff_ice_candidates candidates,
     size_t num_candidates,
     char const * stream_url,
-    struct caff_credentials * creds)
+    caff_credentials_handle creds)
 {
     trace();
     auto ice_candidates = json::array({});
@@ -817,20 +840,20 @@ static bool do_caffeine_trickle_candidates(
     return response;
 }
 
-bool caff_trickle_candidates(
+CAFFEINE_API bool caff_trickle_candidates(
     caff_ice_candidates candidates,
     size_t num_candidates,
     char const * stream_url,
-    struct caff_credentials * creds)
+    caff_credentials_handle creds)
 {
     retry_request(bool,
         do_caffeine_trickle_candidates(candidates, num_candidates,
             stream_url, creds));
 }
 
-static struct caff_heartbeat_response * do_caffeine_heartbeat_stream(
+static caff_heartbeat_response * do_caffeine_heartbeat_stream(
     char const * stream_url,
-    struct caff_credentials * creds)
+    caff_credentials_handle creds)
 {
     trace();
 
@@ -887,17 +910,17 @@ static struct caff_heartbeat_response * do_caffeine_heartbeat_stream(
     };
 }
 
-struct caff_heartbeat_response * caff_heartbeat_stream(
+CAFFEINE_API caff_heartbeat_response * caff_heartbeat_stream(
     char const * stream_url,
-    struct caff_credentials * creds)
+    caff_credentials_handle creds)
 {
     retry_request(
-        struct caff_heartbeat_response *,
+        caff_heartbeat_response *,
         do_caffeine_heartbeat_stream(stream_url, creds));
 }
 
-void caff_free_heartbeat_response(
-    struct caff_heartbeat_response ** response)
+CAFFEINE_API void caff_free_heartbeat_response(
+    caff_heartbeat_response ** response)
 {
     if (!response || !*response) {
         return;
@@ -908,7 +931,7 @@ void caff_free_heartbeat_response(
     *response = nullptr;
 }
 
-char * caff_annotate_title(char const * title, enum caff_rating rating)
+CAFFEINE_API char * caff_annotate_title(char const * title, enum caff_rating rating)
 {
     static const size_t MAX_TITLE_LENGTH = 60; // TODO: policy- should be somewhere else
     static std::string const rating_strings[] = { "", "[17+] " }; // TODO maybe same here
@@ -936,13 +959,13 @@ static bool do_update_broadcast_screenshot(
     char const * broadcast_id,
     uint8_t const * screenshot_data,
     size_t screenshot_size,
-    struct caff_credentials * creds)
+    caff_credentials_handle creds)
 {
     trace();
     ScopedCURL curl(CONTENT_TYPE_FORM, creds);
 
-    struct curl_httppost * post = nullptr;
-    struct curl_httppost * last = nullptr;
+    curl_httppost * post = nullptr;
+    curl_httppost * last = nullptr;
     CleanupPost cleanup(post);
 
     if (screenshot_data) {
@@ -984,11 +1007,11 @@ static bool do_update_broadcast_screenshot(
     return result;
 }
 
-bool caff_update_broadcast_screenshot(
+CAFFEINE_API bool caff_update_broadcast_screenshot(
     char const * broadcast_id,
     uint8_t const * screenshot_data,
     size_t screenshot_size,
-    struct caff_credentials * creds)
+    caff_credentials_handle creds)
 {
     if (!broadcast_id) {
         log_error("Passed in nullptr broadcast_id");
@@ -1003,7 +1026,7 @@ bool caff_update_broadcast_screenshot(
             creds));
 }
 
-static void caffeine_free_feed_contents(struct caff_feed * feed)
+static void caffeine_free_feed_contents(caff_feed * feed)
 {
     if (!feed) {
         return;
@@ -1023,14 +1046,14 @@ static void caffeine_free_feed_contents(struct caff_feed * feed)
     delete[]feed->stream.sdp_answer;
 }
 
-struct caff_feed * caff_get_stage_feed(struct caff_stage * stage, char const * id)
+CAFFEINE_API caff_feed * caff_get_stage_feed(caff_stage * stage, char const * id)
 {
     if (!stage || !id) {
         return nullptr;
     }
 
     for (size_t i = 0; i < stage->num_feeds; ++i) {
-        struct caff_feed * feed = &stage->feeds[i];
+        caff_feed * feed = &stage->feeds[i];
         if (strcmp(id, feed->id) == 0) {
             return feed;
         }
@@ -1039,7 +1062,7 @@ struct caff_feed * caff_get_stage_feed(struct caff_stage * stage, char const * i
     return nullptr;
 }
 
-static void caffeine_copy_feed_contents(struct caff_feed const * from, struct caff_feed * to)
+static void caffeine_copy_feed_contents(caff_feed const * from, caff_feed * to)
 {
     to->id = cstrdup(from->id);
     to->client_id = cstrdup(from->client_id);
@@ -1058,7 +1081,7 @@ static void caffeine_copy_feed_contents(struct caff_feed const * from, struct ca
 }
 
 
-void caff_set_stage_feed(struct caff_stage * stage, struct caff_feed const * feed)
+CAFFEINE_API void caff_set_stage_feed(caff_stage * stage, caff_feed const * feed)
 {
     if (!stage || !feed) {
         return;
@@ -1071,7 +1094,7 @@ void caff_set_stage_feed(struct caff_stage * stage, struct caff_feed const * fee
     stage->num_feeds = 1;
 }
 
-void caff_clear_stage_feeds(struct caff_stage * stage)
+CAFFEINE_API void caff_clear_stage_feeds(caff_stage * stage)
 {
     if (!stage || !stage->feeds) {
         return;
@@ -1086,7 +1109,7 @@ void caff_clear_stage_feeds(struct caff_stage * stage)
     stage->num_feeds = 0;
 }
 
-void caff_free_stage(struct caff_stage ** stage)
+CAFFEINE_API void caff_free_stage(caff_stage ** stage)
 {
     if (!stage || !*stage) {
         return;
@@ -1101,15 +1124,15 @@ void caff_free_stage(struct caff_stage ** stage)
     *stage = nullptr;
 }
 
-struct caff_stage_request * caff_copy_stage_request(
-    struct caff_stage_request const * request)
+CAFFEINE_API caff_stage_request * caff_copy_stage_request(
+    caff_stage_request const * request)
 {
     if (!request) {
         return nullptr;
     }
 
-    struct caff_stage * stage = request->stage;
-    struct caff_stage * stage_copy = nullptr;
+    caff_stage * stage = request->stage;
+    caff_stage * stage_copy = nullptr;
     if (stage) {
         caff_feed * feeds_copy = nullptr;
         if (stage->num_feeds > 0) {
@@ -1138,7 +1161,7 @@ struct caff_stage_request * caff_copy_stage_request(
     };
 }
 
-void caff_free_stage_request(struct caff_stage_request ** request)
+CAFFEINE_API void caff_free_stage_request(caff_stage_request ** request)
 {
     if (!request || !*request) {
         return;
@@ -1152,7 +1175,7 @@ void caff_free_stage_request(struct caff_stage_request ** request)
     *request = nullptr;
 }
 
-void caffeine_free_stage_response(struct caffeine_stage_response ** response)
+void caffeine_free_stage_response(StageResponse ** response)
 {
     if (!response || !*response) {
         return;
@@ -1162,7 +1185,7 @@ void caffeine_free_stage_response(struct caffeine_stage_response ** response)
     *response = nullptr;
 }
 
-void caffeine_free_failure(struct caffeine_failure_response ** failure)
+void caffeine_free_failure(FailureResponse ** failure)
 {
     if (!failure || !*failure) {
         return;
@@ -1172,7 +1195,7 @@ void caffeine_free_failure(struct caffeine_failure_response ** failure)
     *failure = nullptr;
 }
 
-static json caffeine_serialize_stage_request(struct caff_stage_request request)
+static json caffeine_serialize_stage_request(caff_stage_request request)
 {
     json request_json = {
         {"client", {
@@ -1198,7 +1221,7 @@ static json caffeine_serialize_stage_request(struct caff_stage_request request)
         json feeds = json::object();
 
         for (size_t i = 0; i < request.stage->num_feeds; ++i) {
-            struct caff_feed * feed = &request.stage->feeds[i];
+            caff_feed * feed = &request.stage->feeds[i];
             json json_feed = {
                 {"id", feed->id},
                 {"client_id", feed->client_id},
@@ -1239,7 +1262,7 @@ static json caffeine_serialize_stage_request(struct caff_stage_request request)
     return request_json;
 }
 
-std::unique_ptr<caffeine_stage_response> caffeine_deserialize_stage_response(json response_json)
+std::unique_ptr<StageResponse> caffeine_deserialize_stage_response(json response_json)
 {
     std::string cursor;
     double retry_in = 0.0;
@@ -1299,7 +1322,7 @@ std::unique_ptr<caffeine_stage_response> caffeine_deserialize_stage_response(jso
         stage->num_feeds = feedsIt->size();
         stage->feeds = new caff_feed[stage->num_feeds]{};
 
-        struct caff_feed * feed_pointer = stage->feeds;
+        caff_feed * feed_pointer = stage->feeds;
         for (auto & feedJson : *feedsIt) {
 
             auto capabilities = feedJson.value("capabilities", json::object());
@@ -1340,7 +1363,7 @@ std::unique_ptr<caffeine_stage_response> caffeine_deserialize_stage_response(jso
         }
     }
 
-    return std::make_unique<caffeine_stage_response>(
+    return std::make_unique<StageResponse>(
         cstrdup(cursor),
         retry_in,
         std::move(stage)
@@ -1352,9 +1375,9 @@ static bool is_out_of_capacity_failure_type(std::string const & type)
     return type == "OutOfCapacity";
 }
 
-static std::unique_ptr<caffeine_stage_response_result> do_caffeine_stage_update(
-    struct caff_stage_request const & request,
-    struct caff_credentials * creds)
+static std::unique_ptr<StageResponseResult> do_caffeine_stage_update(
+    caff_stage_request const & request,
+    caff_credentials_handle creds)
 {
     trace();
 
@@ -1411,7 +1434,7 @@ static std::unique_ptr<caffeine_stage_response_result> do_caffeine_stage_update(
     }
 
     if (response_code == 200) {
-        return std::make_unique<caffeine_stage_response_result>(
+        return std::make_unique<StageResponseResult>(
             caffeine_deserialize_stage_response(response_json),
             nullptr);
     }
@@ -1425,12 +1448,12 @@ static std::unique_ptr<caffeine_stage_response_result> do_caffeine_stage_update(
             }
 
             auto message_json = response_json.value("display_message", json::object());
-            return std::make_unique<caffeine_stage_response_result>(
+            return std::make_unique<StageResponseResult>(
                 nullptr,
-                std::make_unique<caffeine_failure_response>(
+                std::make_unique<FailureResponse>(
                     type,
                     response_json.value("reason", ""),
-                    caffeine_display_message{
+                    DisplayMessage{
                         message_json.value("title", ""),
                         message_json.at("body").get<std::string>(),
                     }));
@@ -1444,17 +1467,17 @@ static std::unique_ptr<caffeine_stage_response_result> do_caffeine_stage_update(
     return nullptr;
 }
 
-std::unique_ptr<caffeine_stage_response_result> caffeine_stage_update(
-    struct caff_stage_request const & request,
-    struct caff_credentials * creds)
+std::unique_ptr<StageResponseResult> caffeine_stage_update(
+    caff_stage_request const & request,
+    caff_credentials_handle creds)
 {
-    retry_request(std::unique_ptr<caffeine_stage_response_result>,
+    retry_request(std::unique_ptr<StageResponseResult>,
         do_caffeine_stage_update(request, creds));
 }
 
 static void transfer_stage_data(
-    std::unique_ptr<caffeine_stage_response> && from_response,
-    struct caff_stage_request * to_request)
+    std::unique_ptr<StageResponse> && from_response,
+    caff_stage_request * to_request)
 {
     if (to_request->cursor) {
         delete[] to_request->cursor;
@@ -1464,9 +1487,9 @@ static void transfer_stage_data(
     to_request->stage = from_response->stage.release();
 }
 
-bool caff_request_stage_update(
-    struct caff_stage_request * request,
-    struct caff_credentials * creds,
+CAFFEINE_API bool caff_request_stage_update(
+    caff_stage_request * request,
+    caff_credentials_handle creds,
     double * retry_in,
     bool * is_out_of_capacity)
 {
