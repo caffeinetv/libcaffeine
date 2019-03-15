@@ -96,6 +96,8 @@ CAFFEINE_API char * caff_create_unique_id();
 
 CAFFEINE_API void caff_free_unique_id(char ** id);
 
+CAFFEINE_API void caff_set_string(char ** dest, char const * new_value);
+
 CAFFEINE_API bool caff_is_supported_version();
 
 CAFFEINE_API caff_auth_response * caff_signin(char const * username, char const * password, char const * otp);

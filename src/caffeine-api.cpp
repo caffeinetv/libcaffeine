@@ -204,6 +204,22 @@ CAFFEINE_API void caff_free_unique_id(char ** id)
     *id = nullptr;
 }
 
+CAFFEINE_API void caff_set_string(char ** dest, char const * new_value)
+{
+    if (!dest) return;
+
+    if (*dest) {
+        delete[] *dest;
+        *dest = nullptr;
+    }
+
+    if (new_value && new_value[0] != '0') {
+        auto len = strlen(new_value);
+        *dest = new char[len + 1]{};
+        strncpy(*dest, new_value, len);
+    }
+}
+
 static size_t caffeine_curl_write_callback(char * ptr, size_t size,
     size_t nmemb, void * user_data)
 {
