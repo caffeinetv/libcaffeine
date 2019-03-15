@@ -940,7 +940,7 @@ CAFFEINE_API void caff_free_heartbeat_response(
     *response = nullptr;
 }
 
-CAFFEINE_API char * caff_annotate_title(char const * title, enum caff_rating rating)
+CAFFEINE_API char * caff_annotate_title(char const * title, caff_rating rating)
 {
     static const size_t MAX_TITLE_LENGTH = 60; // TODO: policy- should be somewhere else
     static std::string const rating_strings[] = { "", "[17+] " }; // TODO maybe same here

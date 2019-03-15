@@ -119,7 +119,7 @@ CAFFEINE_API caff_games * caff_get_supported_games();
 CAFFEINE_API void caff_free_game_info(caff_game_info ** info);
 CAFFEINE_API void caff_free_game_list(caff_games ** games);
 
-CAFFEINE_API char * caff_annotate_title(char const * title, enum caff_rating rating);
+CAFFEINE_API char * caff_annotate_title(char const * title, caff_rating rating);
 
 CAFFEINE_API bool caff_trickle_candidates(
     caff_ice_candidates candidates,
