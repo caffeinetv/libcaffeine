@@ -76,6 +76,17 @@ struct caff_credentials {
     std::string credential;
 
     std::mutex mutex;
+
+    caff_credentials(
+        std::string && access_token,
+        std::string && refresh_token,
+        std::string && caid,
+        std::string && credential)
+        : access_token(access_token)
+        , refresh_token(refresh_token)
+        , caid(caid)
+        , credential(credential)
+    { }
 };
 
 namespace {
@@ -230,20 +241,6 @@ static size_t caffeine_curl_write_callback(char * ptr, size_t size,
     std::string & result_str = *(reinterpret_cast<std::string *>(user_data));
     result_str.append(ptr, nmemb);
     return nmemb;
-}
-
-static caff_credentials_handle make_credentials(
-    std::string && access_token,
-    std::string && caid,
-    std::string && refresh_token,
-    std::string && credential)
-{
-    return new caff_credentials{
-        std::move(access_token),
-        std::move(caid),
-        std::move(refresh_token),
-        std::move(credential)
-    };
 }
 
 CAFFEINE_API char const * caff_refresh_token(caff_credentials_handle handle)
@@ -416,10 +413,10 @@ static caff_auth_response * do_caffeine_signin(
 
     auto credsIt = response_json.find("credentials");
     if (credsIt != response_json.end()) {
-        creds = make_credentials(
+        creds = new caff_credentials(
             credsIt->at("access_token").get<std::string>(),
-            credsIt->at("caid").get<std::string>(),
             credsIt->at("refresh_token").get<std::string>(),
+            credsIt->at("caid").get<std::string>(),
             credsIt->at("credential").get<std::string>());
         log_debug("Sign-in complete");
     }
@@ -507,10 +504,10 @@ static caff_credentials_handle do_caffeine_refresh_auth(
     auto credsIt = response_json.find("credentials");
     if (credsIt != response_json.end()) {
         log_debug("Sign-in complete");
-        return make_credentials(
+        return new caff_credentials(
             credsIt->at("access_token").get<std::string>(),
-            credsIt->at("caid").get<std::string>(),
             credsIt->at("refresh_token").get<std::string>(),
+            credsIt->at("caid").get<std::string>(),
             credsIt->at("credential").get<std::string>());
     }
 
