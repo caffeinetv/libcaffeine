@@ -1184,26 +1184,6 @@ CAFFEINE_API void caff_free_stage_request(caff_stage_request ** request)
     *request = nullptr;
 }
 
-void caffeine_free_stage_response(StageResponse ** response)
-{
-    if (!response || !*response) {
-        return;
-    }
-
-    delete *response;
-    *response = nullptr;
-}
-
-void caffeine_free_failure(FailureResponse ** failure)
-{
-    if (!failure || !*failure) {
-        return;
-    }
-
-    delete *failure;
-    *failure = nullptr;
-}
-
 static json caffeine_serialize_stage_request(caff_stage_request request)
 {
     json request_json = {
