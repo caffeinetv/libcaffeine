@@ -347,7 +347,7 @@ static caff_auth_response * do_caffeine_signin(
             }}
         };
 
-        if (otp) {
+        if (otp && otp[0]) {
             request_json.push_back({ "mfa", {{"otp", otp}} });
         }
     }
