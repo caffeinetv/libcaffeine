@@ -215,6 +215,27 @@ CAFFEINE_API void caff_free_unique_id(char ** id)
     *id = nullptr;
 }
 
+/* TODO holdovers from C */
+static char * cstrdup(char const * str) {
+    if (!str)
+        return nullptr;
+
+    auto copylen = strlen(str) + 1;
+    auto result = new char[copylen];
+    strncpy(result, str, copylen);
+    return result;
+}
+
+static char * cstrdup(std::string const & str) {
+    if (str.empty())
+        return nullptr;
+
+    auto result = new char[str.length() + 1];
+    str.copy(result, str.length());
+    result[str.length()] = 0;
+    return result;
+}
+
 CAFFEINE_API void caff_set_string(char ** dest, char const * new_value)
 {
     if (!dest) return;
@@ -224,11 +245,7 @@ CAFFEINE_API void caff_set_string(char ** dest, char const * new_value)
         *dest = nullptr;
     }
 
-    if (new_value && new_value[0] != '0') {
-        auto len = strlen(new_value);
-        *dest = new char[len + 1]{};
-        strncpy(*dest, new_value, len);
-    }
+    *dest = cstrdup(new_value);
 }
 
 static size_t caffeine_curl_write_callback(char * ptr, size_t size,
@@ -309,27 +326,6 @@ static bool do_caffeine_is_supported_version()
 
 CAFFEINE_API bool caff_is_supported_version() {
     retry_request(bool, do_caffeine_is_supported_version());
-}
-
-/* TODO holdovers from C */
-static char * cstrdup(char const * str) {
-    if (!str)
-        return nullptr;
-
-    auto copylen = strlen(str) + 1;
-    auto result = new char[copylen];
-    strncpy(result, str, copylen);
-    return result;
-}
-
-static char * cstrdup(std::string const & str) {
-    if (str.empty())
-        return nullptr;
-
-    auto result = new char[str.length() + 1];
-    str.copy(result, str.length());
-    result[str.length()] = 0;
-    return result;
 }
 
 /* TODO: refactor this - lots of dupe code between request types
