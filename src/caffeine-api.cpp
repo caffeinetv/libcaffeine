@@ -1169,7 +1169,7 @@ CAFFEINE_API caff_stage_request * caff_copy_stage_request(
         caff_feed * feeds_copy = nullptr;
         if (stage->num_feeds > 0) {
             feeds_copy = new caff_feed[stage->num_feeds];
-            for (size_t i = 0; i < stage_copy->num_feeds; ++i) {
+            for (size_t i = 0; i < stage->num_feeds; ++i) {
                 caffeine_copy_feed_contents(&stage->feeds[i], &feeds_copy[i]);
             }
         }
