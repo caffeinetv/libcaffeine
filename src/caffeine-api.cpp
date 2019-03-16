@@ -248,6 +248,13 @@ CAFFEINE_API void caff_set_string(char ** dest, char const * new_value)
     *dest = cstrdup(new_value);
 }
 
+CAFFEINE_API void caff_free_string(char ** str)
+{
+    if (!str) return;
+    delete[] * str;
+    *str = nullptr;
+}
+
 static size_t caffeine_curl_write_callback(char * ptr, size_t size,
     size_t nmemb, void * user_data)
 {
