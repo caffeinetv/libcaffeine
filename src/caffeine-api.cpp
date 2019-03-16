@@ -191,16 +191,24 @@ namespace {
 
 }
 
+static bool do_seed()
+{
+    srand(time(NULL));
+    return true;
+}
+
 // TODO something better
 CAFFEINE_API char * caff_create_unique_id()
 {
+    static bool seeded = do_seed();
+
     const int id_length = 12;
     const char charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
     auto id = new char[id_length + 1]{};
 
     for (int i = 0; i < id_length; ++i) {
         int random_index = rand() % (sizeof(charset) - 1);
-        id += charset[random_index];
+        id[i] = charset[random_index];
     }
 
     return id;
