@@ -1140,6 +1140,14 @@ CAFFEINE_API void caff_free_stage(caff_stage ** stage)
     *stage = nullptr;
 }
 
+CAFFEINE_API caff_stage_request * caff_create_stage_request(char const * username, char const * client_id)
+{
+    auto request = new caff_stage_request{};
+    caff_set_string(&request->username, username);
+    caff_set_string(&request->client_id, client_id);
+    return request;
+}
+
 CAFFEINE_API caff_stage_request * caff_copy_stage_request(
     caff_stage_request const * request)
 {

@@ -145,6 +145,7 @@ CAFFEINE_API void caff_set_stage_feed(caff_stage * stage, caff_feed const * feed
 CAFFEINE_API void caff_clear_stage_feeds(caff_stage * stage);
 CAFFEINE_API void caff_free_stage(caff_stage ** stage);
 
+CAFFEINE_API caff_stage_request * caff_create_stage_request(char const * username, char const * client_id);
 CAFFEINE_API caff_stage_request * caff_copy_stage_request(caff_stage_request const * request);
 CAFFEINE_API void caff_free_stage_request(caff_stage_request ** request);
 
