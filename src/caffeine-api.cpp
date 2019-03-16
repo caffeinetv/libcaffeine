@@ -1317,6 +1317,7 @@ std::unique_ptr<StageResponse> caffeine_deserialize_stage_response(json response
         auto upsertIt = payloadIt->find("upsert_broadcast");
         if (upsertIt != payloadIt->end())
             upsertIt->get_to(upsert_broadcast);
+        payloadIt->at("live").get_to(live);
     }
     catch (...) {
         log_error("Failed to parse stage");
