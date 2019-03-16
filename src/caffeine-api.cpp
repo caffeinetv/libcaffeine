@@ -1207,6 +1207,13 @@ CAFFEINE_API void caff_free_stage_request(caff_stage_request ** request)
     *request = nullptr;
 }
 
+// TODO: figure out a better way to enforce or tolerate this
+static inline char const * nulltoempty(char const * orig)
+{
+    if (orig) return orig;
+    return "";
+}
+
 static json caffeine_serialize_stage_request(caff_stage_request request)
 {
     json request_json = {
@@ -1225,7 +1232,7 @@ static json caffeine_serialize_stage_request(caff_stage_request request)
             {"id", request.stage->id},
             {"username", request.stage->username},
             {"title", request.stage->title},
-            {"broadcast_id", request.stage->broadcast_id},
+            {"broadcast_id", nulltoempty(request.stage->broadcast_id)},
             {"upsert_broadcast", request.stage->upsert_broadcast},
             {"live", request.stage->live},
         };
@@ -1235,11 +1242,11 @@ static json caffeine_serialize_stage_request(caff_stage_request request)
         for (size_t i = 0; i < request.stage->num_feeds; ++i) {
             caff_feed * feed = &request.stage->feeds[i];
             json json_feed = {
-                {"id", feed->id},
-                {"client_id", feed->client_id},
-                {"role", feed->role},
-                {"description", feed->description},
-                {"source_connection_quality", feed->source_connection_quality},
+                {"id", nulltoempty(feed->id)},
+                {"client_id", nulltoempty(feed->client_id)},
+                {"role", nulltoempty(feed->role)},
+                {"description", nulltoempty(feed->description)},
+                {"source_connection_quality", nulltoempty(feed->source_connection_quality)},
                 {"volume", feed->volume},
                 {"capabilities", {
                     {"video", feed->capabilities.video},
@@ -1256,11 +1263,11 @@ static json caffeine_serialize_stage_request(caff_stage_request request)
 
             if (feed->stream.sdp_offer || feed->stream.id) {
                 json_feed.push_back({ "stream", {
-                    {"id", feed->stream.id},
-                    {"source_id", feed->stream.source_id},
-                    {"url", feed->stream.url},
-                    {"sdp_offer", feed->stream.sdp_offer},
-                    {"sdp_answer", feed->stream.sdp_answer},
+                    {"id", nulltoempty(feed->stream.id)},
+                    {"source_id", nulltoempty(feed->stream.source_id)},
+                    {"url", nulltoempty(feed->stream.url)},
+                    {"sdp_offer", nulltoempty(feed->stream.sdp_offer)},
+                    {"sdp_answer", nulltoempty(feed->stream.sdp_answer)},
                 } });
             }
 
