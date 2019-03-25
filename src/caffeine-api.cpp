@@ -204,12 +204,12 @@ CAFFEINE_API char * caff_create_unique_id()
     const size_t idLength = 12;
     auto id = new char[idLength + 1]{};
 
-    for (int i = 0; i < idLength; ++i) {
+    for (size_t i = 0; i < idLength; ++i) {
         id[i] = charset[distribution(generator)];
     }
 
     return id;
-} // anonymous namespace
+}
 
 CAFFEINE_API void caff_free_unique_id(char ** id)
 {
