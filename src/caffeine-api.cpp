@@ -9,6 +9,8 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <ctime>
+#include <random>
 
 
 /* TODO: C++ify (namespace, raii, not libcurl, etc) */
@@ -191,24 +193,19 @@ namespace {
 
 }
 
-static bool do_seed()
-{
-    srand(time(NULL));
-    return true;
-}
-
-// TODO something better
+// TODO something better?
 CAFFEINE_API char * caff_create_unique_id()
 {
-    static bool seeded = do_seed();
+    static char const charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-    const int id_length = 12;
-    const char charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-    auto id = new char[id_length + 1]{};
+    static std::default_random_engine generator(std::time(0));
+    static std::uniform_int_distribution<size_t> distribution(0, sizeof(charset) - 1);
 
-    for (int i = 0; i < id_length; ++i) {
-        int random_index = rand() % (sizeof(charset) - 1);
-        id[i] = charset[random_index];
+    const size_t idLength = 12;
+    auto id = new char[idLength + 1]{};
+
+    for (int i = 0; i < idLength; ++i) {
+        id[i] = charset[distribution(generator)];
     }
 
     return id;
