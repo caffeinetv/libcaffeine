@@ -10,12 +10,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(WebRTC REQUIRED)
 find_package(Libcurl REQUIRED) # TODO: use a C++ http library
 
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-
 include_directories(
     include
     x264/include #TODO find externally
-    nlohmann_json/single_include
+    third_party/nlohmann_json/single_include
 
     ${LIBCURL_INCLUDE_DIRS}
 
