@@ -78,14 +78,14 @@ struct caff_credentials {
     std::mutex mutex;
 
     caff_credentials(
-        std::string && access_token,
-        std::string && refresh_token,
-        std::string && caid,
-        std::string && credential)
-        : access_token(access_token)
-        , refresh_token(refresh_token)
-        , caid(caid)
-        , credential(credential)
+        std::string access_token,
+        std::string refresh_token,
+        std::string caid,
+        std::string credential)
+        : access_token(std::move(access_token))
+        , refresh_token(std::move(refresh_token))
+        , caid(std::move(caid))
+        , credential(std::move(credential))
     { }
 };
 
@@ -95,8 +95,8 @@ namespace {
         double retry_in;
         std::unique_ptr<caff_stage> stage;
 
-        StageResponse(std::string const & cursor, double retry_in, std::unique_ptr<caff_stage> && stage)
-            : cursor(cursor), retry_in(retry_in), stage(std::move(stage))
+        StageResponse(std::string cursor, double retry_in, std::unique_ptr<caff_stage> stage)
+            : cursor(std::move(cursor)), retry_in(retry_in), stage(std::move(stage))
         {}
     };
 
@@ -111,10 +111,10 @@ namespace {
         DisplayMessage display_message;
 
         FailureResponse(
-            std::string const & type,
-            std::string const & reason,
-            DisplayMessage const &display_message)
-            : type(type), reason(reason), display_message(display_message)
+            std::string type,
+            std::string reason,
+            DisplayMessage display_message)
+            : type(std::move(type)), reason(std::move(reason)), display_message(std::move(display_message))
         {}
     };
 
@@ -123,8 +123,8 @@ namespace {
         std::unique_ptr<FailureResponse> failure;
 
         StageResponseResult(
-            std::unique_ptr<StageResponse> && response,
-            std::unique_ptr<FailureResponse> && failure)
+            std::unique_ptr<StageResponse> response,
+            std::unique_ptr<FailureResponse> failure)
             : response(std::move(response))
             , failure(std::move(failure))
         {}
@@ -1383,11 +1383,7 @@ std::unique_ptr<StageResponse> caffeine_deserialize_stage_response(json response
         }
     }
 
-    return std::make_unique<StageResponse>(
-        cstrdup(cursor),
-        retry_in,
-        std::move(stage)
-        );
+    return std::make_unique<StageResponse>(std::move(cursor), retry_in, std::move(stage));
 }
 
 static bool is_out_of_capacity_failure_type(std::string const & type)
@@ -1471,7 +1467,7 @@ static std::unique_ptr<StageResponseResult> do_caffeine_stage_update(
             return std::make_unique<StageResponseResult>(
                 nullptr,
                 std::make_unique<FailureResponse>(
-                    type,
+                    std::move(type),
                     response_json.value("reason", ""),
                     DisplayMessage{
                         message_json.value("title", ""),
