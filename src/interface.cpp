@@ -75,12 +75,14 @@ namespace caff {
     }
 
     Stream* Interface::StartStream(
-        std::function<std::string(std::string const&)> offerGeneratedCallback,
-        std::function<bool(std::vector<IceInfo> const&)> iceGatheredCallback,
+        caff_credentials_handle credentials,
+        std::string username,
+        std::string title,
+        caff_rating rating,
         std::function<void()> startedCallback,
         std::function<void(caff_error)> failedCallback) {
-        auto stream = new Stream(audioDevice, factory);
-        stream->Start(offerGeneratedCallback, iceGatheredCallback, startedCallback, failedCallback);
+        auto stream = new Stream(credentials, username, title, rating, audioDevice, factory);
+        stream->Start(startedCallback, failedCallback);
         return stream;
     }
 

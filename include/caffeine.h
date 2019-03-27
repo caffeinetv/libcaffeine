@@ -66,29 +66,26 @@ typedef enum caff_error {
     CAFF_ERROR_UNKNOWN,
 } caff_error;
 
+/* Content rating for broadcasts */
+typedef enum caff_rating {
+    CAFF_RATING_NONE,
+    CAFF_RATING_SEVENTEEN_PLUS,
+    CAFF_RATING_MAX,
+} caff_rating;
+
 /* Callback type for WebRTC log messages */
 typedef void(*caff_log_callback)(caff_log_severity severity, char const* message);
 
-/* Struct for ICE offers/answers */
-typedef struct caff_ice_info {
-    char const* sdp;
-    char const* sdp_mid;
-    int sdp_mline_index;
-} caff_ice_info;
-
-typedef caff_ice_info const caff_ice_candidates[];
-
 /* Callback types for starting stream */
-
-/* TODO: Move SDP & ICE stuff under the hood */
-typedef char const* (*caff_offer_generated)(void* user_data, char const* offer);
-typedef bool(*caff_ice_gathered)(void* user_data, caff_ice_candidates candidates, size_t num_candidates);
 typedef void(*caff_stream_started)(void* user_data);
 typedef void(*caff_stream_failed)(void* user_data, caff_error error);
 
 /* Opaque handles to internal objects */
 struct caff_interface;
 typedef struct caff_interface* caff_interface_handle;
+
+struct caff_credentials;
+typedef struct caff_credentials * caff_credentials_handle;
 
 struct caff_stream;
 typedef struct caff_stream* caff_stream_handle;
@@ -119,9 +116,6 @@ CAFFEINE_API caff_interface_handle caff_initialize(caff_log_callback log_callbac
  * into started_callback or failed_callback with the result. This may
  * happen on a different thread than the caller.
  *
- * **TODO**: move SDP offer/answer and ICE negotiation inside the library (i.e.
- * remove offer_generated_callback and ice_gathered_callback)
- *
  * interface_handle: handle to the caffeine interface from caff_initialize
  * user_data: an optional pointer passed blindly to the callbacks
  * started_callback: called when stream successfully starts
@@ -134,8 +128,10 @@ CAFFEINE_API caff_interface_handle caff_initialize(caff_log_callback log_callbac
 CAFFEINE_API caff_stream_handle caff_start_stream(
     caff_interface_handle interface_handle,
     void* user_data,
-    caff_offer_generated offer_generated_callback,
-    caff_ice_gathered ice_gathered_callback,
+    caff_credentials_handle credentials,
+    char const * username,
+    char const * title,
+    caff_rating rating,
     caff_stream_started started_callback,
     caff_stream_failed failed_callback);
 

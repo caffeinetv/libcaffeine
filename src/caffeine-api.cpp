@@ -1,6 +1,7 @@
 #define LIBCAFFEINE_LIBRARY
 
 #include "caffeine-api.h"
+#include "iceinfo.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -9,8 +10,7 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
-#include <ctime>
-#include <random>
+#include <algorithm>
 
 
 /* TODO: C++ify (namespace, raii, not libcurl, etc) */
@@ -39,7 +39,7 @@
 #define BROADCAST_URL(id)  (std::string(API_ENDPOINT "v1/broadcasts/") + (id))
 
 #define STAGE_UPDATE_URL(username)        (std::string(REALTIME_ENDPOINT "v4/stage/") + (username))
-#define STREAM_HEARTBEAT_URL(stream_url)  ((stream_url) + std::string("/heartbeat"))
+#define STREAM_HEARTBEAT_URL(streamUrl)   (std::string((streamUrl)) + "/heartbeat")
 
 #define CONTENT_TYPE_JSON  "Content-Type: application/json"
 #define CONTENT_TYPE_FORM  "Content-Type: multipart/form-data"
@@ -52,6 +52,7 @@
 #define log_info(...) ((void)0)
 #define trace() ((void)0)
 
+using namespace caff;
 using json = nlohmann::json;
 
 /* Notes for refactoring
@@ -95,9 +96,9 @@ namespace {
     struct StageResponse {
         std::string cursor;
         double retry_in;
-        std::unique_ptr<caff_stage> stage;
+        absl::optional<caff_stage> stage;
 
-        StageResponse(std::string cursor, double retry_in, std::unique_ptr<caff_stage> stage)
+        StageResponse(std::string cursor, double retry_in, absl::optional<caff_stage> stage)
             : cursor(std::move(cursor)), retry_in(retry_in), stage(std::move(stage))
         {}
     };
@@ -191,33 +192,6 @@ namespace {
         }
     };
 
-}
-
-// TODO something better?
-CAFFEINE_API char * caff_create_unique_id()
-{
-    static char const charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-    static std::default_random_engine generator(std::time(0));
-    static std::uniform_int_distribution<size_t> distribution(0, sizeof(charset) - 1);
-
-    const size_t idLength = 12;
-    auto id = new char[idLength + 1]{};
-
-    for (size_t i = 0; i < idLength; ++i) {
-        id[i] = charset[distribution(generator)];
-    }
-
-    return id;
-}
-
-CAFFEINE_API void caff_free_unique_id(char ** id)
-{
-    if (!id || !*id)
-        return;
-
-    delete[](*id);
-    *id = nullptr;
 }
 
 /* TODO holdovers from C */
@@ -794,19 +768,18 @@ CAFFEINE_API void caff_free_game_list(caff_games ** games)
 }
 
 static bool do_caffeine_trickle_candidates(
-    caff_ice_candidates candidates,
-    size_t num_candidates,
-    char const * stream_url,
+    std::vector<IceInfo> const & candidates,
+    std::string const & streamUrl,
     caff_credentials_handle creds)
 {
     trace();
     auto ice_candidates = json::array({});
-    for (size_t i = 0; i < num_candidates; ++i)
+    for (auto const & candidate : candidates)
     {
         ice_candidates.push_back({
-            {"candidate", candidates[i].sdp},
-            {"sdpMid", candidates[i].sdp_mid},
-            {"sdpMLineIndex", candidates[i].sdp_mline_index},
+            {"candidate", candidate.sdp},
+            {"sdpMid", candidate.sdpMid},
+            {"sdpMLineIndex", candidate.sdpMLineIndex},
             });
     }
 
@@ -819,7 +792,7 @@ static bool do_caffeine_trickle_candidates(
 
     ScopedCURL curl(CONTENT_TYPE_JSON, creds);
 
-    curl_easy_setopt(curl, CURLOPT_URL, stream_url);
+    curl_easy_setopt(curl, CURLOPT_URL, streamUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body.c_str());
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
 
@@ -844,7 +817,7 @@ static bool do_caffeine_trickle_candidates(
     case 401:
         log_info("Unauthorized - refreshing credentials");
         if (refresh_credentials(creds)) {
-            response = do_caffeine_trickle_candidates(candidates, num_candidates, stream_url, creds);
+            response = do_caffeine_trickle_candidates(candidates, streamUrl, creds);
         }
         break;
     default:
@@ -861,26 +834,24 @@ static bool do_caffeine_trickle_candidates(
     return response;
 }
 
-CAFFEINE_API bool caff_trickle_candidates(
-    caff_ice_candidates candidates,
-    size_t num_candidates,
-    char const * stream_url,
+bool caff_trickle_candidates(
+    std::vector<IceInfo> const & candidates,
+    std::string const & streamUrl,
     caff_credentials_handle creds)
 {
     retry_request(bool,
-        do_caffeine_trickle_candidates(candidates, num_candidates,
-            stream_url, creds));
+        do_caffeine_trickle_candidates(candidates, streamUrl, creds));
 }
 
 static caff_heartbeat_response * do_caffeine_heartbeat_stream(
-    char const * stream_url,
+    char const * streamUrl,
     caff_credentials_handle creds)
 {
     trace();
 
     ScopedCURL curl(CONTENT_TYPE_JSON, creds);
 
-    auto url = STREAM_HEARTBEAT_URL(stream_url);
+    auto url = STREAM_HEARTBEAT_URL(streamUrl);
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{}"); // TODO: is this necessary?
@@ -906,7 +877,7 @@ static caff_heartbeat_response * do_caffeine_heartbeat_stream(
     if (response_code == 401) {
         log_info("Unauthorized - refreshing credentials");
         if (refresh_credentials(creds)) {
-            return do_caffeine_heartbeat_stream(stream_url, creds);
+            return do_caffeine_heartbeat_stream(streamUrl, creds);
         }
         return nullptr;
     }
@@ -932,12 +903,12 @@ static caff_heartbeat_response * do_caffeine_heartbeat_stream(
 }
 
 CAFFEINE_API caff_heartbeat_response * caff_heartbeat_stream(
-    char const * stream_url,
+    char const * streamUrl,
     caff_credentials_handle creds)
 {
     retry_request(
         caff_heartbeat_response *,
-        do_caffeine_heartbeat_stream(stream_url, creds));
+        do_caffeine_heartbeat_stream(streamUrl, creds));
 }
 
 CAFFEINE_API void caff_free_heartbeat_response(
@@ -950,21 +921,6 @@ CAFFEINE_API void caff_free_heartbeat_response(
     delete[](*response)->connection_quality;
     delete *response;
     *response = nullptr;
-}
-
-CAFFEINE_API char * caff_annotate_title(char const * title, caff_rating rating)
-{
-    static const size_t MAX_TITLE_LENGTH = 60; // TODO: policy- should be somewhere else
-    static std::string const rating_strings[] = { "", "[17+] " }; // TODO maybe same here
-
-    if (rating < CAFF_RATING_NONE || rating >= CAFF_RATING_MAX)
-        rating = CAFF_RATING_NONE;
-
-    auto final_title = rating_strings[rating] + title;
-    if (final_title.length() > MAX_TITLE_LENGTH)
-        final_title.resize(MAX_TITLE_LENGTH);
-
-    return cstrdup(final_title);
 }
 
 // RAII helper
@@ -1047,168 +1003,35 @@ CAFFEINE_API bool caff_update_broadcast_screenshot(
             creds));
 }
 
-static void caffeine_free_feed_contents(caff_feed * feed)
+caff_feed const * caff_get_stage_feed(caff_stage const & stage, std::string const & id)
 {
-    if (!feed) {
-        return;
-    }
-
-    delete[]feed->id;
-    delete[]feed->client_id;
-    delete[]feed->role;
-    delete[]feed->description;
-    delete[]feed->source_connection_quality;
-    delete[]feed->content.id;
-    delete[]feed->content.type;
-    delete[]feed->stream.id;
-    delete[]feed->stream.source_id;
-    delete[]feed->stream.url;
-    delete[]feed->stream.sdp_offer;
-    delete[]feed->stream.sdp_answer;
-}
-
-CAFFEINE_API caff_feed * caff_get_stage_feed(caff_stage * stage, char const * id)
-{
-    if (!stage || !id) {
-        return nullptr;
-    }
-
-    for (size_t i = 0; i < stage->num_feeds; ++i) {
-        caff_feed * feed = &stage->feeds[i];
-        if (strcmp(id, feed->id) == 0) {
-            return feed;
+    for (auto & feed : stage.feeds) {
+        if (feed.id == id) {
+            return &feed;
         }
     }
-
-    return nullptr;
+    return {};
 }
 
-static void caffeine_copy_feed_contents(caff_feed const * from, caff_feed * to)
+void caff_set_stage_feed(caff_stage & stage, caff_feed feed)
 {
-    to->id = cstrdup(from->id);
-    to->client_id = cstrdup(from->client_id);
-    to->role = cstrdup(from->role);
-    to->description = cstrdup(from->description);
-    to->source_connection_quality = cstrdup(from->source_connection_quality);
-    to->volume = from->volume;
-    to->capabilities = from->capabilities;
-    to->content.id = cstrdup(from->content.id);
-    to->content.type = cstrdup(from->content.type);
-    to->stream.id = cstrdup(from->stream.id);
-    to->stream.source_id = cstrdup(from->stream.source_id);
-    to->stream.url = cstrdup(from->stream.url);
-    to->stream.sdp_offer = cstrdup(from->stream.sdp_offer);
-    to->stream.sdp_answer = cstrdup(from->stream.sdp_answer);
+    stage.feeds.clear();
+    stage.feeds.push_back(std::move(feed));
 }
 
-
-CAFFEINE_API void caff_set_stage_feed(caff_stage * stage, caff_feed const * feed)
-{
-    if (!stage || !feed) {
-        return;
-    }
-
-    caff_clear_stage_feeds(stage);
-
-    stage->feeds = new caff_feed;
-    caffeine_copy_feed_contents(feed, stage->feeds);
-    stage->num_feeds = 1;
-}
-
-CAFFEINE_API void caff_clear_stage_feeds(caff_stage * stage)
-{
-    if (!stage || !stage->feeds) {
-        return;
-    }
-
-    for (size_t i = 0; i < stage->num_feeds; ++i) {
-        caffeine_free_feed_contents(&stage->feeds[i]);
-    }
-
-    delete[]stage->feeds;
-    stage->feeds = nullptr;
-    stage->num_feeds = 0;
-}
-
-CAFFEINE_API void caff_free_stage(caff_stage ** stage)
-{
-    if (!stage || !*stage) {
-        return;
-    }
-
-    delete[](*stage)->id;
-    delete[](*stage)->username;
-    delete[](*stage)->title;
-    delete[](*stage)->broadcast_id;
-    caff_clear_stage_feeds(*stage);
-    delete *stage;
-    *stage = nullptr;
-}
-
-CAFFEINE_API caff_stage_request * caff_create_stage_request(char const * username, char const * client_id)
+caff_stage_request * caff_create_stage_request(std::string username, std::string client_id)
 {
     auto request = new caff_stage_request{};
-    caff_set_string(&request->username, username);
-    caff_set_string(&request->client_id, client_id);
+    request->username = std::move(username);
+    request->client_id = std::move(client_id);
     return request;
 }
 
-CAFFEINE_API caff_stage_request * caff_copy_stage_request(
-    caff_stage_request const * request)
-{
-    if (!request) {
-        return nullptr;
-    }
-
-    caff_stage * stage = request->stage;
-    caff_stage * stage_copy = nullptr;
-    if (stage) {
-        caff_feed * feeds_copy = nullptr;
-        if (stage->num_feeds > 0) {
-            feeds_copy = new caff_feed[stage->num_feeds];
-            for (size_t i = 0; i < stage->num_feeds; ++i) {
-                caffeine_copy_feed_contents(&stage->feeds[i], &feeds_copy[i]);
-            }
-        }
-        stage_copy = new caff_stage{
-            cstrdup(stage->id),
-            cstrdup(stage->username),
-            cstrdup(stage->title),
-            cstrdup(stage->broadcast_id),
-            stage->upsert_broadcast,
-            stage->live,
-            feeds_copy,
-            stage->num_feeds,
-        };
-    }
-
-    return new caff_stage_request{
-        cstrdup(request->username),
-        cstrdup(request->client_id),
-        cstrdup(request->cursor),
-        stage_copy
-    };
-}
-
-CAFFEINE_API void caff_free_stage_request(caff_stage_request ** request)
-{
-    if (!request || !*request) {
-        return;
-    }
-
-    delete[](*request)->username;
-    delete[](*request)->client_id;
-    delete[](*request)->cursor;
-    caff_free_stage(&(*request)->stage);
-    delete *request;
-    *request = nullptr;
-}
-
 // TODO: figure out a better way to enforce or tolerate this
-static inline char const * nulltoempty(char const * orig)
+static inline std::string const & optionalToEmpty(absl::optional<std::string> orig)
 {
-    if (orig) return orig;
-    return "";
+    static std::string const empty;
+    return orig ? *orig : empty;
 }
 
 static json caffeine_serialize_stage_request(caff_stage_request request)
@@ -1221,7 +1044,7 @@ static json caffeine_serialize_stage_request(caff_stage_request request)
     };
 
     if (request.cursor) {
-        request_json.push_back({ "cursor", request.cursor });
+        request_json.push_back({ "cursor", *request.cursor });
     }
 
     if (request.stage) {
@@ -1229,46 +1052,45 @@ static json caffeine_serialize_stage_request(caff_stage_request request)
             {"id", request.stage->id},
             {"username", request.stage->username},
             {"title", request.stage->title},
-            {"broadcast_id", nulltoempty(request.stage->broadcast_id)},
+            {"broadcast_id", optionalToEmpty(request.stage->broadcast_id)},
             {"upsert_broadcast", request.stage->upsert_broadcast},
             {"live", request.stage->live},
         };
 
         json feeds = json::object();
 
-        for (size_t i = 0; i < request.stage->num_feeds; ++i) {
-            caff_feed * feed = &request.stage->feeds[i];
+        for (auto const & feed : request.stage->feeds) {
             json json_feed = {
-                {"id", nulltoempty(feed->id)},
-                {"client_id", nulltoempty(feed->client_id)},
-                {"role", nulltoempty(feed->role)},
-                {"description", nulltoempty(feed->description)},
-                {"source_connection_quality", nulltoempty(feed->source_connection_quality)},
-                {"volume", feed->volume},
+                {"id", optionalToEmpty(feed.id)},
+                {"client_id", optionalToEmpty(feed.client_id)},
+                {"role", optionalToEmpty(feed.role)},
+                {"description", optionalToEmpty(feed.description)},
+                {"source_connection_quality", optionalToEmpty(feed.source_connection_quality)},
+                {"volume", feed.volume},
                 {"capabilities", {
-                    {"video", feed->capabilities.video},
-                    {"audio", feed->capabilities.audio},
+                    {"video", feed.capabilities.video},
+                    {"audio", feed.capabilities.audio},
                 }},
             };
 
-            if (feed->content.id && feed->content.type) {
+            if (feed.content) {
                 json_feed.push_back({ "content", {
-                    {"id", feed->content.id},
-                    {"type", feed->content.type},
+                    {"id", feed.content->id},
+                    {"type", feed.content->type},
                 } });
             }
 
-            if (feed->stream.sdp_offer || feed->stream.id) {
+            if (feed.stream) {
                 json_feed.push_back({ "stream", {
-                    {"id", nulltoempty(feed->stream.id)},
-                    {"source_id", nulltoempty(feed->stream.source_id)},
-                    {"url", nulltoempty(feed->stream.url)},
-                    {"sdp_offer", nulltoempty(feed->stream.sdp_offer)},
-                    {"sdp_answer", nulltoempty(feed->stream.sdp_answer)},
+                    {"id", optionalToEmpty(feed.stream->id)},
+                    {"source_id", optionalToEmpty(feed.stream->source_id)},
+                    {"url", optionalToEmpty(feed.stream->url)},
+                    {"sdp_offer", optionalToEmpty(feed.stream->sdp_offer)},
+                    {"sdp_answer", optionalToEmpty(feed.stream->sdp_answer)},
                 } });
             }
 
-            feeds.push_back({ feed->id, json_feed });
+            feeds.push_back({ feed.id, json_feed });
         }
 
         stage.push_back({ "feeds", feeds });
@@ -1321,25 +1143,17 @@ std::unique_ptr<StageResponse> caffeine_deserialize_stage_response(json response
         return nullptr;
     }
 
-    std::unique_ptr<caff_stage> stage{
-        new caff_stage{
-            cstrdup(id),
-            cstrdup(username),
-            cstrdup(title),
-            cstrdup(broadcast_id),
+    caff_stage stage{
+            std::move(id),
+            std::move(username),
+            std::move(title),
+            std::move(broadcast_id),
             upsert_broadcast,
-            live,
-            nullptr,
-            0
-        },
+            live
     };
 
     auto feedsIt = payloadIt->find("feeds");
     if (feedsIt != payloadIt->end() && feedsIt->size() > 0) {
-        stage->num_feeds = feedsIt->size();
-        stage->feeds = new caff_feed[stage->num_feeds]{};
-
-        caff_feed * feed_pointer = stage->feeds;
         for (auto & feedJson : *feedsIt) {
 
             auto capabilities = feedJson.value("capabilities", json::object());
@@ -1347,36 +1161,35 @@ std::unique_ptr<StageResponse> caffeine_deserialize_stage_response(json response
             auto stream = feedJson.value("stream", json::object());
 
             try {
-                *feed_pointer = {
-                    cstrdup(feedJson.at("id").get<std::string>()),
-                    cstrdup(feedJson.value("client_id", "")),
-                    cstrdup(feedJson.value("role", "")),
-                    cstrdup(feedJson.value("description", "")),
-                    cstrdup(feedJson.value("source_connection_quality", "")),
+                // TODO: handle optional fields better than sticking empty strings
+                stage.feeds.push_back(caff_feed{
+                    feedJson.at("id").get<std::string>(),
+                    feedJson.value("client_id", ""),
+                    feedJson.value("role", ""),
+                    feedJson.value("description", ""),
+                    feedJson.value("source_connection_quality", ""),
                     feedJson.value("volume", 0.0),
                     {
                         capabilities.value("audio", true),
                         capabilities.value("video", true),
                     },
-                    {
-                        cstrdup(content.value("id", "")),
-                        cstrdup(content.value("type", "")),
+                    caff_content{
+                        content.value("id", ""),
+                        content.value("type", ""),
                     },
-                    {
-                        cstrdup(stream.value("id", "")),
-                        cstrdup(stream.value("source_id", "")),
-                        cstrdup(stream.value("url", "")),
-                        cstrdup(stream.value("sdp_offer", "")),
-                        cstrdup(stream.value("sdp_answer", "")),
+                    caff_feed_stream{
+                        stream.value("id", ""),
+                        stream.value("source_id", ""),
+                        stream.value("url", ""),
+                        stream.value("sdp_offer", ""),
+                        stream.value("sdp_answer", ""),
                     },
-                };
+                });
             }
             catch (...) {
                 log_error("Failed to parse feed");
                 return nullptr;
             }
-
-            ++feed_pointer;
         }
     }
 
@@ -1394,7 +1207,7 @@ static std::unique_ptr<StageResponseResult> do_caffeine_stage_update(
 {
     trace();
 
-    if (!request.username) {
+    if (request.username.empty()) {
         log_error("Did not set request username");
         return nullptr;
     }
@@ -1488,19 +1301,7 @@ std::unique_ptr<StageResponseResult> caffeine_stage_update(
         do_caffeine_stage_update(request, creds));
 }
 
-static void transfer_stage_data(
-    std::unique_ptr<StageResponse> && from_response,
-    caff_stage_request * to_request)
-{
-    if (to_request->cursor) {
-        delete[] to_request->cursor;
-    }
-    caff_free_stage(&to_request->stage);
-    to_request->cursor = cstrdup(from_response->cursor);
-    to_request->stage = from_response->stage.release();
-}
-
-CAFFEINE_API bool caff_request_stage_update(
+bool caff_request_stage_update(
     caff_stage_request * request,
     caff_credentials_handle creds,
     double * retry_in,
@@ -1513,7 +1314,7 @@ CAFFEINE_API bool caff_request_stage_update(
         if (retry_in) {
             *retry_in = result->response->retry_in;
         }
-        transfer_stage_data(std::move(result->response), request);
+        request->stage = std::move(result->response->stage);
     }
     else if (is_out_of_capacity
         && result

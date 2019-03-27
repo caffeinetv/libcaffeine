@@ -8,8 +8,11 @@
 
 #include "iceinfo.hpp"
 
+#include "caffeine.h"
+#include "caffeine-api.h"
 #include "caffeine-helpers.hpp"
 
+#include "absl/types/optional.h"
 #include "common_types.h"
 #include "rtc_base/scoped_ref_ptr.h"
 
@@ -40,28 +43,56 @@ namespace caff {
     class AudioDevice;
     class VideoCapturer;
 
+    // TODO: split functionality into Stage and Feed
     class Stream {
     public:
         static int const kMaxBitrateBps = 2000000;
 
-        Stream(AudioDevice* audioDevice, webrtc::PeerConnectionFactoryInterface* factory);
+        Stream(
+            caff_credentials_handle credentials,
+            std::string username,
+            std::string title,
+            caff_rating rating,
+            AudioDevice* audioDevice,
+            webrtc::PeerConnectionFactoryInterface* factory);
+
         virtual ~Stream();
 
         void Start(
-            std::function<std::string(std::string const&)> offerGeneratedCallback,
-            std::function<bool(std::vector<IceInfo> const&)> iceGatheredCallback,
             std::function<void()> startedCallback,
             std::function<void(caff_error)> failedCallback);
 
         void SendAudio(uint8_t const* samples, size_t samples_per_channel);
         void SendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_format format);
 
+        //void SetTitle(std::string title);
+        //void SetRating(std::string rating);
+
     private:
-        std::atomic_bool started{ false };
+        enum class State { Offline, Starting, Online, Stopping };
+        std::atomic<State> state;
+        static char const * StateString(State state);
+
+        caff_credentials_handle credentials; // TODO: Maybe should be owned by the Interface instead of user of libcaffeine
+        std::string username;
+        std::string title;
+        caff_rating rating;
+
         AudioDevice* audioDevice;
         VideoCapturer* videoCapturer;
         webrtc::PeerConnectionFactoryInterface* factory;
         rtc::scoped_refptr<webrtc::PeerConnectionInterface> peerConnection;
+
+        std::string streamUrl;
+        std::string feedId;
+        caff_stage_request * nextRequest{};
+
+        bool RequireState(State expectedState) const;
+        bool TransitionState(State oldState, State newState);
+        bool IsOnline() const;
+
+        absl::optional<std::string> OfferGenerated(std::string const & offer);
+        bool IceGathered(std::vector<IceInfo> candidates);
     };
 
 }  // namespace caff

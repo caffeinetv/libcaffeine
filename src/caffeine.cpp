@@ -6,7 +6,6 @@
 
 #include <vector>
 
-#include "iceinfo.hpp"
 #include "interface.hpp"
 #include "logsink.hpp"
 #include "stream.hpp"
@@ -80,42 +79,26 @@ CAFFEINE_API caff_interface_handle caff_initialize(
 
 CAFFEINE_API caff_stream_handle caff_start_stream(
     caff_interface_handle interface_handle,
-    void* user_data,
-    caff_offer_generated offer_generated_callback,
-    caff_ice_gathered ice_gathered_callback,
+    void * user_data,
+    caff_credentials_handle credentials,
+    char const * username,
+    char const * title,
+    caff_rating rating,
     caff_stream_started started_callback,
     caff_stream_failed failed_callback) {
 
     RTC_DCHECK(interface_handle);
-    RTC_DCHECK(offer_generated_callback);
-    RTC_DCHECK(ice_gathered_callback);
     RTC_DCHECK(started_callback);
     RTC_DCHECK(failed_callback);
 
     // Encapsulate void * inside lambdas, and other C++ -> C translations
-    auto offerGeneratedCallback = [=](std::string const& offer) {
-        auto answer = offer_generated_callback(user_data, offer.c_str());
-        return answer ? std::string(answer) : std::string();
-    };
-
-    auto iceGatheredCallback = [=](std::vector<IceInfo> const& candidatesVector) {
-        std::vector<caff_ice_info> c_candidatesVector{ candidatesVector.begin(),
-                                                      candidatesVector.end() };
-        auto candidates =
-            reinterpret_cast<caff_ice_info const*>(&c_candidatesVector[0]);
-        return ice_gathered_callback(user_data, candidates,
-            c_candidatesVector.size());
-    };
-
     auto startedCallback = [=] { started_callback(user_data); };
     auto failedCallback = [=](caff_error error) {
         failed_callback(user_data, error);
     };
 
     auto interface = reinterpret_cast<Interface*>(interface_handle);
-    auto stream =
-        interface->StartStream(offerGeneratedCallback, iceGatheredCallback,
-            startedCallback, failedCallback);
+    auto stream = interface->StartStream(credentials, username, title, rating, startedCallback, failedCallback);
 
     return reinterpret_cast<caff_stream_handle>(stream);
 }

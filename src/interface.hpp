@@ -11,35 +11,37 @@
 #include "rtc_base/scoped_ref_ptr.h"
 
 namespace webrtc {
-class PeerConnectionFactoryInterface;
+    class PeerConnectionFactoryInterface;
 }
 
 namespace rtc {
-class Thread;
+    class Thread;
 }
 
 namespace caff {
-class Stream;
-class AudioDevice;
+    class Stream;
+    class AudioDevice;
 
-class Interface {
- public:
-  Interface();
+    class Interface {
+    public:
+        Interface();
 
-  virtual ~Interface();
+        virtual ~Interface();
 
-  Stream* StartStream(
-      std::function<std::string(std::string const&)> offerGeneratedCallback,
-      std::function<bool(std::vector<IceInfo> const&)> iceGatheredCallback,
-      std::function<void()> startedCallback,
-      std::function<void(caff_error)> failedCallback);
+        Stream* StartStream(
+            caff_credentials_handle credentials,
+            std::string username,
+            std::string title,
+            caff_rating rating,
+            std::function<void()> startedCallback,
+            std::function<void(caff_error)> failedCallback);
 
- private:
-  rtc::scoped_refptr<AudioDevice> audioDevice;
-  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory;
-  std::unique_ptr<rtc::Thread> networkThread;
-  std::unique_ptr<rtc::Thread> workerThread;
-  std::unique_ptr<rtc::Thread> signalingThread;
-};
+    private:
+        rtc::scoped_refptr<AudioDevice> audioDevice;
+        rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory;
+        std::unique_ptr<rtc::Thread> networkThread;
+        std::unique_ptr<rtc::Thread> workerThread;
+        std::unique_ptr<rtc::Thread> signalingThread;
+    };
 
 }  // namespace caff

@@ -5,8 +5,9 @@
 
 #include "caffeine.h"
 
-struct caff_credentials;
-typedef struct caff_credentials * caff_credentials_handle;
+#include <string>
+#include <vector>
+#include "absl/types/optional.h"
 
 typedef struct caff_auth_response {
     caff_credentials_handle credentials;
@@ -21,7 +22,6 @@ typedef struct caff_user_info {
     bool can_broadcast;
 } caff_user_info;
 
-/* TODO: game detection will be handled behind the scenes */
 typedef struct caff_game_info {
     char * id;
     char * name;
@@ -34,18 +34,12 @@ typedef struct caff_games {
     size_t num_games;
 } caff_games;
 
-typedef enum caff_rating {
-    CAFF_RATING_NONE,
-    CAFF_RATING_SEVENTEEN_PLUS,
-    CAFF_RATING_MAX,
-} caff_rating;
-
 typedef struct caff_feed_stream {
-    char * id;
-    char * source_id;
-    char * url;
-    char * sdp_offer;
-    char * sdp_answer;
+    std::string id;
+    std::string source_id;
+    std::string url;
+    std::string sdp_offer;
+    std::string sdp_answer;
 } caff_feed_stream;
 
 typedef struct caff_feed_capabilities {
@@ -54,47 +48,42 @@ typedef struct caff_feed_capabilities {
 } caff_feed_capabilities;
 
 typedef struct caff_content {
-    char * id;
-    char * type;
+    std::string id;
+    std::string type;
 } caff_content;
 
 typedef struct caff_feed {
-    char * id;
-    char * client_id;
-    char * role;
-    char * description;
-    char * source_connection_quality;
+    std::string id;
+    std::string client_id;
+    std::string role;
+    absl::optional<std::string> description;
+    absl::optional<std::string> source_connection_quality;
     double volume;
     caff_feed_capabilities capabilities;
-    caff_content content;
-    caff_feed_stream stream;
+    absl::optional<caff_content> content;
+    absl::optional<caff_feed_stream> stream;
 } caff_feed;
 
 typedef struct caff_stage {
-    char * id;
-    char * username;
-    char * title;
-    char * broadcast_id;
+    std::string id;
+    std::string username;
+    std::string title;
+    absl::optional<std::string> broadcast_id;
     bool upsert_broadcast;
     bool live;
-    caff_feed * feeds;
-    size_t num_feeds;
+    std::vector<caff_feed> feeds;
 } caff_stage;
 
 typedef struct caff_stage_request {
-    char * username;
-    char * client_id;
-    char * cursor;
-    caff_stage * stage;
+    std::string username;
+    std::string client_id;
+    absl::optional<std::string> cursor;
+    absl::optional<caff_stage> stage;
 } caff_stage_request;
 
 typedef struct caff_heartbeat_response {
     char * connection_quality;
 } caff_heartbeat_response;
-
-CAFFEINE_API char * caff_create_unique_id();
-
-CAFFEINE_API void caff_free_unique_id(char ** id);
 
 CAFFEINE_API void caff_set_string(char ** dest, char const * new_value);
 
@@ -121,14 +110,6 @@ CAFFEINE_API caff_games * caff_get_supported_games();
 CAFFEINE_API void caff_free_game_info(caff_game_info ** info);
 CAFFEINE_API void caff_free_game_list(caff_games ** games);
 
-CAFFEINE_API char * caff_annotate_title(char const * title, caff_rating rating);
-
-CAFFEINE_API bool caff_trickle_candidates(
-    caff_ice_candidates candidates,
-    size_t num_candidates,
-    char const * stream_url,
-    caff_credentials_handle creds);
-
 CAFFEINE_API caff_heartbeat_response * caff_heartbeat_stream(char const * stream_url, caff_credentials_handle creds);
 
 CAFFEINE_API void caff_free_heartbeat_response(caff_heartbeat_response ** response);
@@ -138,22 +119,5 @@ CAFFEINE_API bool caff_update_broadcast_screenshot(
     uint8_t const * screenshot_data,
     size_t screenshot_size,
     caff_credentials_handle creds);
-
-CAFFEINE_API caff_feed * caff_get_stage_feed(caff_stage * stage, char const * id);
-// Replaces any existing feeds, copies passed in data
-CAFFEINE_API void caff_set_stage_feed(caff_stage * stage, caff_feed const * feed);
-CAFFEINE_API void caff_clear_stage_feeds(caff_stage * stage);
-CAFFEINE_API void caff_free_stage(caff_stage ** stage);
-
-CAFFEINE_API caff_stage_request * caff_create_stage_request(char const * username, char const * client_id);
-CAFFEINE_API caff_stage_request * caff_copy_stage_request(caff_stage_request const * request);
-CAFFEINE_API void caff_free_stage_request(caff_stage_request ** request);
-
-// If successful, updates request cursor and stage with the response values
-CAFFEINE_API bool caff_request_stage_update(
-    caff_stage_request * request,
-    caff_credentials_handle creds,
-    double * retry_in,
-    bool * is_out_of_capacity);
 
 #endif // LIBCAFFEINE_CAFFEINE_API_H

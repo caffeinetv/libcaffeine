@@ -436,6 +436,6 @@ namespace caff {
     }
 
     webrtc::VideoEncoder::ScalingSettings X264Encoder::GetScalingSettings() const {
-        return webrtc::VideoEncoder::ScalingSettings(webrtc::VideoEncoder::ScalingSettings::kOff);
+        return webrtc::VideoEncoder::ScalingSettings::kOff;
     }
 }  // namespace caff
