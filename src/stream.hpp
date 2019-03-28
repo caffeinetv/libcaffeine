@@ -9,7 +9,7 @@
 #include "iceinfo.hpp"
 
 #include "caffeine.h"
-#include "caffeine-api.h"
+#include "caffeine-api.hpp"
 #include "caffeine-helpers.hpp"
 
 #include "absl/types/optional.h"
@@ -65,12 +65,14 @@ namespace caff {
         void SendAudio(uint8_t const* samples, size_t samples_per_channel);
         void SendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_format format);
 
+        caff_connection_quality GetConnectionQuality();
+
         //void SetTitle(std::string title);
         //void SetRating(std::string rating);
 
     private:
         enum class State { Offline, Starting, Online, Stopping };
-        std::atomic<State> state;
+        std::atomic<State> state{ State::Offline };
         static char const * StateString(State state);
 
         caff_credentials_handle credentials; // TODO: Maybe should be owned by the Interface instead of user of libcaffeine
@@ -86,6 +88,7 @@ namespace caff {
         std::string streamUrl;
         std::string feedId;
         caff_stage_request * nextRequest{};
+        //std::atomic<bool> isMutatingFeed{ false }; // TODO: heartbeat
 
         bool RequireState(State expectedState) const;
         bool TransitionState(State oldState, State newState);

@@ -73,12 +73,12 @@ typedef enum caff_rating {
     CAFF_RATING_MAX,
 } caff_rating;
 
-/* Callback type for WebRTC log messages */
-typedef void(*caff_log_callback)(caff_log_severity severity, char const* message);
-
-/* Callback types for starting stream */
-typedef void(*caff_stream_started)(void* user_data);
-typedef void(*caff_stream_failed)(void* user_data, caff_error error);
+/* Rough measure of connection quality, reported by Caffeine's back-end */
+typedef enum caff_connection_quality {
+    CAFF_CONNECTION_QUALITY_GOOD,
+    CAFF_CONNECTION_QUALITY_BAD,
+    CAFF_CONNECTION_QUALITY_UNKNOWN,
+} caff_connection_quality;
 
 /* Opaque handles to internal objects */
 struct caff_interface;
@@ -89,6 +89,43 @@ typedef struct caff_credentials * caff_credentials_handle;
 
 struct caff_stream;
 typedef struct caff_stream* caff_stream_handle;
+
+/* Result of sign-in attempt */
+typedef struct caff_auth_response {
+    caff_credentials_handle credentials;
+    char * next;
+    char * mfa_otp_method;
+} caff_auth_response;
+
+/* User details */
+typedef struct caff_user_info {
+    char * caid;
+    char * username;
+    char * stage_id;
+    bool can_broadcast;
+} caff_user_info;
+
+/* TODO: is there a way to encapsulate this without touching on privacy issues? */
+
+/* Supported game detection info */
+typedef struct caff_game_info {
+    char * id;
+    char * name;
+    char ** process_names;
+    size_t num_process_names;
+} caff_game_info;
+
+typedef struct caff_games {
+    caff_game_info ** game_infos;
+    size_t num_games;
+} caff_games;
+
+/* Callback type for WebRTC log messages */
+typedef void(*caff_log_callback)(caff_log_severity severity, char const* message);
+
+/* Callback types for starting stream */
+typedef void(*caff_stream_started)(void* user_data);
+typedef void(*caff_stream_failed)(void* user_data, caff_error error);
 
 /* Get string representation of error enum
  *
@@ -109,6 +146,25 @@ CAFFEINE_API char const* caff_error_string(caff_error error);
  * functions. If there is an error during initialization this will be NULL
  */
 CAFFEINE_API caff_interface_handle caff_initialize(caff_log_callback log_callback, caff_log_severity min_severity);
+
+CAFFEINE_API caff_auth_response * caff_signin(char const * username, char const * password, char const * otp);
+
+CAFFEINE_API bool caff_is_supported_version();
+
+CAFFEINE_API caff_credentials_handle caff_refresh_auth(char const * refresh_token);
+CAFFEINE_API void caff_free_credentials(caff_credentials_handle * creds);
+CAFFEINE_API void caff_free_auth_response(caff_auth_response ** auth_response);
+CAFFEINE_API void caff_free_user_info(caff_user_info ** user_info);
+CAFFEINE_API char const * caff_refresh_token(caff_credentials_handle creds);
+
+CAFFEINE_API caff_user_info * caff_getuser(caff_credentials_handle creds);
+
+CAFFEINE_API caff_games * caff_get_supported_games();
+
+CAFFEINE_API void caff_free_game_info(caff_game_info ** info);
+CAFFEINE_API void caff_free_game_list(caff_games ** games);
+
+
 
 /* Start stream on Caffeine
  *
@@ -146,6 +202,8 @@ CAFFEINE_API void caff_send_video(
     int32_t width,
     int32_t height,
     caff_format format);
+
+CAFFEINE_API caff_connection_quality caff_get_connection_quality(caff_stream_handle stream_handle);
 
 /* End a Caffeine stream
  *

@@ -133,6 +133,13 @@ CAFFEINE_API void caff_send_video(
     stream->SendVideo(frame_data, frame_bytes, width, height, format);
 }
 
+CAFFEINE_API caff_connection_quality caff_get_connection_quality(caff_stream_handle stream_handle) {
+    RTC_DCHECK(stream_handle);
+
+    auto stream = reinterpret_cast<Stream*>(stream_handle);
+    return stream->GetConnectionQuality();
+}
+
 CAFFEINE_API void caff_end_stream(caff_stream_handle* stream_handle) {
     RTC_DCHECK(stream_handle);
     RTC_DCHECK(*stream_handle);

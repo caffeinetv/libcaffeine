@@ -1,6 +1,6 @@
 #define LIBCAFFEINE_LIBRARY
 
-#include "caffeine-api.h"
+#include "caffeine-api.hpp"
 #include "iceinfo.hpp"
 
 #include "nlohmann/json.hpp"
@@ -215,7 +215,7 @@ static char * cstrdup(std::string const & str) {
     return result;
 }
 
-CAFFEINE_API void caff_set_string(char ** dest, char const * new_value)
+void caff_set_string(char ** dest, char const * new_value)
 {
     if (!dest) return;
 
@@ -227,7 +227,7 @@ CAFFEINE_API void caff_set_string(char ** dest, char const * new_value)
     *dest = cstrdup(new_value);
 }
 
-CAFFEINE_API void caff_free_string(char ** str)
+void caff_free_string(char ** str)
 {
     if (!str) return;
     delete[] * str;
@@ -902,7 +902,7 @@ static caff_heartbeat_response * do_caffeine_heartbeat_stream(
     };
 }
 
-CAFFEINE_API caff_heartbeat_response * caff_heartbeat_stream(
+caff_heartbeat_response * caff_heartbeat_stream(
     char const * streamUrl,
     caff_credentials_handle creds)
 {
@@ -911,7 +911,7 @@ CAFFEINE_API caff_heartbeat_response * caff_heartbeat_stream(
         do_caffeine_heartbeat_stream(streamUrl, creds));
 }
 
-CAFFEINE_API void caff_free_heartbeat_response(
+void caff_free_heartbeat_response(
     caff_heartbeat_response ** response)
 {
     if (!response || !*response) {
@@ -984,7 +984,7 @@ static bool do_update_broadcast_screenshot(
     return result;
 }
 
-CAFFEINE_API bool caff_update_broadcast_screenshot(
+bool caff_update_broadcast_screenshot(
     char const * broadcast_id,
     uint8_t const * screenshot_data,
     size_t screenshot_size,

@@ -7,7 +7,7 @@
 #include <random>
 
 #include "caffeine.h"
-#include "caffeine-api.h"
+#include "caffeine-api.hpp"
 #include "audiodevice.hpp"
 #include "iceinfo.hpp"
 #include "peerconnectionobserver.hpp"
@@ -202,6 +202,64 @@ namespace caff {
     }
 
     /*
+
+    // Falls back to obs_id if no foreground game detected
+    static char const * get_running_game_id(
+        caff_games * games, const char * fallback_id)
+    {
+        char * foreground_process = get_foreground_process_name();
+        char const * id = get_game_id(games, foreground_process);
+        bfree(foreground_process);
+        return id ? id : fallback_id;
+    }
+
+    // Returns `true` if the feed's game id changed
+    static bool caffeine_update_game_id(char const * game_id, caff_feed * feed)
+    {
+        if (!feed) {
+            return false;
+        }
+
+        bool did_change = false;
+
+        if (game_id) {
+            if (!feed->content.id || strcmp(feed->content.id, game_id) != 0) {
+                caff_set_string(&feed->content.id, game_id);
+                did_change = true;
+            }
+
+            if (!feed->content.type) {
+                caff_set_string(&feed->content.type, "game");
+                did_change = true;
+            }
+        } else if (feed->content.id || feed->content.type) {
+            caff_set_string(&feed->content.id, NULL);
+            caff_set_string(&feed->content.type, NULL);
+            did_change = true;
+            }
+
+        return did_change;
+    }
+
+    // Returns `true` if the feed's connection quality changed
+    static bool caffeine_update_connection_quality(
+        char const * quality, caff_feed * feed)
+    {
+        if (!quality) {
+            return false;
+        }
+
+        if (!feed->source_connection_quality
+            || strcmp(quality, feed->source_connection_quality) != 0)
+        {
+            caff_set_string(&feed->source_connection_quality, quality);
+            return true;
+        }
+
+        return false;
+    }
+
+
     static void * longpoll_thread(void * data);
 
     static void * broadcast_thread(void * data)
@@ -656,6 +714,22 @@ namespace caff {
         caff_format format) {
         RTC_DCHECK(IsOnline());
         videoCapturer->SendVideo(frameData, frameBytes, width, height, static_cast<webrtc::VideoType>(format));
+    }
+
+    caff_connection_quality Stream::GetConnectionQuality() {
+        if (nextRequest) {
+            caff_feed const * feed = caff_get_stage_feed(*nextRequest->stage, feedId);
+            if (feed && feed->source_connection_quality) {
+                if (feed->source_connection_quality == "GOOD") {
+                    return CAFF_CONNECTION_QUALITY_GOOD;
+                }
+                else if (feed->source_connection_quality == "BAD") {
+                    return CAFF_CONNECTION_QUALITY_BAD;
+                }
+            }
+        }
+
+        return CAFF_CONNECTION_QUALITY_UNKNOWN;
     }
 
 }  // namespace caff

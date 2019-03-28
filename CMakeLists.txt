@@ -25,7 +25,6 @@ include_directories(
 # External header distributed with compiled libcaffeine
 set(libcaffeine_HEADERS
     include/caffeine.h
-    include/caffeine-api.h
 )
 
 # Source & internal headers
@@ -34,6 +33,7 @@ set(libcaffeine_SOURCES
     src/audiodevice.hpp
     src/audiodevicedefaultimpl.hpp
     src/caffeine.cpp
+    src/caffeine-api.hpp
     src/caffeine-api.cpp
     src/caffeine-helpers.hpp
     src/iceinfo.hpp
