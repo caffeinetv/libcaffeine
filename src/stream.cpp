@@ -9,7 +9,6 @@
 #include "caffeine.h"
 #include "caffeine-api.hpp"
 #include "audiodevice.hpp"
-#include "iceinfo.hpp"
 #include "peerconnectionobserver.hpp"
 #include "sessiondescriptionobserver.hpp"
 #include "videocapturer.hpp"
@@ -17,21 +16,6 @@
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"
 #include "rtc_base/logging.h"
-
-// TODO there's probably a better place for these declarations to live
-bool caff_trickle_candidates(
-    std::vector<caff::IceInfo> const & candidates,
-    std::string const & streamUrl,
-    Credentials * credentials);
-
-StageRequest * caff_create_stage_request(std::string username, std::string client_id);
-
-// If successful, updates request cursor and stage with the response values
-bool caff_request_stage_update(
-    StageRequest * request,
-    Credentials * creds,
-    double * retry_in,
-    bool * is_out_of_capacity);
 
 namespace caff {
 
@@ -52,7 +36,7 @@ namespace caff {
     Stream::~Stream() {}
 
     // TODO something better?
-    static std::string caff_create_unique_id()
+    static std::string createUniqueId()
     {
         static char const charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
         size_t const idLength = 12;
@@ -113,49 +97,49 @@ namespace caff {
     static std::string caff_annotate_title(std::string title, caff_rating rating)
     {
         static const size_t MAX_TITLE_LENGTH = 60; // TODO: policy- should be somewhere else
-        static std::string const rating_strings[] = { "", "[17+] " }; // TODO maybe same here
+        static std::string const ratingStrings[] = { "", "[17+] " }; // TODO maybe same here
 
         if (rating < CAFF_RATING_NONE || rating >= CAFF_RATING_MAX)
             rating = CAFF_RATING_NONE;
 
-        auto final_title = rating_strings[rating] + title;
-        if (final_title.length() > MAX_TITLE_LENGTH)
-            final_title.resize(MAX_TITLE_LENGTH);
+        auto fullTitle = ratingStrings[rating] + title;
+        if (fullTitle.length() > MAX_TITLE_LENGTH)
+            fullTitle.resize(MAX_TITLE_LENGTH);
 
-        return final_title;
+        return fullTitle;
     }
 
     absl::optional<std::string> Stream::OfferGenerated(std::string const & offer)
     {
-        feedId = caff_create_unique_id();
+        feedId = createUniqueId();
 
         if (!RequireState(State::Starting)) {
             return {};
         }
 
         auto fullTitle = caff_annotate_title(title, rating);
-        auto clientId = caff_create_unique_id();
+        auto clientId = createUniqueId();
 
         // Make initial stage request to get a cursor
 
-        StageRequest * request = caff_create_stage_request(username, clientId);
+        StageRequest * request = createStageRequest(username, clientId);
 
-        if (!caff_request_stage_update(request, credentials, NULL, NULL)) {
+        if (!requestStageUpdate(request, credentials, NULL, NULL)) {
             return {};
         }
 
         // Make request to add our feed and get a new broadcast id
         request->stage->title = std::move(fullTitle);
-        request->stage->upsert_broadcast = true;
-        request->stage->broadcast_id.reset();
+        request->stage->upsertBroadcast = true;
+        request->stage->broadcastId.reset();
         request->stage->live = false;
 
         FeedStream stream{};
-        stream.sdp_offer = offer;
+        stream.sdpOffer = offer;
 
         Feed feed{};
         feed.id = feedId;
-        feed.client_id = clientId;
+        feed.clientId = clientId;
         feed.role = "primary";
         feed.volume = 1.0;
         feed.capabilities = { true, true };
@@ -163,9 +147,9 @@ namespace caff {
 
         request->stage->feeds = { {feedId, std::move(feed)} };
 
-        bool is_out_of_capacity = false;
-        if (!caff_request_stage_update(request, credentials, NULL, &is_out_of_capacity)) {
-            if (is_out_of_capacity) {
+        bool isOutOfCapacity = false;
+        if (!requestStageUpdate(request, credentials, NULL, &isOutOfCapacity)) {
+            if (isOutOfCapacity) {
                 // TODO: figure out a way to reproduce this behavior
                 //set_error(context->output, "%s", obs_module_text("ErrorOutOfCapacity"));
             }
@@ -181,8 +165,8 @@ namespace caff {
         auto & responseStream = feedIt->second.stream;
 
         if (!responseStream
-            || !responseStream->sdp_answer
-            || responseStream->sdp_answer->empty()
+            || !responseStream->sdpAnswer
+            || responseStream->sdpAnswer->empty()
             || !responseStream->url
             || responseStream->url->empty()) {
             return {};
@@ -191,15 +175,12 @@ namespace caff {
         streamUrl = *responseStream->url;
         nextRequest = request;
 
-        return responseStream->sdp_answer;
+        return responseStream->sdpAnswer;
     }
 
     bool Stream::IceGathered(std::vector<IceInfo> candidates)
     {
-        bool result = caff_trickle_candidates(
-            candidates, streamUrl, credentials);
-
-        return result;
+        return trickleCandidates(candidates, streamUrl, credentials);
     }
 
     /*
@@ -250,10 +231,10 @@ namespace caff {
             return false;
         }
 
-        if (!feed->source_connection_quality
-            || strcmp(quality, feed->source_connection_quality) != 0)
+        if (!feed->sourceConnectionQuality
+            || strcmp(quality, feed->sourceConnectionQuality) != 0)
         {
-            caff_set_string(&feed->source_connection_quality, quality);
+            caff_set_string(&feed->sourceConnectionQuality, quality);
             return true;
         }
 
@@ -265,7 +246,7 @@ namespace caff {
 
     static void * broadcast_thread(void * data)
     {
-        trace();
+        TRACE();
         os_set_thread_name("Caffeine broadcast");
 
         struct caffeine_output * context = data;
@@ -292,18 +273,18 @@ namespace caff {
 
         // Obtain broadcast id
 
-        char * broadcast_id = request->stage->broadcast_id;
+        char * broadcastId = request->stage->broadcastId;
 
-        for (int broadcast_id_retry_count = 0; !broadcast_id && broadcast_id_retry_count < 3; ++broadcast_id_retry_count) {
-            request->stage->upsert_broadcast = true;
-            if (!caff_request_stage_update(request, credentials, NULL, NULL)
+        for (int broadcast_id_retry_count = 0; !broadcastId && broadcast_id_retry_count < 3; ++broadcast_id_retry_count) {
+            request->stage->upsertBroadcast = true;
+            if (!requestStageUpdate(request, credentials, NULL, NULL)
                 || !caff_get_stage_feed(request->stage, feed_id))
             {
                 caffeine_stream_failed(data, CAFF_ERROR_UNKNOWN);
                 goto broadcast_error;
             }
 
-            broadcast_id = request->stage->broadcast_id;
+            broadcastId = request->stage->broadcastId;
         }
 
         pthread_mutex_lock(&context->screenshot_mutex);
@@ -313,7 +294,7 @@ namespace caff {
         pthread_mutex_unlock(&context->screenshot_mutex);
 
         bool screenshot_success = caff_update_broadcast_screenshot(
-            broadcast_id,
+            broadcastId,
             context->screenshot.data,
             context->screenshot.size,
             credentials);
@@ -330,7 +311,7 @@ namespace caff {
             caff_get_stage_feed(request->stage, feed_id));
         request->stage->live = true;
 
-        if (!caff_request_stage_update(request, credentials, NULL, NULL)
+        if (!requestStageUpdate(request, credentials, NULL, NULL)
             || !request->stage->live
             || !caff_get_stage_feed(request->stage, feed_id))
         {
@@ -398,10 +379,10 @@ namespace caff {
                 caff_free_heartbeat_response(&heartbeat_response);
             }
             else {
-                log_debug("Heartbeat failed");
+                LOG_DEBUG("Heartbeat failed");
                 ++failures;
                 if (failures > max_failures) {
-                    log_error("Heartbeat failed %d times; ending stream.",
+                    LOG_ERROR("Heartbeat failed %d times; ending stream.",
                         failures);
                     caffeine_stream_failed(data, CAFF_ERROR_DISCONNECTED);
                     break;
@@ -421,7 +402,7 @@ namespace caff {
 
             set_is_mutating_feed(context, true);
 
-            if (!caff_request_stage_update(request, credentials, NULL, NULL)) {
+            if (!requestStageUpdate(request, credentials, NULL, NULL)) {
                 set_is_mutating_feed(context, false);
                 // If we have a stream going but can't talk to
                 // the stage endpoint, retry the mutation next loop
@@ -458,7 +439,7 @@ namespace caff {
             request->stage->live = false;
             caff_clear_stage_feeds(request->stage);
 
-            if (!caff_request_stage_update(request, credentials, NULL, NULL)) {
+            if (!requestStageUpdate(request, credentials, NULL, NULL)) {
                 caffeine_stream_failed(data, CAFF_ERROR_UNKNOWN);
             }
         }
@@ -476,7 +457,7 @@ namespace caff {
         // This thread is purely for hearbeating our feed.
         // If the broadcast thread is making a mutation, this thread waits.
 
-        trace();
+        TRACE();
         os_set_thread_name("Caffeine longpoll");
 
         struct caffeine_output * context = data;
@@ -523,9 +504,9 @@ namespace caff {
                 break;
             }
 
-            double retry_in = 0;
+            double retryIn = 0;
 
-            if (!caff_request_stage_update(request, credentials, &retry_in, NULL)) {
+            if (!requestStageUpdate(request, credentials, &retryIn, NULL)) {
                 //If we have a stream going but can't talk to the stage endpoint,
                 // just continually retry with some waiting
                 retry_interval_ms = 5000;
@@ -552,7 +533,7 @@ namespace caff {
             }
 
             interval = 0;
-            retry_interval_ms = (long)(retry_in * 1000);
+            retry_interval_ms = (long)(retryIn * 1000);
         }
 
         bfree(feed_id);
@@ -703,9 +684,9 @@ namespace caff {
         startThread.detach();
     }
 
-    void Stream::SendAudio(uint8_t const* samples, size_t samples_per_channel) {
+    void Stream::SendAudio(uint8_t const* samples, size_t samplesPerChannel) {
         RTC_DCHECK(IsOnline());
-        audioDevice->SendAudio(samples, samples_per_channel);
+        audioDevice->SendAudio(samples, samplesPerChannel);
     }
 
     void Stream::SendVideo(uint8_t const* frameData,
@@ -720,8 +701,8 @@ namespace caff {
     caff_connection_quality Stream::GetConnectionQuality() {
         if (nextRequest && nextRequest->stage->feeds) {
             auto feedIt = nextRequest->stage->feeds->find(feedId);
-            if (feedIt != nextRequest->stage->feeds->end() && feedIt->second.source_connection_quality) {
-                return *feedIt->second.source_connection_quality;
+            if (feedIt != nextRequest->stage->feeds->end() && feedIt->second.sourceConnectionQuality) {
+                return *feedIt->second.sourceConnectionQuality;
             }
         }
 

@@ -62,7 +62,7 @@ namespace caff {
             std::function<void()> startedCallback,
             std::function<void(caff_error)> failedCallback);
 
-        void SendAudio(uint8_t const* samples, size_t samples_per_channel);
+        void SendAudio(uint8_t const* samples, size_t samplesPerChannel);
         void SendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_format format);
 
         caff_connection_quality GetConnectionQuality();

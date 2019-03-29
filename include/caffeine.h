@@ -147,25 +147,6 @@ CAFFEINE_API char const* caff_error_string(caff_error error);
  */
 CAFFEINE_API caff_interface_handle caff_initialize(caff_log_callback log_callback, caff_log_severity min_severity);
 
-CAFFEINE_API caff_auth_response * caff_signin(char const * username, char const * password, char const * otp);
-
-CAFFEINE_API bool caff_is_supported_version();
-
-CAFFEINE_API caff_credentials_handle caff_refresh_auth(char const * refresh_token);
-CAFFEINE_API void caff_free_credentials(caff_credentials_handle * creds);
-CAFFEINE_API void caff_free_auth_response(caff_auth_response ** auth_response);
-CAFFEINE_API void caff_free_user_info(caff_user_info ** user_info);
-CAFFEINE_API char const * caff_refresh_token(caff_credentials_handle creds);
-
-CAFFEINE_API caff_user_info * caff_getuser(caff_credentials_handle creds);
-
-CAFFEINE_API caff_games * caff_get_supported_games();
-
-CAFFEINE_API void caff_free_game_info(caff_game_info ** info);
-CAFFEINE_API void caff_free_game_list(caff_games ** games);
-
-
-
 /* Start stream on Caffeine
  *
  * Sets up the WebRTC connection with Caffeine asynchronously. Calls
@@ -222,5 +203,19 @@ CAFFEINE_API void caff_end_stream(caff_stream_handle* stream_handle);
  *     handle will no longer be valid after the function returns.
  */
 CAFFEINE_API void caff_deinitialize(caff_interface_handle* interface_handle);
+
+/* TODO: sort these into above, and document */
+/* TODO: have the Interface own more of these to reduce API footprint */
+CAFFEINE_API caff_auth_response * caff_signin(char const * username, char const * password, char const * otp);
+CAFFEINE_API bool caff_is_supported_version();
+CAFFEINE_API caff_credentials_handle caff_refresh_auth(char const * refresh_token);
+CAFFEINE_API void caff_free_credentials(caff_credentials_handle * creds);
+CAFFEINE_API void caff_free_auth_response(caff_auth_response ** auth_response);
+CAFFEINE_API void caff_free_user_info(caff_user_info ** user_info);
+CAFFEINE_API char const * caff_refresh_token(caff_credentials_handle creds);
+CAFFEINE_API caff_user_info * caff_get_user_info(caff_credentials_handle creds);
+CAFFEINE_API caff_games * caff_get_supported_games();
+CAFFEINE_API void caff_free_game_info(caff_game_info ** info);
+CAFFEINE_API void caff_free_game_list(caff_games ** games);
 
 #endif /* LIBCAFFEINE_CAFFEINE_H */
