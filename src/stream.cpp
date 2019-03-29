@@ -7,7 +7,7 @@
 #include <random>
 
 #include "caffeine.h"
-#include "caffeine-api.hpp"
+#include "api.hpp"
 #include "audiodevice.hpp"
 #include "peerconnectionobserver.hpp"
 #include "sessiondescriptionobserver.hpp"
@@ -109,7 +109,7 @@ namespace caff {
         return fullTitle;
     }
 
-    absl::optional<std::string> Stream::OfferGenerated(std::string const & offer)
+    optional<std::string> Stream::OfferGenerated(std::string const & offer)
     {
         feedId = createUniqueId();
 

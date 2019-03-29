@@ -12,6 +12,8 @@
 #include "absl/types/optional.h"
 
 namespace caff {
+    template <typename T>
+    using optional = absl::optional<T>;
 
     struct Credentials {
         std::string accessToken;
@@ -20,25 +22,14 @@ namespace caff {
         std::string credential;
 
         std::mutex mutex; // TODO: there's surely a better place for this
-
-        Credentials(
-            std::string accessToken,
-            std::string refreshToken,
-            std::string caid,
-            std::string credential)
-            : accessToken(std::move(accessToken))
-            , refreshToken(std::move(refreshToken))
-            , caid(std::move(caid))
-            , credential(std::move(credential))
-        { }
     };
 
     struct FeedStream {
-        absl::optional<std::string> id;
-        absl::optional<std::string> sourceId;
-        absl::optional<std::string> url;
-        absl::optional<std::string> sdpOffer;
-        absl::optional<std::string> sdpAnswer;
+        optional<std::string> id;
+        optional<std::string> sourceId;
+        optional<std::string> url;
+        optional<std::string> sdpOffer;
+        optional<std::string> sdpAnswer;
     };
 
     struct FeedCapabilities {
@@ -58,24 +49,24 @@ namespace caff {
 
     struct Feed {
         std::string id;
-        absl::optional<std::string> clientId;
-        absl::optional<std::string> role;
-        absl::optional<std::string> description;
-        absl::optional<caff_connection_quality> sourceConnectionQuality;
-        absl::optional<double> volume;
-        absl::optional<FeedCapabilities> capabilities;
-        absl::optional<FeedContent> content;
-        absl::optional<FeedStream> stream;
+        optional<std::string> clientId;
+        optional<std::string> role;
+        optional<std::string> description;
+        optional<caff_connection_quality> sourceConnectionQuality;
+        optional<double> volume;
+        optional<FeedCapabilities> capabilities;
+        optional<FeedContent> content;
+        optional<FeedStream> stream;
     };
 
     struct Stage {
-        absl::optional<std::string> id;
-        absl::optional<std::string> username;
-        absl::optional<std::string> title;
-        absl::optional<std::string> broadcastId;
-        absl::optional<bool> upsertBroadcast;
-        absl::optional<bool> live;
-        absl::optional<std::map<std::string, Feed>> feeds;
+        optional<std::string> id;
+        optional<std::string> username;
+        optional<std::string> title;
+        optional<std::string> broadcastId;
+        optional<bool> upsertBroadcast;
+        optional<bool> live;
+        optional<std::map<std::string, Feed>> feeds;
     };
 
     struct Client {
@@ -86,30 +77,30 @@ namespace caff {
 
     struct StageRequest {
         Client client;
-        absl::optional<std::string> cursor;
-        absl::optional<Stage> stage;
+        optional<std::string> cursor;
+        optional<Stage> stage;
     };
 
     struct StageResponse {
         std::string cursor;
         double retryIn;
-        absl::optional<Stage> stage;
+        optional<Stage> stage;
     };
 
     struct DisplayMessage {
         std::string title;
-        absl::optional<std::string> body;
+        optional<std::string> body;
     };
 
     struct FailureResponse {
         std::string type;
-        absl::optional<std::string> reason;
-        absl::optional<DisplayMessage> displayMessage;
+        optional<std::string> reason;
+        optional<DisplayMessage> displayMessage;
     };
 
     struct StageResponseResult {
-        absl::optional<StageResponse> response;
-        absl::optional<FailureResponse> failure;
+        optional<StageResponse> response;
+        optional<FailureResponse> failure;
     };
 
     /*

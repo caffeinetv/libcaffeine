@@ -9,7 +9,7 @@
 #include "iceinfo.hpp"
 
 #include "caffeine.h"
-#include "caffeine-api.hpp"
+#include "api.hpp"
 #include "caffeine-helpers.hpp"
 
 #include "absl/types/optional.h"
@@ -94,7 +94,7 @@ namespace caff {
         bool TransitionState(State oldState, State newState);
         bool IsOnline() const;
 
-        absl::optional<std::string> OfferGenerated(std::string const & offer);
+        optional<std::string> OfferGenerated(std::string const & offer);
         bool IceGathered(std::vector<IceInfo> candidates);
     };
 

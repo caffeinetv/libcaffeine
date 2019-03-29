@@ -3,7 +3,7 @@
 #pragma once
 
 #include "caffeine.h"
-#include "caffeine-api.hpp"
+#include "api.hpp"
 #include "iceinfo.hpp"
 
 #include <functional>

@@ -29,12 +29,12 @@ set(libcaffeine_HEADERS
 
 # Source & internal headers
 set(libcaffeine_SOURCES
+    src/api.hpp
+    src/api.cpp
     src/audiodevice.cpp
     src/audiodevice.hpp
     src/audiodevicedefaultimpl.hpp
     src/caffeine.cpp
-    src/caffeine-api.hpp
-    src/caffeine-api.cpp
     src/caffeine-helpers.hpp
     src/iceinfo.hpp
     src/interface.cpp
@@ -43,6 +43,8 @@ set(libcaffeine_SOURCES
     src/logsink.hpp
     src/peerconnectionobserver.cpp
     src/peerconnectionobserver.hpp
+    src/serialization.cpp
+    src/serialization.hpp
     src/sessiondescriptionobserver.cpp
     src/sessiondescriptionobserver.hpp
     src/stream.cpp

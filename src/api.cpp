@@ -1,7 +1,5 @@
-#include "caffeine-api.hpp"
+#include "serialization.hpp"
 #include "iceinfo.hpp"
-
-#include "nlohmann/json.hpp"
 
 #include <curl/curl.h>
 #include <mutex>
@@ -67,32 +65,7 @@
  * Error type: (various Json formats, occasionally HTML e.g. for 502)
  */
 
-namespace nlohmann {
-    template <typename T>
-    struct adl_serializer<absl::optional<T>> {
-        static void to_json(json& j, const absl::optional<T>& opt) {
-            if (opt == absl::optional<T>{}) {
-                j = nullptr;
-            }
-            else {
-                j = *opt;
-            }
-        }
-
-        static void from_json(const json& j, absl::optional<T>& opt) {
-            if (j.is_null()) {
-                opt = absl::optional<T>{};
-            }
-            else {
-                opt = j.get<T>();
-            }
-        }
-    };
-}
-
 namespace caff {
-    using Json = nlohmann::json;
-
     // RAII helper to get rid of gotos
     // TODO use a C++ HTTP library
     class ScopedCURL final {
@@ -159,29 +132,6 @@ namespace caff {
     private:
         curl_httppost * post;
     };
-
-    // TODO holdovers from C */
-    static char * cstrdup(char const * str) {
-        if (!str) {
-            return nullptr;
-        }
-
-        auto copylen = strlen(str) + 1;
-        auto result = new char[copylen];
-        strncpy(result, str, copylen);
-        return result;
-    }
-
-    static char * cstrdup(std::string const & str) {
-        if (str.empty()) {
-            return nullptr;
-        }
-
-        auto result = new char[str.length() + 1];
-        str.copy(result, str.length());
-        result[str.length()] = 0;
-        return result;
-    }
 
     /*
     void caff_set_string(char ** dest, char const * new_value)
@@ -291,7 +241,7 @@ namespace caff {
             };
 
             if (otp && otp[0]) {
-                requestJson.push_back({ "mfa", {{"otp", otp}} });
+                requestJson["mfa"] = {{"otp", otp}};
             }
         }
         catch (...) {
@@ -348,11 +298,7 @@ namespace caff {
 
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
-            creds = new Credentials(
-                credsIt->at("access_token").get<std::string>(),
-                credsIt->at("refresh_token").get<std::string>(),
-                credsIt->at("caid").get<std::string>(),
-                credsIt->at("credential").get<std::string>());
+            creds = new Credentials{ *credsIt };
             LOG_DEBUG("Sign-in complete");
         }
 
@@ -433,11 +379,7 @@ namespace caff {
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
             LOG_DEBUG("Sign-in complete");
-            return new Credentials(
-                credsIt->at("access_token").get<std::string>(),
-                credsIt->at("refresh_token").get<std::string>(),
-                credsIt->at("caid").get<std::string>(),
-                credsIt->at("credential").get<std::string>());
+            return new Credentials{ *credsIt };
         }
 
         LOG_ERROR("Failed to extract response info");
@@ -527,12 +469,7 @@ namespace caff {
         auto userIt = responseJson.find("user");
         if (userIt != responseJson.end()) {
             LOG_DEBUG("Got user details");
-            return new caff_user_info{
-                cstrdup(userIt->at("caid").get<std::string>()),
-                cstrdup(userIt->at("username").get<std::string>()),
-                cstrdup(userIt->at("stage_id").get<std::string>()),
-                userIt->at("can_broadcast").get<bool>()
-            };
+            return new caff_user_info(*userIt);
         }
 
         LOG_ERROR("Failed to get user info");
@@ -582,48 +519,7 @@ namespace caff {
         }
 
         auto numGames = responseJson.size();
-        response = new caff_games{ new caff_game_info *[numGames] {0}, numGames };
-
-        for (size_t gameIndex = 0; gameIndex < numGames; ++gameIndex) {
-            auto const & value = responseJson[gameIndex];
-
-            try {
-                auto idNum = value.at("id").get<int>();
-                auto name = value.at("name").get<std::string>();
-                auto const & processNames = value["process_names"];
-                auto numProcesses = processNames.size();
-                if (numProcesses == 0) {
-                    LOG_WARN("No process names found for %s; ignoring", name.c_str());
-                    continue;
-                }
-
-                std::ostringstream idStream;
-                idStream << idNum;
-
-                auto info = new caff_game_info{
-                    cstrdup(idStream.str()),
-                    cstrdup(name),
-                    new char *[numProcesses] {0},
-                    numProcesses
-                };
-
-                for (size_t processIndex = 0; processIndex < numProcesses; ++processIndex) {
-                    try {
-                        info->process_names[processIndex] = cstrdup(processNames.at(processIndex).get<std::string>());
-                    }
-                    catch (...) {
-                        LOG_WARN("Unable to read process name; ignoring");
-                    }
-                }
-
-                response->game_infos[gameIndex] = info;
-            }
-            catch (...) {
-                LOG_WARN("Unable to parse game list entry; ignoring");
-            }
-        }
-
-        return response;
+        return new caff_games(responseJson);
     }
 
     caff_games * getSupportedGames()
@@ -849,179 +745,12 @@ namespace caff {
         return request;
     }
 
-    template <typename T>
-    void getValue(Json const & j, char const * key, T & target)
-    {
-        j.at(key).get_to(target);
-    }
-
-    template <typename T>
-    void getValue(Json const & j, char const * key, absl::optional<T> & target)
-    {
-        auto it = j.find(key);
-        if (it != j.end()) {
-            it->get_to(target);
-        }
-        else {
-            target.reset();
-        }
-    }
-
-    template <typename T>
-    void setValue(Json & j, char const * key, T const & source)
-    {
-        j[key] = source;
-    }
-
-    template <typename T>
-    void setValue(Json & j, char const * key, absl::optional<T> const & source)
-    {
-        if (source) {
-            setValue(j, key, *source);
-        }
-    }
-
-    NLOHMANN_JSON_SERIALIZE_ENUM(ContentType, {
-        {ContentType::Game, "game"},
-        {ContentType::User, "user"},
-        })
-
-    NLOHMANN_JSON_SERIALIZE_ENUM(caff_connection_quality, {
-        {CAFF_CONNECTION_QUALITY_GOOD, "GOOD"},
-        {CAFF_CONNECTION_QUALITY_BAD, "BAD"},
-        {CAFF_CONNECTION_QUALITY_UNKNOWN, nullptr},
-        })
-
-    void to_json(Json & j, Client const & client)
-    {
-        setValue(j, "id", client.id);
-        setValue(j, "headless", client.headless);
-        setValue(j, "constrained_baseline", client.constrainedBaseline);
-    }
-
-    void to_json(Json & j, FeedCapabilities const & capabilities)
-    {
-        setValue(j, "video", capabilities.video);
-        setValue(j, "audio", capabilities.audio);
-    }
-
-    void to_json(Json & j, FeedContent const & content)
-    {
-        setValue(j, "id", content.id);
-        setValue(j, "type", content.type);
-    }
-
-    void to_json(Json & j, FeedStream const & stream)
-    {
-        setValue(j, "id", stream.id);
-        setValue(j, "source_id", stream.sourceId);
-        setValue(j, "url", stream.url);
-        setValue(j, "sdp_offer", stream.sdpOffer);
-        setValue(j, "sdp_answer", stream.sdpAnswer);
-    }
-
-    void to_json(Json & j, Feed const & feed)
-    {
-        setValue(j, "id", feed.id);
-        setValue(j, "client_id", feed.clientId);
-        setValue(j, "role", feed.role);
-        setValue(j, "description", feed.description);
-        setValue(j, "source_connection_quality", feed.sourceConnectionQuality);
-        setValue(j, "volume", feed.volume);
-        setValue(j, "capabilities", feed.capabilities);
-        setValue(j, "content", feed.content);
-        setValue(j, "stream", feed.stream);
-    }
-
-    void to_json(Json & j, Stage const & stage)
-    {
-        setValue(j, "id", stage.id);
-        setValue(j, "username", stage.username);
-        setValue(j, "title", stage.title);
-        setValue(j, "broadcast_id", stage.broadcastId);
-        setValue(j, "upsert_broadcast", stage.upsertBroadcast);
-        setValue(j, "live", stage.live);
-        setValue(j, "feeds", stage.feeds);
-    }
-
-    void to_json(Json & j, StageRequest const & request)
-    {
-        setValue(j, "client", request.client);
-        setValue(j, "cursor", request.cursor);
-        setValue(j, "payload", request.stage);
-    }
-
-    void from_json(Json const & j, FeedStream & stream)
-    {
-        getValue(j, "id", stream.id);
-        getValue(j, "source_id", stream.sourceId);
-        getValue(j, "url", stream.url);
-        getValue(j, "sdp_offer", stream.sdpOffer);
-        getValue(j, "sdp_answer", stream.sdpAnswer);
-    }
-
-    void from_json(Json const & j, FeedContent & content)
-    {
-        getValue(j, "id", content.id);
-        getValue(j, "type", content.type);
-    }
-
-    void from_json(Json const & j, FeedCapabilities & capabilities)
-    {
-        getValue(j, "audio", capabilities.audio);
-        getValue(j, "video", capabilities.video);
-    }
-
-    void from_json(Json const & j, Feed & feed)
-    {
-        getValue(j, "id", feed.id);
-        getValue(j, "client_id", feed.clientId);
-        getValue(j, "role", feed.role);
-        getValue(j, "description", feed.description);
-        getValue(j, "source_connection_quality", feed.sourceConnectionQuality);
-        getValue(j, "volume", feed.volume);
-        getValue(j, "capabilities", feed.capabilities);
-        getValue(j, "content", feed.content);
-        getValue(j, "stream", feed.stream);
-    }
-
-    void from_json(Json const & j, Stage & stage)
-    {
-        getValue(j, "id", stage.id);
-        getValue(j, "username", stage.username);
-        getValue(j, "title", stage.title);
-        getValue(j, "broadcast_id", stage.broadcastId);
-        getValue(j, "upsert_broadcast", stage.upsertBroadcast);
-        getValue(j, "live", stage.live);
-        getValue(j, "feeds", stage.feeds);
-    }
-
-    void from_json(Json const & j, StageResponse & response)
-    {
-        getValue(j, "cursor", response.cursor);
-        getValue(j, "retry_in", response.retryIn);
-        getValue(j, "payload", response.stage);
-    }
-
-    void from_json(Json const & j, DisplayMessage & message)
-    {
-        getValue(j, "title", message.title);
-        getValue(j, "body", message.body);
-    };
-
-    void from_json(Json const & j, FailureResponse & response)
-    {
-        getValue(j, "type", response.type);
-        getValue(j, "reason", response.reason);
-        getValue(j, "display_message", response.displayMessage);
-    };
-
     static bool isOutOfCapacityFailure(std::string const & type)
     {
         return type == "OutOfCapacity";
     }
 
-    static absl::optional<StageResponseResult> do_caffeine_stage_update(
+    static optional<StageResponseResult> doStageUpdate(
         StageRequest const & request,
         Credentials * creds)
     {
@@ -1066,7 +795,7 @@ namespace caff {
         if (responseCode == 401) {
             LOG_INFO("Unauthorized - refreshing credentials");
             if (refreshCredentials(creds)) {
-                return do_caffeine_stage_update(request, creds);
+                return doStageUpdate(request, creds);
             }
             return {};
         }
@@ -1098,15 +827,15 @@ namespace caff {
                     return {};
                 }
 
-                auto message_json = responseJson.value("display_message", Json::object());
+                auto messageJson = responseJson.value("display_message", Json::object());
                 return StageResponseResult{
                     {},
                     FailureResponse{
                         std::move(type),
                         responseJson.value("reason", ""),
                         DisplayMessage{
-                            message_json.value("title", ""),
-                            message_json.at("body").get<std::string>(),
+                            messageJson.value("title", ""),
+                            messageJson.at("body").get<std::string>(),
                         }} };
             }
             catch (...) {
@@ -1118,9 +847,9 @@ namespace caff {
         return {};
     }
 
-    absl::optional<StageResponseResult> caffeine_stage_update(StageRequest const & request, Credentials * creds)
+    optional<StageResponseResult> stageUpdate(StageRequest const & request, Credentials * creds)
     {
-        RETRY_REQUEST(absl::optional<StageResponseResult>, do_caffeine_stage_update(request, creds));
+        RETRY_REQUEST(optional<StageResponseResult>, doStageUpdate(request, creds));
     }
 
     bool requestStageUpdate(
@@ -1129,7 +858,7 @@ namespace caff {
         double * retryIn,
         bool * isOutOfCapacity)
     {
-        auto result = caffeine_stage_update(*request, creds);
+        auto result = stageUpdate(*request, creds);
 
         bool success = result && result->response;
         if (success) {
