@@ -1,17 +1,17 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "stream.hpp"
+#include "Stream.hpp"
 
 #include <thread>
 #include <ctime>
 #include <random>
 
 #include "caffeine.h"
-#include "api.hpp"
-#include "audiodevice.hpp"
-#include "peerconnectionobserver.hpp"
-#include "sessiondescriptionobserver.hpp"
-#include "videocapturer.hpp"
+#include "Api.hpp"
+#include "AudioDevice.hpp"
+#include "PeerConnectionObserver.hpp"
+#include "SessionDescriptionObserver.hpp"
+#include "VideoCapturer.hpp"
 
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"

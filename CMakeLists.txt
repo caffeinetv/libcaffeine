@@ -29,29 +29,29 @@ set(libcaffeine_HEADERS
 
 # Source & internal headers
 set(libcaffeine_SOURCES
-    src/api.hpp
-    src/api.cpp
-    src/audiodevice.cpp
-    src/audiodevice.hpp
-    src/audiodevicedefaultimpl.hpp
-    src/caffeine.cpp
-    src/caffeine-helpers.hpp
-    src/interface.cpp
-    src/interface.hpp
-    src/logsink.cpp
-    src/logsink.hpp
-    src/peerconnectionobserver.cpp
-    src/peerconnectionobserver.hpp
-    src/serialization.cpp
-    src/serialization.hpp
-    src/sessiondescriptionobserver.cpp
-    src/sessiondescriptionobserver.hpp
-    src/stream.cpp
-    src/stream.hpp
-    src/videocapturer.cpp
-    src/videocapturer.hpp
-    src/x264encoder.cpp
-    src/x264encoder.hpp
+    src/Api.hpp
+    src/Api.cpp
+    src/AudioDevice.cpp
+    src/AudioDevice.hpp
+    src/AudioDeviceDefaultImpl.hpp
+    src/Caffeine.cpp
+    src/CaffeineHelpers.hpp
+    src/Interface.cpp
+    src/Interface.hpp
+    src/LogSink.cpp
+    src/LogSink.hpp
+    src/PeerConnectionObserver.cpp
+    src/PeerConnectionObserver.hpp
+    src/Serialization.cpp
+    src/Serialization.hpp
+    src/SessionDescriptionObserver.cpp
+    src/SessionDescriptionObserver.hpp
+    src/Stream.cpp
+    src/Stream.hpp
+    src/VideoCapturer.cpp
+    src/VideoCapturer.hpp
+    src/X264Encoder.cpp
+    src/X264Encoder.hpp
 )
 
 if(WIN32)

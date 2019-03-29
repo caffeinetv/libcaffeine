@@ -1,6 +1,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "audiodevice.hpp"
+#include "AudioDevice.hpp"
 
 namespace caff {
 

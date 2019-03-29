@@ -1,10 +1,10 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "interface.hpp"
+#include "Interface.hpp"
 
-#include "audiodevice.hpp"
-#include "stream.hpp"
-#include "x264encoder.hpp"
+#include "AudioDevice.hpp"
+#include "Stream.hpp"
+#include "X264Encoder.hpp"
 
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"

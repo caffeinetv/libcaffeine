@@ -6,9 +6,9 @@
 
 #include <vector>
 
-#include "interface.hpp"
-#include "logsink.hpp"
-#include "stream.hpp"
+#include "Interface.hpp"
+#include "LogSink.hpp"
+#include "Stream.hpp"
 
 #include "rtc_base/ssladapter.h"
 

@@ -1,6 +1,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "logsink.hpp"
+#include "LogSink.hpp"
 
 #include <iostream>
 #include <sstream>

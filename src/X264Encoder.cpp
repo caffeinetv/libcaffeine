@@ -1,6 +1,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "x264encoder.hpp"
+#include "X264Encoder.hpp"
 
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "rtc_base/logging.h"

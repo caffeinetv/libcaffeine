@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "caffeine.h"
-#include "api.hpp"
-#include "caffeine-helpers.hpp"
+#include "Api.hpp"
+#include "CaffeineHelpers.hpp"
 
 #include "absl/types/optional.h"
 #include "common_types.h"

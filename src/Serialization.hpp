@@ -1,6 +1,6 @@
 #pragma once
 
-#include "api.hpp"
+#include "Api.hpp"
 #include "nlohmann/json.hpp"
 
 //// C datatype serialization has to be outside of caff namespace

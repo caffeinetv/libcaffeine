@@ -1,6 +1,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "videocapturer.hpp"
+#include "VideoCapturer.hpp"
 
 #include "api/video/i420_buffer.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
