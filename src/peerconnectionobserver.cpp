@@ -50,7 +50,11 @@ namespace caff {
             return;
         }
 
-        gatheredCandidates.emplace_back(std::move(sdpString), candidate->sdp_mid(), candidate->sdp_mline_index());
+        gatheredCandidates.emplace_back(IceInfo{
+            std::move(sdpString),
+            candidate->sdp_mid(),
+            candidate->sdp_mline_index()
+        });
         RTC_LOG(LS_INFO) << "ICE candidate added";
     }
 

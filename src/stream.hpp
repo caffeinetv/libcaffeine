@@ -6,8 +6,6 @@
 #include <functional>
 #include <vector>
 
-#include "iceinfo.hpp"
-
 #include "caffeine.h"
 #include "api.hpp"
 #include "caffeine-helpers.hpp"

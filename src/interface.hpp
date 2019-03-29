@@ -4,7 +4,6 @@
 
 #include "caffeine.h"
 #include "api.hpp"
-#include "iceinfo.hpp"
 
 #include <functional>
 #include <vector>

@@ -20,17 +20,17 @@ namespace nlohmann {
     template <typename T>
     struct adl_serializer<caff::optional<T>> {
         static void to_json(json& json, const caff::optional<T>& opt) {
-            if (opt == caff::optional<T>{}) {
-                json = nullptr;
+            if (opt.has_value()) {
+                json = *opt;
             }
             else {
-                json = *opt;
+                json = nullptr;
             }
         }
 
         static void from_json(const json& json, caff::optional<T>& opt) {
             if (json.is_null()) {
-                opt = caff::optional<T>{};
+                opt.reset();
             }
             else {
                 opt = json.get<T>();
@@ -43,13 +43,13 @@ namespace caff {
     using Json = nlohmann::json;
 
     template <typename ValueT, typename KeyT>
-    inline void getValue(Json const & json, KeyT key, ValueT & target)
+    inline void get_value_to(Json const & json, KeyT key, ValueT & target)
     {
         json.at(key).get_to(target);
     }
 
     template <typename ValueT>
-    inline void getValue(Json const & json, char const * key, optional<ValueT> & target)
+    inline void get_value_to(Json const & json, char const * key, optional<ValueT> & target)
     {
         auto it = json.find(key);
         if (it != json.end()) {
@@ -65,13 +65,13 @@ namespace caff {
     char * cstrdup(std::string const & str);
 
     template <>
-    inline void getValue(Json const & json, size_t key, char * & target)
+    inline void get_value_to(Json const & json, size_t key, char * & target)
     {
         target = cstrdup(json.at(key).get<std::string>());
     }
 
     template <>
-    inline void getValue(Json const & json, char const * key, char * & target)
+    inline void get_value_to(Json const & json, char const * key, char * & target)
     {
         auto it = json.find(key);
         if (it != json.end()) {
@@ -83,16 +83,19 @@ namespace caff {
     }
 
     template <typename T>
-    inline void setValue(Json & json, char const * key, T const & source)
+    inline void set_value_from(Json & json, char const * key, T const & source)
     {
         json[key] = source;
     }
 
     template <typename T>
-    inline void setValue(Json & json, char const * key, optional<T> const & source)
+    inline void set_value_from(Json & json, char const * key, optional<T> const & source)
     {
         if (source) {
-            setValue(json, key, *source);
+            set_value_from(json, key, *source);
+        }
+        else {
+            json.erase(key);
         }
     }
 

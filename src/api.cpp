@@ -1,5 +1,4 @@
 #include "serialization.hpp"
-#include "iceinfo.hpp"
 
 #include <curl/curl.h>
 #include <mutex>
@@ -483,8 +482,6 @@ namespace caff {
 
     static caff_games * doGetSupportedGames()
     {
-        caff_games * response = nullptr;
-
         ScopedCURL curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, GETGAMES_URL);
@@ -518,7 +515,6 @@ namespace caff {
             return nullptr;
         }
 
-        auto numGames = responseJson.size();
         return new caff_games(responseJson);
     }
 

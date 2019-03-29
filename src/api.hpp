@@ -3,7 +3,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
 #include "caffeine.h"
-#include "iceinfo.hpp"
 
 #include <string>
 #include <map>
@@ -22,6 +21,12 @@ namespace caff {
         std::string credential;
 
         std::mutex mutex; // TODO: there's surely a better place for this
+    };
+
+    struct IceInfo {
+        std::string sdp;
+        std::string sdpMid;
+        int sdpMLineIndex;
     };
 
     struct FeedStream {

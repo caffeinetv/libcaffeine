@@ -4,10 +4,10 @@
 
 void from_json(nlohmann::json const & json, caff_user_info & userInfo)
 {
-    caff::getValue(json, "caid", userInfo.caid);
-    caff::getValue(json, "username", userInfo.username);
-    caff::getValue(json, "stage_id", userInfo.stage_id);
-    caff::getValue(json, "can_broadcast", userInfo.can_broadcast);
+    caff::get_value_to(json, "caid", userInfo.caid);
+    caff::get_value_to(json, "username", userInfo.username);
+    caff::get_value_to(json, "stage_id", userInfo.stage_id);
+    caff::get_value_to(json, "can_broadcast", userInfo.can_broadcast);
 }
 
 void from_json(nlohmann::json const & json, caff_game_info & gameInfo)
@@ -17,7 +17,7 @@ void from_json(nlohmann::json const & json, caff_game_info & gameInfo)
     idStream << idNum;
 
     gameInfo.id = caff::cstrdup(idStream.str());
-    caff::getValue(json, "name", gameInfo.name);
+    caff::get_value_to(json, "name", gameInfo.name);
 
     auto const & processNames = json.at("process_names");
     gameInfo.num_process_names = processNames.size();
@@ -29,7 +29,7 @@ void from_json(nlohmann::json const & json, caff_game_info & gameInfo)
     gameInfo.process_names = new char *[gameInfo.num_process_names] {0};
     for (size_t i = 0; i < gameInfo.num_process_names; ++i) {
         try {
-            caff::getValue(processNames, i, gameInfo.process_names[i]);
+            caff::get_value_to(processNames, i, gameInfo.process_names[i]);
         }
         catch (...) {
             //LOG_WARN("Unable to read process name; ignoring");
@@ -81,140 +81,140 @@ namespace caff {
 
     void from_json(Json const & json, Credentials & credentials)
     {
-        getValue(json, "access_token", credentials.accessToken);
-        getValue(json, "refresh_token", credentials.refreshToken);
-        getValue(json, "caid", credentials.caid);
-        getValue(json, "credential", credentials.credential);
+        get_value_to(json, "access_token", credentials.accessToken);
+        get_value_to(json, "refresh_token", credentials.refreshToken);
+        get_value_to(json, "caid", credentials.caid);
+        get_value_to(json, "credential", credentials.credential);
     }
 
     void to_json(Json & json, IceInfo const & iceInfo)
     {
-        setValue(json, "candidate", iceInfo.sdp);
-        setValue(json, "sdpMid", iceInfo.sdpMid);
-        setValue(json, "sdpMLineIndex", iceInfo.sdpMLineIndex);
+        set_value_from(json, "candidate", iceInfo.sdp);
+        set_value_from(json, "sdpMid", iceInfo.sdpMid);
+        set_value_from(json, "sdpMLineIndex", iceInfo.sdpMLineIndex);
     }
 
     void to_json(Json & json, Client const & client)
     {
-        setValue(json, "id", client.id);
-        setValue(json, "headless", client.headless);
-        setValue(json, "constrained_baseline", client.constrainedBaseline);
+        set_value_from(json, "id", client.id);
+        set_value_from(json, "headless", client.headless);
+        set_value_from(json, "constrained_baseline", client.constrainedBaseline);
     }
 
     void to_json(Json & json, FeedCapabilities const & capabilities)
     {
-        setValue(json, "video", capabilities.video);
-        setValue(json, "audio", capabilities.audio);
+        set_value_from(json, "video", capabilities.video);
+        set_value_from(json, "audio", capabilities.audio);
     }
 
     void from_json(Json const & json, FeedCapabilities & capabilities)
     {
-        getValue(json, "audio", capabilities.audio);
-        getValue(json, "video", capabilities.video);
+        get_value_to(json, "audio", capabilities.audio);
+        get_value_to(json, "video", capabilities.video);
     }
 
     void to_json(Json & json, FeedContent const & content)
     {
-        setValue(json, "id", content.id);
-        setValue(json, "type", content.type);
+        set_value_from(json, "id", content.id);
+        set_value_from(json, "type", content.type);
     }
 
     void from_json(Json const & json, FeedContent & content)
     {
-        getValue(json, "id", content.id);
-        getValue(json, "type", content.type);
+        get_value_to(json, "id", content.id);
+        get_value_to(json, "type", content.type);
     }
 
     void to_json(Json & json, FeedStream const & stream)
     {
-        setValue(json, "id", stream.id);
-        setValue(json, "source_id", stream.sourceId);
-        setValue(json, "url", stream.url);
-        setValue(json, "sdp_offer", stream.sdpOffer);
-        setValue(json, "sdp_answer", stream.sdpAnswer);
+        set_value_from(json, "id", stream.id);
+        set_value_from(json, "source_id", stream.sourceId);
+        set_value_from(json, "url", stream.url);
+        set_value_from(json, "sdp_offer", stream.sdpOffer);
+        set_value_from(json, "sdp_answer", stream.sdpAnswer);
     }
 
     void from_json(Json const & json, FeedStream & stream)
     {
-        getValue(json, "id", stream.id);
-        getValue(json, "source_id", stream.sourceId);
-        getValue(json, "url", stream.url);
-        getValue(json, "sdp_offer", stream.sdpOffer);
-        getValue(json, "sdp_answer", stream.sdpAnswer);
+        get_value_to(json, "id", stream.id);
+        get_value_to(json, "source_id", stream.sourceId);
+        get_value_to(json, "url", stream.url);
+        get_value_to(json, "sdp_offer", stream.sdpOffer);
+        get_value_to(json, "sdp_answer", stream.sdpAnswer);
     }
 
     void to_json(Json & json, Feed const & feed)
     {
-        setValue(json, "id", feed.id);
-        setValue(json, "client_id", feed.clientId);
-        setValue(json, "role", feed.role);
-        setValue(json, "description", feed.description);
-        setValue(json, "source_connection_quality", feed.sourceConnectionQuality);
-        setValue(json, "volume", feed.volume);
-        setValue(json, "capabilities", feed.capabilities);
-        setValue(json, "content", feed.content);
-        setValue(json, "stream", feed.stream);
+        set_value_from(json, "id", feed.id);
+        set_value_from(json, "client_id", feed.clientId);
+        set_value_from(json, "role", feed.role);
+        set_value_from(json, "description", feed.description);
+        set_value_from(json, "source_connection_quality", feed.sourceConnectionQuality);
+        set_value_from(json, "volume", feed.volume);
+        set_value_from(json, "capabilities", feed.capabilities);
+        set_value_from(json, "content", feed.content);
+        set_value_from(json, "stream", feed.stream);
     }
 
     void from_json(Json const & json, Feed & feed)
     {
-        getValue(json, "id", feed.id);
-        getValue(json, "client_id", feed.clientId);
-        getValue(json, "role", feed.role);
-        getValue(json, "description", feed.description);
-        getValue(json, "source_connection_quality", feed.sourceConnectionQuality);
-        getValue(json, "volume", feed.volume);
-        getValue(json, "capabilities", feed.capabilities);
-        getValue(json, "content", feed.content);
-        getValue(json, "stream", feed.stream);
+        get_value_to(json, "id", feed.id);
+        get_value_to(json, "client_id", feed.clientId);
+        get_value_to(json, "role", feed.role);
+        get_value_to(json, "description", feed.description);
+        get_value_to(json, "source_connection_quality", feed.sourceConnectionQuality);
+        get_value_to(json, "volume", feed.volume);
+        get_value_to(json, "capabilities", feed.capabilities);
+        get_value_to(json, "content", feed.content);
+        get_value_to(json, "stream", feed.stream);
     }
 
     void to_json(Json & json, Stage const & stage)
     {
-        setValue(json, "id", stage.id);
-        setValue(json, "username", stage.username);
-        setValue(json, "title", stage.title);
-        setValue(json, "broadcast_id", stage.broadcastId);
-        setValue(json, "upsert_broadcast", stage.upsertBroadcast);
-        setValue(json, "live", stage.live);
-        setValue(json, "feeds", stage.feeds);
+        set_value_from(json, "id", stage.id);
+        set_value_from(json, "username", stage.username);
+        set_value_from(json, "title", stage.title);
+        set_value_from(json, "broadcast_id", stage.broadcastId);
+        set_value_from(json, "upsert_broadcast", stage.upsertBroadcast);
+        set_value_from(json, "live", stage.live);
+        set_value_from(json, "feeds", stage.feeds);
     }
 
     void from_json(Json const & json, Stage & stage)
     {
-        getValue(json, "id", stage.id);
-        getValue(json, "username", stage.username);
-        getValue(json, "title", stage.title);
-        getValue(json, "broadcast_id", stage.broadcastId);
-        getValue(json, "upsert_broadcast", stage.upsertBroadcast);
-        getValue(json, "live", stage.live);
-        getValue(json, "feeds", stage.feeds);
+        get_value_to(json, "id", stage.id);
+        get_value_to(json, "username", stage.username);
+        get_value_to(json, "title", stage.title);
+        get_value_to(json, "broadcast_id", stage.broadcastId);
+        get_value_to(json, "upsert_broadcast", stage.upsertBroadcast);
+        get_value_to(json, "live", stage.live);
+        get_value_to(json, "feeds", stage.feeds);
     }
 
     void to_json(Json & json, StageRequest const & request)
     {
-        setValue(json, "client", request.client);
-        setValue(json, "cursor", request.cursor);
-        setValue(json, "payload", request.stage);
+        set_value_from(json, "client", request.client);
+        set_value_from(json, "cursor", request.cursor);
+        set_value_from(json, "payload", request.stage);
     }
 
     void from_json(Json const & json, StageResponse & response)
     {
-        getValue(json, "cursor", response.cursor);
-        getValue(json, "retry_in", response.retryIn);
-        getValue(json, "payload", response.stage);
+        get_value_to(json, "cursor", response.cursor);
+        get_value_to(json, "retry_in", response.retryIn);
+        get_value_to(json, "payload", response.stage);
     }
 
     void from_json(Json const & json, DisplayMessage & message)
     {
-        getValue(json, "title", message.title);
-        getValue(json, "body", message.body);
+        get_value_to(json, "title", message.title);
+        get_value_to(json, "body", message.body);
     };
 
     void from_json(Json const & json, FailureResponse & response)
     {
-        getValue(json, "type", response.type);
-        getValue(json, "reason", response.reason);
-        getValue(json, "display_message", response.displayMessage);
+        get_value_to(json, "type", response.type);
+        get_value_to(json, "reason", response.reason);
+        get_value_to(json, "display_message", response.displayMessage);
     };
 }
