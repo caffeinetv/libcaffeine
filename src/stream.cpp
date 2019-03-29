@@ -173,7 +173,7 @@ namespace caff {
         }
 
         streamUrl = *responseStream->url;
-        nextRequest = request;
+        nextRequest.reset(request);
 
         return responseStream->sdpAnswer;
     }

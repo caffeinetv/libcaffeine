@@ -87,6 +87,13 @@ namespace caff {
         getValue(json, "credential", credentials.credential);
     }
 
+    void to_json(Json & json, IceInfo const & iceInfo)
+    {
+        setValue(json, "candidate", iceInfo.sdp);
+        setValue(json, "sdpMid", iceInfo.sdpMid);
+        setValue(json, "sdpMLineIndex", iceInfo.sdpMLineIndex);
+    }
+
     void to_json(Json & json, Client const & client)
     {
         setValue(json, "id", client.id);

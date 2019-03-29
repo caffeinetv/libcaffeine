@@ -87,7 +87,7 @@ namespace caff {
 
         std::string streamUrl;
         std::string feedId;
-        StageRequest * nextRequest{};
+        std::unique_ptr<StageRequest> nextRequest;
         //std::atomic<bool> isMutatingFeed{ false }; // TODO: heartbeat
 
         bool RequireState(State expectedState) const;

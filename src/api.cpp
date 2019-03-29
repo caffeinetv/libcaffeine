@@ -533,17 +533,7 @@ namespace caff {
         Credentials * creds)
     {
         TRACE();
-        auto iceCandidates = Json::array({});
-        for (auto const & candidate : candidates)
-        {
-            iceCandidates.push_back({
-                {"candidate", candidate.sdp},
-                {"sdpMid", candidate.sdpMid},
-                {"sdpMLineIndex", candidate.sdpMLineIndex},
-                });
-        }
-
-        Json requestJson = { {"ice_candidates", iceCandidates} }; // TODO see if this is needed (need a body for post)
+        Json requestJson = { {"ice_candidates", candidates} }; // TODO see if this is needed (need a body for post)
 
         std::string requestBody = requestJson.dump();
 

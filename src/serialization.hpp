@@ -103,6 +103,8 @@ namespace caff {
 
     void from_json(Json const & json, Credentials & credentials);
 
+    void to_json(Json & json, IceInfo const & iceInfo);
+
     void to_json(Json & json, Client const & client);
 
     void to_json(Json & json, FeedCapabilities const & capabilities);
