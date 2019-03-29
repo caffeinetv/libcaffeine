@@ -77,10 +77,34 @@ CAFFEINE_API caff_interface_handle caff_initialize(
     return reinterpret_cast<caff_interface_handle>(interface);
 }
 
+CAFFEINE_API caff_credentials_handle caff_refresh_auth(char const * refresh_token)
+{
+    RTC_DCHECK(refresh_token);
+    return reinterpret_cast<caff_credentials_handle>(refresh_auth(refresh_token));
+}
+
+CAFFEINE_API void caff_free_credentials(caff_credentials_handle * creds)
+{
+    RTC_DCHECK(creds);
+    free_credentials(reinterpret_cast<Credentials **>(creds));
+}
+
+CAFFEINE_API char const * caff_refresh_token(caff_credentials_handle creds)
+{
+    RTC_DCHECK(creds);
+    return refresh_token(reinterpret_cast<Credentials *>(creds));
+}
+
+CAFFEINE_API caff_user_info * caff_getuser(caff_credentials_handle creds)
+{
+    RTC_DCHECK(creds);
+    return getuser(reinterpret_cast<Credentials *>(creds));
+}
+
 CAFFEINE_API caff_stream_handle caff_start_stream(
     caff_interface_handle interface_handle,
     void * user_data,
-    caff_credentials_handle credentials,
+    caff_credentials_handle credentials_handle,
     char const * username,
     char const * title,
     caff_rating rating,
@@ -98,6 +122,7 @@ CAFFEINE_API caff_stream_handle caff_start_stream(
     };
 
     auto interface = reinterpret_cast<Interface*>(interface_handle);
+    auto credentials = reinterpret_cast<Credentials*>(credentials_handle);
     auto stream = interface->StartStream(credentials, username, title, rating, startedCallback, failedCallback);
 
     return reinterpret_cast<caff_stream_handle>(stream);

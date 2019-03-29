@@ -75,7 +75,7 @@ namespace caff {
     }
 
     Stream* Interface::StartStream(
-        caff_credentials_handle credentials,
+        Credentials * credentials,
         std::string username,
         std::string title,
         caff_rating rating,

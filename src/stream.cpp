@@ -22,25 +22,21 @@
 bool caff_trickle_candidates(
     std::vector<caff::IceInfo> const & candidates,
     std::string const & streamUrl,
-    caff_credentials_handle credentials);
+    Credentials * credentials);
 
-caff_feed const * caff_get_stage_feed(caff_stage const & stage, std::string const & id);
-// Replaces any existing feeds, copies passed in data
-void caff_set_stage_feed(caff_stage & stage, caff_feed feed);
-
-caff_stage_request * caff_create_stage_request(std::string username, std::string client_id);
+StageRequest * caff_create_stage_request(std::string username, std::string client_id);
 
 // If successful, updates request cursor and stage with the response values
 bool caff_request_stage_update(
-    caff_stage_request * request,
-    caff_credentials_handle creds,
+    StageRequest * request,
+    Credentials * creds,
     double * retry_in,
     bool * is_out_of_capacity);
 
 namespace caff {
 
     Stream::Stream(
-        caff_credentials_handle credentials,
+        Credentials * credentials,
         std::string username,
         std::string title,
         caff_rating rating,
@@ -142,7 +138,7 @@ namespace caff {
 
         // Make initial stage request to get a cursor
 
-        caff_stage_request * request = caff_create_stage_request(username, clientId);
+        StageRequest * request = caff_create_stage_request(username, clientId);
 
         if (!caff_request_stage_update(request, credentials, NULL, NULL)) {
             return {};
@@ -154,10 +150,10 @@ namespace caff {
         request->stage->broadcast_id.reset();
         request->stage->live = false;
 
-        caff_feed_stream stream{};
+        FeedStream stream{};
         stream.sdp_offer = offer;
 
-        caff_feed feed{};
+        Feed feed{};
         feed.id = feedId;
         feed.client_id = clientId;
         feed.role = "primary";
@@ -165,7 +161,7 @@ namespace caff {
         feed.capabilities = { true, true };
         feed.stream = std::move(stream);
 
-        caff_set_stage_feed(*request->stage, std::move(feed));
+        request->stage->feeds = { {feedId, std::move(feed)} };
 
         bool is_out_of_capacity = false;
         if (!caff_request_stage_update(request, credentials, NULL, &is_out_of_capacity)) {
@@ -177,20 +173,25 @@ namespace caff {
         }
 
         // Get stream details
-
-        caff_feed const * response_feed = caff_get_stage_feed(*request->stage, feedId);
-
-        if (!response_feed
-            || !response_feed->stream
-            || response_feed->stream->sdp_answer.empty()
-            || response_feed->stream->url.empty()) {
+        auto feedIt = request->stage->feeds->find(feedId);
+        if (feedIt == request->stage->feeds->end()) {
             return {};
         }
 
-        streamUrl = response_feed->stream->url;
+        auto & responseStream = feedIt->second.stream;
+
+        if (!responseStream
+            || !responseStream->sdp_answer
+            || responseStream->sdp_answer->empty()
+            || !responseStream->url
+            || responseStream->url->empty()) {
+            return {};
+        }
+
+        streamUrl = *responseStream->url;
         nextRequest = request;
 
-        return response_feed->stream->sdp_answer;
+        return responseStream->sdp_answer;
     }
 
     bool Stream::IceGathered(std::vector<IceInfo> candidates)
@@ -214,7 +215,7 @@ namespace caff {
     }
 
     // Returns `true` if the feed's game id changed
-    static bool caffeine_update_game_id(char const * game_id, caff_feed * feed)
+    static bool caffeine_update_game_id(char const * game_id, Feed * feed)
     {
         if (!feed) {
             return false;
@@ -243,7 +244,7 @@ namespace caff {
 
     // Returns `true` if the feed's connection quality changed
     static bool caffeine_update_connection_quality(
-        char const * quality, caff_feed * feed)
+        char const * quality, Feed * feed)
     {
         if (!quality) {
             return false;
@@ -277,13 +278,13 @@ namespace caff {
 
         char * feed_id = bstrdup(context->broadcast_info->feed_id);
         char * stream_url = bstrdup(context->broadcast_info->stream_url);
-        caff_stage_request * request =
+        StageRequest * request =
             context->broadcast_info->next_request;
         context->broadcast_info->next_request = NULL;
         pthread_mutex_unlock(&context->stream_mutex);
 
         obs_service_t * service = obs_output_get_service(context->output);
-        caff_credentials_handle credentials =
+        Credentials * credentials =
             obs_service_query(service, CAFFEINE_QUERY_CREDENTIALS);
 
         caff_games * games = caff_get_supported_games();
@@ -375,7 +376,7 @@ namespace caff {
                 goto broadcast_error;
             }
 
-            caff_feed * feed = caff_get_stage_feed(request->stage, feed_id);
+            Feed * feed = caff_get_stage_feed(request->stage, feed_id);
             if (!feed || !request->stage->live) {
                 caffeine_stream_failed(data, CAFF_ERROR_TAKEOVER);
                 goto broadcast_error;
@@ -385,7 +386,7 @@ namespace caff {
 
             // Heartbeat stream
 
-            caff_heartbeat_response * heartbeat_response =
+            HeartbeatResponse * heartbeat_response =
                 caff_heartbeat_stream(stream_url, credentials);
 
             if (heartbeat_response) {
@@ -481,7 +482,7 @@ namespace caff {
         struct caffeine_output * context = data;
 
         obs_service_t * service = obs_output_get_service(context->output);
-        caff_credentials_handle credentials =
+        Credentials * credentials =
             obs_service_query(service, CAFFEINE_QUERY_CREDENTIALS);
 
         long retry_interval_ms = 0; // TODO use chrono
@@ -509,7 +510,7 @@ namespace caff {
             if (interval < retry_interval_ms || is_mutating_feed(context))
                 continue;
 
-            caff_stage_request * request = NULL;
+            StageRequest * request = NULL;
 
             pthread_mutex_lock(&context->stream_mutex);
             if (context->broadcast_info) {
@@ -717,15 +718,10 @@ namespace caff {
     }
 
     caff_connection_quality Stream::GetConnectionQuality() {
-        if (nextRequest) {
-            caff_feed const * feed = caff_get_stage_feed(*nextRequest->stage, feedId);
-            if (feed && feed->source_connection_quality) {
-                if (feed->source_connection_quality == "GOOD") {
-                    return CAFF_CONNECTION_QUALITY_GOOD;
-                }
-                else if (feed->source_connection_quality == "BAD") {
-                    return CAFF_CONNECTION_QUALITY_BAD;
-                }
+        if (nextRequest && nextRequest->stage->feeds) {
+            auto feedIt = nextRequest->stage->feeds->find(feedId);
+            if (feedIt != nextRequest->stage->feeds->end() && feedIt->second.source_connection_quality) {
+                return *feedIt->second.source_connection_quality;
             }
         }
 

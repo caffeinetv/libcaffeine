@@ -49,7 +49,7 @@ namespace caff {
         static int const kMaxBitrateBps = 2000000;
 
         Stream(
-            caff_credentials_handle credentials,
+            Credentials * credentials,
             std::string username,
             std::string title,
             caff_rating rating,
@@ -75,7 +75,7 @@ namespace caff {
         std::atomic<State> state{ State::Offline };
         static char const * StateString(State state);
 
-        caff_credentials_handle credentials; // TODO: Maybe should be owned by the Interface instead of user of libcaffeine
+        Credentials * credentials; // TODO: Maybe should be owned by the Interface instead of user of libcaffeine
         std::string username;
         std::string title;
         caff_rating rating;
@@ -87,7 +87,7 @@ namespace caff {
 
         std::string streamUrl;
         std::string feedId;
-        caff_stage_request * nextRequest{};
+        StageRequest * nextRequest{};
         //std::atomic<bool> isMutatingFeed{ false }; // TODO: heartbeat
 
         bool RequireState(State expectedState) const;

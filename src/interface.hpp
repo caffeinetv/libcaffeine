@@ -3,6 +3,7 @@
 #pragma once
 
 #include "caffeine.h"
+#include "caffeine-api.hpp"
 #include "iceinfo.hpp"
 
 #include <functional>
@@ -29,7 +30,7 @@ namespace caff {
         virtual ~Interface();
 
         Stream* StartStream(
-            caff_credentials_handle credentials,
+            Credentials * credentials,
             std::string username,
             std::string title,
             caff_rating rating,
