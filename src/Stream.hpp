@@ -14,22 +14,22 @@
 #include "common_types.h"
 #include "rtc_base/scoped_ref_ptr.h"
 
-ASSERT_MATCH(CAFF_FORMAT_UNKNOWN, webrtc::VideoType::kUnknown);
-ASSERT_MATCH(CAFF_FORMAT_I420, webrtc::VideoType::kI420);
-ASSERT_MATCH(CAFF_FORMAT_IYUV, webrtc::VideoType::kIYUV);
-ASSERT_MATCH(CAFF_FORMAT_RGB24, webrtc::VideoType::kRGB24);
-ASSERT_MATCH(CAFF_FORMAT_ABGR, webrtc::VideoType::kABGR);
-ASSERT_MATCH(CAFF_FORMAT_ARGB, webrtc::VideoType::kARGB);
-ASSERT_MATCH(CAFF_FORMAT_ARGB4444, webrtc::VideoType::kARGB4444);
-ASSERT_MATCH(CAFF_FORMAT_RGB565, webrtc::VideoType::kRGB565);
-ASSERT_MATCH(CAFF_FORMAT_ARGB1555, webrtc::VideoType::kARGB1555);
-ASSERT_MATCH(CAFF_FORMAT_YUY2, webrtc::VideoType::kYUY2);
-ASSERT_MATCH(CAFF_FORMAT_YV12, webrtc::VideoType::kYV12);
-ASSERT_MATCH(CAFF_FORMAT_UYVY, webrtc::VideoType::kUYVY);
-ASSERT_MATCH(CAFF_FORMAT_MJPEG, webrtc::VideoType::kMJPEG);
-ASSERT_MATCH(CAFF_FORMAT_NV21, webrtc::VideoType::kNV21);
-ASSERT_MATCH(CAFF_FORMAT_NV12, webrtc::VideoType::kNV12);
-ASSERT_MATCH(CAFF_FORMAT_BGRA, webrtc::VideoType::kBGRA);
+ASSERT_MATCH(caff_VideoFormat_Unknown, webrtc::VideoType::kUnknown);
+ASSERT_MATCH(caff_VideoFormat_I420, webrtc::VideoType::kI420);
+ASSERT_MATCH(caff_VideoFormat_Iyuv, webrtc::VideoType::kIYUV);
+ASSERT_MATCH(caff_VideoFormat_Rgb24, webrtc::VideoType::kRGB24);
+ASSERT_MATCH(caff_VideoFormat_Abgr, webrtc::VideoType::kABGR);
+ASSERT_MATCH(caff_VideoFormat_Argb, webrtc::VideoType::kARGB);
+ASSERT_MATCH(caff_VideoFormat_Argb4444, webrtc::VideoType::kARGB4444);
+ASSERT_MATCH(caff_VideoFormat_Rgb565, webrtc::VideoType::kRGB565);
+ASSERT_MATCH(caff_VideoFormat_Argb1555, webrtc::VideoType::kARGB1555);
+ASSERT_MATCH(caff_VideoFormat_Yuy2, webrtc::VideoType::kYUY2);
+ASSERT_MATCH(caff_VideoFormat_Yv12, webrtc::VideoType::kYV12);
+ASSERT_MATCH(caff_VideoFormat_Uyvy, webrtc::VideoType::kUYVY);
+ASSERT_MATCH(caff_VideoFormat_Mjpeg, webrtc::VideoType::kMJPEG);
+ASSERT_MATCH(caff_VideoFormat_Nv21, webrtc::VideoType::kNV21);
+ASSERT_MATCH(caff_VideoFormat_Nv12, webrtc::VideoType::kNV12);
+ASSERT_MATCH(caff_VideoFormat_Bgra, webrtc::VideoType::kBGRA);
 
 namespace webrtc {
     class PeerConnectionFactoryInterface;
@@ -50,20 +50,20 @@ namespace caff {
             Credentials * credentials,
             std::string username,
             std::string title,
-            caff_rating rating,
+            caff_Rating rating,
             AudioDevice* audioDevice,
             webrtc::PeerConnectionFactoryInterface* factory);
 
         virtual ~Stream();
 
-        void Start(
+        void start(
             std::function<void()> startedCallback,
-            std::function<void(caff_error)> failedCallback);
+            std::function<void(caff_Error)> failedCallback);
 
-        void SendAudio(uint8_t const* samples, size_t samplesPerChannel);
-        void SendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_format format);
+        void sendAudio(uint8_t const* samples, size_t samplesPerChannel);
+        void sendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format);
 
-        caff_connection_quality GetConnectionQuality();
+        caff_ConnectionQuality getConnectionQuality();
 
         //void SetTitle(std::string title);
         //void SetRating(std::string rating);
@@ -71,12 +71,12 @@ namespace caff {
     private:
         enum class State { Offline, Starting, Online, Stopping };
         std::atomic<State> state{ State::Offline };
-        static char const * StateString(State state);
+        static char const * stateString(State state);
 
         Credentials * credentials; // TODO: Maybe should be owned by the Interface instead of user of libcaffeine
         std::string username;
         std::string title;
-        caff_rating rating;
+        caff_Rating rating;
 
         AudioDevice* audioDevice;
         VideoCapturer* videoCapturer;
@@ -88,12 +88,12 @@ namespace caff {
         std::unique_ptr<StageRequest> nextRequest;
         //std::atomic<bool> isMutatingFeed{ false }; // TODO: heartbeat
 
-        bool RequireState(State expectedState) const;
-        bool TransitionState(State oldState, State newState);
-        bool IsOnline() const;
+        bool requireState(State expectedState) const;
+        bool transitionState(State oldState, State newState);
+        bool isOnline() const;
 
-        optional<std::string> OfferGenerated(std::string const & offer);
-        bool IceGathered(std::vector<IceInfo> candidates);
+        optional<std::string> offerGenerated(std::string const & offer);
+        bool iceGathered(std::vector<IceInfo> candidates);
     };
 
 }  // namespace caff

@@ -28,13 +28,13 @@ namespace caff {
 
         virtual ~Interface();
 
-        Stream* StartStream(
+        Stream* startStream(
             Credentials * credentials,
             std::string username,
             std::string title,
-            caff_rating rating,
+            caff_Rating rating,
             std::function<void()> startedCallback,
-            std::function<void(caff_error)> failedCallback);
+            std::function<void(caff_Error)> failedCallback);
 
     private:
         rtc::scoped_refptr<AudioDevice> audioDevice;

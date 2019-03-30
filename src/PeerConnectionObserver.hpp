@@ -17,7 +17,7 @@ namespace caff {
         PeerConnectionObserver();
 
         using Candidates = std::vector<IceInfo>;
-        std::future<Candidates const&> GetFuture();
+        std::future<Candidates const&> getFuture();
 
         virtual void OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) override;
         virtual void OnRenegotiationNeeded() override;

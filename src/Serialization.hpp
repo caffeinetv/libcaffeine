@@ -6,15 +6,15 @@
 //// C datatype serialization has to be outside of caff namespace
 //// TODO: don't pass ownership of these to C-side
 
-NLOHMANN_JSON_SERIALIZE_ENUM(caff_connection_quality, {
-    {CAFF_CONNECTION_QUALITY_GOOD, "GOOD"},
-    {CAFF_CONNECTION_QUALITY_BAD, "BAD"},
-    {CAFF_CONNECTION_QUALITY_UNKNOWN, nullptr},
+NLOHMANN_JSON_SERIALIZE_ENUM(caff_ConnectionQuality, {
+    {caff_ConnectionQuality_Good, "GOOD"},
+    {caff_ConnectionQuality_Bad, "BAD"},
+    {caff_ConnectionQuality_Unknown, nullptr},
     })
 
-void from_json(nlohmann::json const & json, caff_user_info & userInfo);
-void from_json(nlohmann::json const & json, caff_game_info & gameInfo);
-void from_json(nlohmann::json const & json, caff_games & games);
+void from_json(nlohmann::json const & json, caff_UserInfo & userInfo);
+void from_json(nlohmann::json const & json, caff_GameInfo & gameInfo);
+void from_json(nlohmann::json const & json, caff_GameList & games);
 
 namespace nlohmann {
     template <typename T>

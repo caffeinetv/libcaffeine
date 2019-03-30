@@ -39,38 +39,38 @@ namespace caff {
         virtual int32_t SetChannelParameters(uint32_t packet_loss, int64_t rtt) override;
 
     private:
-        bool IsInitialized() const;
+        bool isInitialized() const;
 
-        webrtc::H264BitstreamParser _h264_bitstream_parser;
+        webrtc::H264BitstreamParser bitstreamParser;
 
-        void ReportInit();
-        void ReportError();
+        void reportInit();
+        void reportError();
 
-        x264_t* _x264_encoder = nullptr;
-        x264_picture_t _pic_in;
+        x264_t* encoder = nullptr;
+        x264_picture_t pictureIn;
 
-        int _width = 0;
-        int _height = 0;
-        float _max_frame_rate = 0.0f;
-        uint32_t _target_kbps = 0;
-        webrtc::VideoCodecMode _mode = webrtc::VideoCodecMode::kRealtimeVideo;
+        int width = 0;
+        int height = 0;
+        float maxFrameRate = 0.0f;
+        uint32_t targetKbps = 0;
+        webrtc::VideoCodecMode mode = webrtc::VideoCodecMode::kRealtimeVideo;
 
         // H.264 specifc parameters
-        bool _frame_dropping_on = false;
-        int _key_frame_interval = 0;
-        webrtc::H264PacketizationMode _packetization_mode = webrtc::H264PacketizationMode::SingleNalUnit;
+        bool enableFrameDropping = false;
+        int keyFrameInterval = 0;
+        webrtc::H264PacketizationMode packetizationMode = webrtc::H264PacketizationMode::SingleNalUnit;
 
-        size_t _max_payload_size = 0;
-        int32_t _number_of_cores = 0;
+        size_t maxPayloadSize = 0;
+        int32_t numberOfCores = 0;
 
-        webrtc::EncodedImage _encoded_image;
-        std::unique_ptr<uint8_t[]> _encoded_image_buffer;
-        webrtc::EncodedImageCallback* _encoded_image_callback = nullptr;
+        webrtc::EncodedImage encodedImage;
+        std::unique_ptr<uint8_t[]> encodedImageBuffer;
+        webrtc::EncodedImageCallback* encodedImageCallback = nullptr;
 
-        bool _has_reported_init = false;
-        bool _has_reported_error = false;
+        bool hasReportedInit = false;
+        bool hasReportedError = false;
 
-        uint64_t _frame_count = 0;
+        uint64_t frameCount = 0;
     };
 
 }  // namespace caff

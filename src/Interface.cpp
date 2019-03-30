@@ -74,15 +74,15 @@ namespace caff {
         factory = nullptr;
     }
 
-    Stream* Interface::StartStream(
+    Stream* Interface::startStream(
         Credentials * credentials,
         std::string username,
         std::string title,
-        caff_rating rating,
+        caff_Rating rating,
         std::function<void()> startedCallback,
-        std::function<void(caff_error)> failedCallback) {
+        std::function<void(caff_Error)> failedCallback) {
         auto stream = new Stream(credentials, username, title, rating, audioDevice, factory);
-        stream->Start(startedCallback, failedCallback);
+        stream->start(startedCallback, failedCallback);
         return stream;
     }
 

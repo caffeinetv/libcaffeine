@@ -67,20 +67,20 @@
 namespace caff {
     // RAII helper to get rid of gotos
     // TODO use a C++ HTTP library
-    class ScopedCURL final {
+    class ScopedCurl final {
     public:
-        explicit ScopedCURL(char const * contentType) : curl(curl_easy_init()), headers(basicHeaders(contentType))
+        explicit ScopedCurl(char const * contentType) : curl(curl_easy_init()), headers(basicHeaders(contentType))
         {
             applyHeaders();
         }
 
-        ScopedCURL(char const * contentType, Credentials * creds)
+        ScopedCurl(char const * contentType, Credentials * creds)
             : curl(curl_easy_init()), headers(authenticatedHeaders(contentType, creds))
         {
             applyHeaders();
         }
 
-        ~ScopedCURL()
+        ~ScopedCurl()
         {
             curl_slist_free_all(headers);
             curl_easy_cleanup(curl);
@@ -182,7 +182,7 @@ namespace caff {
     {
         TRACE();
 
-        ScopedCURL curl(CONTENT_TYPE_JSON);
+        ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, VERSION_CHECK_URL);
 
@@ -226,7 +226,7 @@ namespace caff {
     /* TODO: refactor this - lots of dupe code between request types
      * TODO: reuse curl handle across requests
      */
-    static caff_auth_response * doSignin(char const * username, char const * password, char const * otp)
+    static caff_AuthResponse * doSignin(char const * username, char const * password, char const * otp)
     {
         TRACE();
         Json requestJson;
@@ -250,7 +250,7 @@ namespace caff {
 
         auto requestBody = requestJson.dump();
 
-        ScopedCURL curl(CONTENT_TYPE_JSON);
+        ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, SIGNIN_URL);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
@@ -284,7 +284,7 @@ namespace caff {
             if (otpError != errors->end()) {
                 auto errorText = otpError->at(0).get<std::string>();
                 LOG_ERROR("One time password error: %s", errorText.c_str());
-                return new caff_auth_response{ nullptr, cstrdup("mfa_otp_required"), nullptr };
+                return new caff_AuthResponse{ nullptr, cstrdup("mfa_otp_required"), nullptr };
             }
             auto errorText = errors->at("_error").at(0).get<std::string>();
             LOG_ERROR("Error logging in: %s", errorText.c_str());
@@ -316,16 +316,16 @@ namespace caff {
             LOG_ERROR("Sign-in response missing");
         }
 
-        return new caff_auth_response{
-            reinterpret_cast<caff_credentials_handle>(creds),
+        return new caff_AuthResponse{
+            reinterpret_cast<caff_CredentialsHandle>(creds),
             cstrdup(next),
             cstrdup(mfaOtpMethod)
         };
     }
 
-    caff_auth_response * caffSignin(char const * username, char const * password, char const * otp)
+    caff_AuthResponse * caffSignin(char const * username, char const * password, char const * otp)
     {
-        RETRY_REQUEST(caff_auth_response*, doSignin(username, password, otp));
+        RETRY_REQUEST(caff_AuthResponse*, doSignin(username, password, otp));
     }
 
     static Credentials * doRefreshAuth(char const * refreshToken)
@@ -336,7 +336,7 @@ namespace caff {
 
         auto requestBody = requestJson.dump();
 
-        ScopedCURL curl(CONTENT_TYPE_JSON);
+        ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, REFRESH_TOKEN_URL);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
@@ -422,7 +422,7 @@ namespace caff {
         RETRY_REQUEST(bool, doRefreshCredentials(creds));
     }
 
-    static caff_user_info * doGetUserInfo(Credentials * creds)
+    static caff_UserInfo * doGetUserInfo(Credentials * creds)
     {
         TRACE();
         if (creds == nullptr) {
@@ -430,7 +430,7 @@ namespace caff {
             return nullptr;
         }
 
-        ScopedCURL curl(CONTENT_TYPE_JSON, creds);
+        ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
         auto urlStr = GETUSER_URL(creds->caid);
         curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
@@ -468,21 +468,21 @@ namespace caff {
         auto userIt = responseJson.find("user");
         if (userIt != responseJson.end()) {
             LOG_DEBUG("Got user details");
-            return new caff_user_info(*userIt);
+            return new caff_UserInfo(*userIt);
         }
 
         LOG_ERROR("Failed to get user info");
         return nullptr;
     }
 
-    caff_user_info * getUserInfo(Credentials * creds)
+    caff_UserInfo * getUserInfo(Credentials * creds)
     {
-        RETRY_REQUEST(caff_user_info*, doGetUserInfo(creds));
+        RETRY_REQUEST(caff_UserInfo*, doGetUserInfo(creds));
     }
 
-    static caff_games * doGetSupportedGames()
+    static caff_GameList * doGetSupportedGames()
     {
-        ScopedCURL curl(CONTENT_TYPE_JSON);
+        ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, GETGAMES_URL);
 
@@ -515,12 +515,12 @@ namespace caff {
             return nullptr;
         }
 
-        return new caff_games(responseJson);
+        return new caff_GameList(responseJson);
     }
 
-    caff_games * getSupportedGames()
+    caff_GameList * getSupportedGames()
     {
-        RETRY_REQUEST(caff_games *, doGetSupportedGames());
+        RETRY_REQUEST(caff_GameList *, doGetSupportedGames());
     }
 
     static bool doTrickleCandidates(
@@ -533,7 +533,7 @@ namespace caff {
 
         std::string requestBody = requestJson.dump();
 
-        ScopedCURL curl(CONTENT_TYPE_JSON, creds);
+        ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
         curl_easy_setopt(curl, CURLOPT_URL, streamUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
@@ -586,7 +586,7 @@ namespace caff {
     {
         TRACE();
 
-        ScopedCURL curl(CONTENT_TYPE_JSON, creds);
+        ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
         auto url = STREAM_HEARTBEAT_URL(streamUrl);
 
@@ -662,7 +662,7 @@ namespace caff {
         Credentials * creds)
     {
         TRACE();
-        ScopedCURL curl(CONTENT_TYPE_FORM, creds);
+        ScopedCurl curl(CONTENT_TYPE_FORM, creds);
 
         curl_httppost * post = nullptr;
         curl_httppost * last = nullptr;
@@ -752,7 +752,7 @@ namespace caff {
         Json requestJson = request;
         auto requestBody = requestJson.dump();
 
-        ScopedCURL curl(CONTENT_TYPE_JSON, creds);
+        ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
         auto urlStr = STAGE_UPDATE_URL(*request.stage->username);
 

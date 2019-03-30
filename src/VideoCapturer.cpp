@@ -10,7 +10,7 @@
 namespace caff {
 
     // Copied from old version of libwebrtc
-    libyuv::RotationMode ConvertRotationMode(webrtc::VideoRotation rotation) {
+    static libyuv::RotationMode convertRotationMode(webrtc::VideoRotation rotation) {
         switch (rotation) {
         case webrtc::kVideoRotation_0:
             return libyuv::kRotate0;
@@ -26,35 +26,35 @@ namespace caff {
     }
 
     // Copied from old version of libwebrtc
-    static int ConvertToI420(
-        webrtc::VideoType src_video_type,
-        const uint8_t* src_frame,
-        int crop_x,
-        int crop_y,
-        int src_width,
-        int src_height,
-        size_t sample_size,
+    static int convertToI420(
+        webrtc::VideoType srcVideoType,
+        const uint8_t* srcFrame,
+        int cropX,
+        int cropY,
+        int srcWidth,
+        int srcHeight,
+        size_t sampleSize,
         webrtc::VideoRotation rotation,
-        webrtc::I420Buffer* dst_buffer) {
+        webrtc::I420Buffer* dstBuffer) {
 
-        int dst_width = dst_buffer->width();
-        int dst_height = dst_buffer->height();
+        int dstWidth = dstBuffer->width();
+        int dstHeight = dstBuffer->height();
         // LibYuv expects pre-rotation values for dst.
         // Stride values should correspond to the destination values.
         if (rotation == webrtc::kVideoRotation_90 ||
             rotation == webrtc::kVideoRotation_270) {
-            std::swap(dst_width, dst_height);
+            std::swap(dstWidth, dstHeight);
         }
         return libyuv::ConvertToI420(
-            src_frame, sample_size,
-            dst_buffer->MutableDataY(), dst_buffer->StrideY(),
-            dst_buffer->MutableDataU(), dst_buffer->StrideU(),
-            dst_buffer->MutableDataV(), dst_buffer->StrideV(),
-            crop_x, crop_y,
-            src_width, src_height,
-            dst_width, dst_height,
-            ConvertRotationMode(rotation),
-            webrtc::ConvertVideoType(src_video_type));
+            srcFrame, sampleSize,
+            dstBuffer->MutableDataY(), dstBuffer->StrideY(),
+            dstBuffer->MutableDataU(), dstBuffer->StrideU(),
+            dstBuffer->MutableDataV(), dstBuffer->StrideV(),
+            cropX, cropY,
+            srcWidth, srcHeight,
+            dstWidth, dstHeight,
+            convertRotationMode(rotation),
+            webrtc::ConvertVideoType(srcVideoType));
     }
 
     cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const& format) {
@@ -69,7 +69,7 @@ namespace caff {
     // FPS limit is 30 (fudged a bit for variance)
     static int64_t const minFrameMicros = (1000000 / 32);
 
-    void VideoCapturer::SendVideo(
+    void VideoCapturer::sendVideo(
         uint8_t const* frameData,
         size_t frameByteCount,
         int32_t width,
@@ -84,17 +84,17 @@ namespace caff {
         }
         lastFrameMicros = now;
 
-        int32_t adapted_width = minDimension;
-        int32_t adapted_height = minDimension;
-        int32_t crop_width;
-        int32_t crop_height;
-        int32_t crop_x;
-        int32_t crop_y;
-        int64_t translated_camera_time;
+        int32_t adaptedWidth = minDimension;
+        int32_t adaptedHeight = minDimension;
+        int32_t cropWidth;
+        int32_t cropHeight;
+        int32_t cropX;
+        int32_t cropY;
+        int64_t translatedCameraTime;
 
         if (!AdaptFrame(width, height, now, now,
-            &adapted_width, &adapted_height, &crop_width, &crop_height,
-            &crop_x, &crop_y, &translated_camera_time)) {
+            &adaptedWidth, &adaptedHeight, &cropWidth, &cropHeight,
+            &cropX, &cropY, &translatedCameraTime)) {
             RTC_LOG(LS_INFO) << "Adapter dropped the frame.";
             return;
         }
@@ -102,40 +102,40 @@ namespace caff {
         // we will cap the minimum resolution to be 360 on the smaller of either width
         // or height depending on the orientation.
 
-        if ((width >= height) && (adapted_height < minDimension)) {
-            adapted_width = width * minDimension / height;
-            adapted_height = minDimension;
+        if ((width >= height) && (adaptedHeight < minDimension)) {
+            adaptedWidth = width * minDimension / height;
+            adaptedHeight = minDimension;
         }
-        else if ((height > width) && (adapted_width < minDimension)) {
-            adapted_width = minDimension;
-            adapted_height = height * minDimension / width;
+        else if ((height > width) && (adaptedWidth < minDimension)) {
+            adaptedWidth = minDimension;
+            adaptedHeight = height * minDimension / width;
         }
 
         // And cap the maximum vertical resolution to be 720
-        if (adapted_height > maxHeight) {
-            adapted_width = adapted_width * maxHeight / adapted_height;
-            adapted_height = maxHeight;
+        if (adaptedHeight > maxHeight) {
+            adaptedWidth = adaptedWidth * maxHeight / adaptedHeight;
+            adaptedHeight = maxHeight;
         }
 
         // if the given input is a weird resolution that is an odd number, the adapted
         // may be odd too, and we need to ensure that it is even.
-        adapted_width = (adapted_width + 1) & ~1;    // round up to even
-        adapted_height = (adapted_height + 1) & ~1;  // round up to even
+        adaptedWidth = (adaptedWidth + 1) & ~1;    // round up to even
+        adaptedHeight = (adaptedHeight + 1) & ~1;  // round up to even
 
         rtc::scoped_refptr<webrtc::I420Buffer> unscaledBuffer = webrtc::I420Buffer::Create(width, height);
 
-        ConvertToI420(
+        convertToI420(
             format, frameData, 0, 0, width, height, frameByteCount, webrtc::kVideoRotation_0, unscaledBuffer.get());
 
         rtc::scoped_refptr<webrtc::I420Buffer> scaledBuffer = unscaledBuffer;
-        if (adapted_height != height) {
-            scaledBuffer = webrtc::I420Buffer::Create(adapted_width, adapted_height);
+        if (adaptedHeight != height) {
+            scaledBuffer = webrtc::I420Buffer::Create(adaptedWidth, adaptedHeight);
             scaledBuffer->ScaleFrom(*unscaledBuffer);
         }
 
-        webrtc::VideoFrame frame(scaledBuffer, webrtc::kVideoRotation_0, translated_camera_time);
+        webrtc::VideoFrame frame(scaledBuffer, webrtc::kVideoRotation_0, translatedCameraTime);
 
-        OnFrame(frame, adapted_width, adapted_height);
+        OnFrame(frame, adaptedWidth, adaptedHeight);
     }
 
     void VideoCapturer::Stop() {}

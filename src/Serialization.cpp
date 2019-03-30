@@ -2,15 +2,15 @@
 
 #include <sstream>
 
-void from_json(nlohmann::json const & json, caff_user_info & userInfo)
+void from_json(nlohmann::json const & json, caff_UserInfo & userInfo)
 {
     caff::get_value_to(json, "caid", userInfo.caid);
     caff::get_value_to(json, "username", userInfo.username);
-    caff::get_value_to(json, "stage_id", userInfo.stage_id);
-    caff::get_value_to(json, "can_broadcast", userInfo.can_broadcast);
+    caff::get_value_to(json, "stage_id", userInfo.stageId);
+    caff::get_value_to(json, "can_broadcast", userInfo.canBroadcast);
 }
 
-void from_json(nlohmann::json const & json, caff_game_info & gameInfo)
+void from_json(nlohmann::json const & json, caff_GameInfo & gameInfo)
 {
     auto idNum = json.at("id").get<size_t>();
     std::ostringstream idStream;
@@ -20,16 +20,16 @@ void from_json(nlohmann::json const & json, caff_game_info & gameInfo)
     caff::get_value_to(json, "name", gameInfo.name);
 
     auto const & processNames = json.at("process_names");
-    gameInfo.num_process_names = processNames.size();
-    if (gameInfo.num_process_names == 0) {
-        gameInfo.process_names = nullptr;
+    gameInfo.numProcessNames = processNames.size();
+    if (gameInfo.numProcessNames == 0) {
+        gameInfo.processNames = nullptr;
         return;
     }
 
-    gameInfo.process_names = new char *[gameInfo.num_process_names] {0};
-    for (size_t i = 0; i < gameInfo.num_process_names; ++i) {
+    gameInfo.processNames = new char *[gameInfo.numProcessNames] {0};
+    for (size_t i = 0; i < gameInfo.numProcessNames; ++i) {
         try {
-            caff::get_value_to(processNames, i, gameInfo.process_names[i]);
+            caff::get_value_to(processNames, i, gameInfo.processNames[i]);
         }
         catch (...) {
             //LOG_WARN("Unable to read process name; ignoring");
@@ -37,18 +37,18 @@ void from_json(nlohmann::json const & json, caff_game_info & gameInfo)
     }
 }
 
-void from_json(nlohmann::json const & json, caff_games & games)
+void from_json(nlohmann::json const & json, caff_GameList & games)
 {
-    games.num_games = json.size();
-    if (games.num_games == 0) {
-        games.game_infos = nullptr;
+    games.numGames = json.size();
+    if (games.numGames == 0) {
+        games.gameInfos = nullptr;
         return;
     }
 
-    games.game_infos = new caff_game_info *[games.num_games] {0};
-    for (size_t i = 0; i < games.num_games; ++i) {
+    games.gameInfos = new caff_GameInfo *[games.numGames] {0};
+    for (size_t i = 0; i < games.numGames; ++i) {
         try {
-            games.game_infos[i] = new caff_game_info(json.at(i));
+            games.gameInfos[i] = new caff_GameInfo(json.at(i));
         }
         catch (...) {
             //LOG_WARN("Unable to read game info; ignoring");

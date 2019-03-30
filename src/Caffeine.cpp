@@ -18,32 +18,32 @@
 
 using namespace caff;
 
-CAFFEINE_API char const* caff_error_string(caff_error error)
+CAFFEINE_API char const* caff_errorString(caff_Error error)
 {
     switch (error) {
-    case CAFF_ERROR_SDP_OFFER:
+    case caff_Error_SdpOffer:
         return "Error making SDP offer";
-    case CAFF_ERROR_SDP_ANSWER:
+    case caff_Error_SdpAnswer:
         return "Error reading SDP answer";
-    case CAFF_ERROR_ICE_TRICKLE:
+    case caff_Error_IceTrickle:
         return "Error during ICE negotiation";
-    case CAFF_ERROR_DISCONNECTED:
+    case caff_Error_Disconnected:
         return "Disconnected from server";
-    case CAFF_ERROR_TAKEOVER:
+    case caff_Error_Takeover:
         return "Stream takeover";
-    case CAFF_ERROR_UNKNOWN:
+    case caff_Error_Unknown:
     default:
         return "Unknown error";
     }
 }
 
-CAFFEINE_API caff_interface_handle caff_initialize(caff_log_callback log_callback, caff_log_severity min_severity)
+CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel min_severity)
 {
-    RTC_DCHECK(log_callback);
+    RTC_DCHECK(logCallback);
 
-    // TODO: make this thread safe?
-    static bool first_init = true;
-    if (first_init) {
+    // TODO: make this thread safe
+    static bool firstInit = true;
+    if (firstInit) {
         // Set up logging
         rtc::LogMessage::LogThreads(true);
         rtc::LogMessage::LogTimestamps(true);
@@ -54,7 +54,7 @@ CAFFEINE_API caff_interface_handle caff_initialize(caff_log_callback log_callbac
 
         // TODO: Figure out why this log sink isn't working and uncomment above two
         // lines
-        rtc::LogMessage::AddLogToStream(new LogSink(log_callback), static_cast<rtc::LoggingSeverity>(min_severity));
+        rtc::LogMessage::AddLogToStream(new LogSink(logCallback), static_cast<rtc::LoggingSeverity>(min_severity));
 
         // Initialize WebRTC
 
@@ -67,189 +67,189 @@ CAFFEINE_API caff_interface_handle caff_initialize(caff_log_callback log_callbac
         }
 
         RTC_LOG(LS_INFO) << "Caffeine RTC initialized";
-        first_init = false;
+        firstInit = false;
     }
 
     auto interface = new Interface;
-    return reinterpret_cast<caff_interface_handle>(interface);
+    return reinterpret_cast<caff_InterfaceHandle>(interface);
 }
 
-CAFFEINE_API bool caff_is_supported_version()
+CAFFEINE_API bool caff_isSupportedVersion()
 {
     return isSupportedVersion();
 }
 
-CAFFEINE_API caff_auth_response * caff_signin(char const * username, char const * password, char const * otp)
+CAFFEINE_API caff_AuthResponse * caff_signin(char const * username, char const * password, char const * otp)
 {
     return caffSignin(username, password, otp);
 }
 
-CAFFEINE_API caff_credentials_handle caff_refresh_auth(char const * refresh_token)
+CAFFEINE_API caff_CredentialsHandle caff_refreshAuth(char const * refreshToken)
 {
-    RTC_DCHECK(refresh_token);
-    return reinterpret_cast<caff_credentials_handle>(refreshAuth(refresh_token));
+    RTC_DCHECK(refreshToken);
+    return reinterpret_cast<caff_CredentialsHandle>(refreshAuth(refreshToken));
 }
 
-CAFFEINE_API void caff_free_credentials(caff_credentials_handle * credentials_handle)
+CAFFEINE_API void caff_freeCredentials(caff_CredentialsHandle * credentialsHandle)
 {
     // TODO this may do bad things
-    auto credentials = reinterpret_cast<Credentials **>(credentials_handle);
-    if (credentials && credentials_handle) {
+    auto credentials = reinterpret_cast<Credentials **>(credentialsHandle);
+    if (credentials && credentialsHandle) {
         delete *credentials;
         *credentials = nullptr;
     }
 }
 
-CAFFEINE_API void caff_free_auth_response(caff_auth_response ** auth_response)
+CAFFEINE_API void caff_freeAuthResponse(caff_AuthResponse ** authResponse)
 {
-    if (auth_response && *auth_response) {
-        caff_free_credentials(&(*auth_response)->credentials);
+    if (authResponse && *authResponse) {
+        caff_freeCredentials(&(*authResponse)->credentials);
 
-        delete[](*auth_response)->next;
-        delete[](*auth_response)->mfa_otp_method;
+        delete[](*authResponse)->next;
+        delete[](*authResponse)->mfaOtpMethod;
 
-        delete *auth_response;
-        *auth_response = nullptr;
+        delete *authResponse;
+        *authResponse = nullptr;
     }
 }
 
-CAFFEINE_API char const * caff_refresh_token(caff_credentials_handle credentials_handle)
+CAFFEINE_API char const * caff_getRefreshToken(caff_CredentialsHandle credentialsHandle)
 {
-    RTC_DCHECK(credentials_handle);
-    auto creds = reinterpret_cast<Credentials *>(credentials_handle);
+    RTC_DCHECK(credentialsHandle);
+    auto creds = reinterpret_cast<Credentials *>(credentialsHandle);
     return creds->refreshToken.c_str();
 }
 
-CAFFEINE_API caff_user_info * caff_get_user_info(caff_credentials_handle credentials_handle)
+CAFFEINE_API caff_UserInfo * caff_getUserInfo(caff_CredentialsHandle credentialsHandle)
 {
-    RTC_DCHECK(credentials_handle);
-    return getUserInfo(reinterpret_cast<Credentials *>(credentials_handle));
+    RTC_DCHECK(credentialsHandle);
+    return getUserInfo(reinterpret_cast<Credentials *>(credentialsHandle));
 }
 
-CAFFEINE_API void caff_free_user_info(caff_user_info ** user_info)
+CAFFEINE_API void caff_freeUserInfo(caff_UserInfo ** userInfo)
 {
-    if (user_info && *user_info) {
-        delete[](*user_info)->caid;
-        delete[](*user_info)->username;
-        delete[](*user_info)->stage_id;
-        delete *user_info;
-        *user_info = nullptr;
+    if (userInfo && *userInfo) {
+        delete[](*userInfo)->caid;
+        delete[](*userInfo)->username;
+        delete[](*userInfo)->stageId;
+        delete *userInfo;
+        *userInfo = nullptr;
     }
 }
 
-CAFFEINE_API caff_games * caff_get_supported_games()
+CAFFEINE_API caff_GameList * caff_getGameList()
 {
     return getSupportedGames();
 }
 
-CAFFEINE_API void caff_free_game_info(caff_game_info ** info)
+CAFFEINE_API void caff_freeGameInfo(caff_GameInfo ** info)
 {
     if (info && *info) {
-        for (size_t i = 0; i < (*info)->num_process_names; ++i) {
-            delete[](*info)->process_names[i];
-            (*info)->process_names[i] = nullptr;
+        for (size_t i = 0; i < (*info)->numProcessNames; ++i) {
+            delete[](*info)->processNames[i];
+            (*info)->processNames[i] = nullptr;
         }
         delete[](*info)->id;
         delete[](*info)->name;
-        delete[](*info)->process_names;
+        delete[](*info)->processNames;
         delete *info;
         *info = nullptr;
     }
 }
 
-CAFFEINE_API void caff_free_game_list(caff_games ** games)
+CAFFEINE_API void caff_freeGameList(caff_GameList ** games)
 {
     if (games && *games) {
-        for (size_t i = 0; i < (*games)->num_games; ++i) {
-            caff_free_game_info(&(*games)->game_infos[i]);
+        for (size_t i = 0; i < (*games)->numGames; ++i) {
+            caff_freeGameInfo(&(*games)->gameInfos[i]);
         }
-        delete[](*games)->game_infos;
+        delete[](*games)->gameInfos;
         delete *games;
         *games = nullptr;
     }
 }
 
-CAFFEINE_API caff_stream_handle caff_start_stream(
-    caff_interface_handle interface_handle,
+CAFFEINE_API caff_StreamHandle caff_startStream(
+    caff_InterfaceHandle interfaceHandle,
     void * user_data,
-    caff_credentials_handle credentials_handle,
+    caff_CredentialsHandle credentialsHandle,
     char const * username,
     char const * title,
-    caff_rating rating,
-    caff_stream_started started_callback,
-    caff_stream_failed failed_callback)
+    caff_Rating rating,
+    caff_StreamStartedCallback startedCallbackPtr,
+    caff_StreamFailedCallback failedCallbackPtr)
 {
-    RTC_DCHECK(interface_handle);
-    RTC_DCHECK(started_callback);
-    RTC_DCHECK(failed_callback);
+    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(startedCallbackPtr);
+    RTC_DCHECK(failedCallbackPtr);
 
     // Encapsulate void * inside lambdas, and other C++ -> C translations
-    auto startedCallback = [=] { started_callback(user_data); };
-    auto failedCallback = [=](caff_error error) {
-        failed_callback(user_data, error);
+    auto startedCallback = [=] { startedCallbackPtr(user_data); };
+    auto failedCallback = [=](caff_Error error) {
+        failedCallbackPtr(user_data, error);
     };
 
-    auto interface = reinterpret_cast<Interface*>(interface_handle);
-    auto credentials = reinterpret_cast<Credentials*>(credentials_handle);
-    auto stream = interface->StartStream(credentials, username, title, rating, startedCallback, failedCallback);
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    auto credentials = reinterpret_cast<Credentials*>(credentialsHandle);
+    auto stream = interface->startStream(credentials, username, title, rating, startedCallback, failedCallback);
 
-    return reinterpret_cast<caff_stream_handle>(stream);
+    return reinterpret_cast<caff_StreamHandle>(stream);
 }
 
-CAFFEINE_API void caff_send_audio(
-    caff_stream_handle stream_handle,
+CAFFEINE_API void caff_sendAudio(
+    caff_StreamHandle streamHandle,
     uint8_t* samples,
     size_t samples_per_channel)
 {
-    RTC_DCHECK(stream_handle);
+    RTC_DCHECK(streamHandle);
     RTC_DCHECK(samples);
     RTC_DCHECK(samples_per_channel);
-    auto stream = reinterpret_cast<Stream*>(stream_handle);
-    stream->SendAudio(samples, samples_per_channel);
+    auto stream = reinterpret_cast<Stream*>(streamHandle);
+    stream->sendAudio(samples, samples_per_channel);
 }
 
-CAFFEINE_API void caff_send_video(
-    caff_stream_handle stream_handle,
-    uint8_t const* frame_data,
-    size_t frame_bytes,
+CAFFEINE_API void caff_sendVideo(
+    caff_StreamHandle streamHandle,
+    uint8_t const* frameData,
+    size_t frameBytes,
     int32_t width,
     int32_t height,
-    caff_format format)
+    caff_VideoFormat format)
 {
-    RTC_DCHECK(frame_data);
-    RTC_DCHECK(frame_bytes);
+    RTC_DCHECK(frameData);
+    RTC_DCHECK(frameBytes);
     RTC_DCHECK(width);
     RTC_DCHECK(height);
     RTC_DCHECK(format);
 
-    auto stream = reinterpret_cast<Stream*>(stream_handle);
-    stream->SendVideo(frame_data, frame_bytes, width, height, format);
+    auto stream = reinterpret_cast<Stream*>(streamHandle);
+    stream->sendVideo(frameData, frameBytes, width, height, format);
 }
 
-CAFFEINE_API caff_connection_quality caff_get_connection_quality(caff_stream_handle stream_handle)
+CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_StreamHandle streamHandle)
 {
-    RTC_DCHECK(stream_handle);
+    RTC_DCHECK(streamHandle);
 
-    auto stream = reinterpret_cast<Stream*>(stream_handle);
-    return stream->GetConnectionQuality();
+    auto stream = reinterpret_cast<Stream*>(streamHandle);
+    return stream->getConnectionQuality();
 }
 
-CAFFEINE_API void caff_end_stream(caff_stream_handle* stream_handle)
+CAFFEINE_API void caff_endStream(caff_StreamHandle* streamHandle)
 {
-    RTC_DCHECK(stream_handle);
-    RTC_DCHECK(*stream_handle);
-    auto stream = reinterpret_cast<Stream*>(*stream_handle);
+    RTC_DCHECK(streamHandle);
+    RTC_DCHECK(*streamHandle);
+    auto stream = reinterpret_cast<Stream*>(*streamHandle);
     delete stream;
-    *stream_handle = nullptr;
+    *streamHandle = nullptr;
     RTC_LOG(LS_INFO) << "Caffeine stream ended";
 }
 
-CAFFEINE_API void caff_deinitialize(caff_interface_handle* interface_handle)
+CAFFEINE_API void caff_deinitialize(caff_InterfaceHandle* interfaceHandle)
 {
-    RTC_DCHECK(interface_handle);
-    RTC_DCHECK(*interface_handle);
-    auto interface = reinterpret_cast<Interface*>(*interface_handle);
+    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(*interfaceHandle);
+    auto interface = reinterpret_cast<Interface*>(*interfaceHandle);
     delete interface;
-    *interface_handle = nullptr;
+    *interfaceHandle = nullptr;
     RTC_LOG(LS_INFO) << "Caffeine RTC deinitialized";
 }

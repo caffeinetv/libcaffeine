@@ -57,7 +57,7 @@ namespace caff {
         optional<std::string> clientId;
         optional<std::string> role;
         optional<std::string> description;
-        optional<caff_connection_quality> sourceConnectionQuality;
+        optional<caff_ConnectionQuality> sourceConnectionQuality;
         optional<double> volume;
         optional<FeedCapabilities> capabilities;
         optional<FeedContent> content;
@@ -128,11 +128,11 @@ namespace caff {
     */
 
     // TODO: not pointers
-    caff_games * getSupportedGames();
+    caff_GameList * getSupportedGames();
     bool isSupportedVersion();
-    caff_auth_response * caffSignin(char const * username, char const * password, char const * otp);
+    caff_AuthResponse * caffSignin(char const * username, char const * password, char const * otp);
     Credentials * refreshAuth(char const * refreshToken);
-    caff_user_info * getUserInfo(Credentials * creds);
+    caff_UserInfo * getUserInfo(Credentials * creds);
 
     bool trickleCandidates(
         std::vector<caff::IceInfo> const & candidates,

@@ -6,25 +6,25 @@ namespace caff {
 
     PeerConnectionObserver::PeerConnectionObserver() {}
 
-    std::future<PeerConnectionObserver::Candidates const&> PeerConnectionObserver::GetFuture() {
+    std::future<PeerConnectionObserver::Candidates const&> PeerConnectionObserver::getFuture() {
         return promise.get_future();
     }
 
-    void PeerConnectionObserver::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) {}
+    void PeerConnectionObserver::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState newState) {}
 
     void PeerConnectionObserver::OnRenegotiationNeeded() {}
 
-    void PeerConnectionObserver::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state) {}
+    void PeerConnectionObserver::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState newState) {}
 
     void PeerConnectionObserver::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {}
 
     void PeerConnectionObserver::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {}
 
-    void PeerConnectionObserver::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel) {}
+    void PeerConnectionObserver::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> dataChannel) {}
 
-    void PeerConnectionObserver::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state) {
+    void PeerConnectionObserver::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState newState) {
         using State = webrtc::PeerConnectionInterface::IceGatheringState;
-        switch (new_state) {
+        switch (newState) {
         case State::kIceGatheringNew:
             RTC_LOG(LS_INFO) << "ICE gathering: new";
             break;
@@ -36,7 +36,7 @@ namespace caff {
             promise.set_value(gatheredCandidates);
             break;
         default:
-            RTC_LOG(LS_WARNING) << "ICE gathering: unrecognized state [" << new_state << "]";
+            RTC_LOG(LS_WARNING) << "ICE gathering: unrecognized state [" << newState << "]";
             break;
         }
     }

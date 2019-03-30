@@ -23,7 +23,7 @@ namespace caff {
         Credentials * credentials,
         std::string username,
         std::string title,
-        caff_rating rating,
+        caff_Rating rating,
         AudioDevice* audioDevice,
         webrtc::PeerConnectionFactoryInterface* factory)
         : credentials(credentials)
@@ -53,7 +53,7 @@ namespace caff {
         return id;
     }
 
-    char const * Stream::StateString(Stream::State state)
+    char const * Stream::stateString(Stream::State state)
     {
         switch (state) {
         case State::Offline:
@@ -69,38 +69,38 @@ namespace caff {
         }
     }
 
-    bool Stream::RequireState(State expectedState) const
+    bool Stream::requireState(State expectedState) const
     {
         State currentState = state;
         if (currentState != expectedState) {
-            RTC_LOG(LS_ERROR) << "In state " << StateString(currentState)
-                << " when expecting " << StateString(expectedState);
+            RTC_LOG(LS_ERROR) << "In state " << stateString(currentState)
+                << " when expecting " << stateString(expectedState);
             return false;
         }
         return true;
     }
 
-    bool Stream::TransitionState(State oldState, State newState)
+    bool Stream::transitionState(State oldState, State newState)
     {
         bool result = state.compare_exchange_strong(oldState, newState);
         if (!result)
-            RTC_LOG(LS_ERROR) << "Transitioning to state " << StateString(newState)
-                << " expects state " << StateString(oldState);
+            RTC_LOG(LS_ERROR) << "Transitioning to state " << stateString(newState)
+                << " expects state " << stateString(oldState);
         return result;
     }
 
-    bool Stream::IsOnline() const
+    bool Stream::isOnline() const
     {
         return state == State::Online;
     }
 
-    static std::string caff_annotate_title(std::string title, caff_rating rating)
+    static std::string annotateTitle(std::string title, caff_Rating rating)
     {
         static const size_t MAX_TITLE_LENGTH = 60; // TODO: policy- should be somewhere else
         static std::string const ratingStrings[] = { "", "[17+] " }; // TODO maybe same here
 
-        if (rating < CAFF_RATING_NONE || rating >= CAFF_RATING_MAX)
-            rating = CAFF_RATING_NONE;
+        if (rating < caff_Rating_None || rating >= caff_Rating_Max)
+            rating = caff_Rating_None;
 
         auto fullTitle = ratingStrings[rating] + title;
         if (fullTitle.length() > MAX_TITLE_LENGTH)
@@ -109,15 +109,15 @@ namespace caff {
         return fullTitle;
     }
 
-    optional<std::string> Stream::OfferGenerated(std::string const & offer)
+    optional<std::string> Stream::offerGenerated(std::string const & offer)
     {
         feedId = createUniqueId();
 
-        if (!RequireState(State::Starting)) {
+        if (!requireState(State::Starting)) {
             return {};
         }
 
-        auto fullTitle = caff_annotate_title(title, rating);
+        auto fullTitle = annotateTitle(title, rating);
         auto clientId = createUniqueId();
 
         // Make initial stage request to get a cursor
@@ -178,7 +178,7 @@ namespace caff {
         return responseStream->sdpAnswer;
     }
 
-    bool Stream::IceGathered(std::vector<IceInfo> candidates)
+    bool Stream::iceGathered(std::vector<IceInfo> candidates)
     {
         return trickleCandidates(candidates, streamUrl, credentials);
     }
@@ -187,7 +187,7 @@ namespace caff {
 
     // Falls back to obs_id if no foreground game detected
     static char const * get_running_game_id(
-        caff_games * games, const char * fallback_id)
+        caff_GameList * games, const char * fallback_id)
     {
         char * foreground_process = get_foreground_process_name();
         char const * id = get_game_id(games, foreground_process);
@@ -252,7 +252,7 @@ namespace caff {
         struct caffeine_output * context = data;
 
         pthread_mutex_lock(&context->stream_mutex);
-        if (!RequireState(ONLINE)) {
+        if (!requireState(ONLINE)) {
             pthread_mutex_unlock(&context->stream_mutex);
             return NULL;
         }
@@ -268,7 +268,7 @@ namespace caff {
         Credentials * credentials =
             obs_service_query(service, CAFFEINE_QUERY_CREDENTIALS);
 
-        caff_games * games = caff_get_supported_games();
+        caff_GameList * games = caff_getGameList();
         char const * obs_game_id = get_game_id(games, "obs");
 
         // Obtain broadcast id
@@ -280,7 +280,7 @@ namespace caff {
             if (!requestStageUpdate(request, credentials, NULL, NULL)
                 || !caff_get_stage_feed(request->stage, feed_id))
             {
-                caffeine_stream_failed(data, CAFF_ERROR_UNKNOWN);
+                caffeine_stream_failed(data, caff_Error_Unknown);
                 goto broadcast_error;
             }
 
@@ -300,7 +300,7 @@ namespace caff {
             credentials);
 
         if (!screenshot_success) {
-            caffeine_stream_failed(data, CAFF_ERROR_BROADCAST_FAILED);
+            caffeine_stream_failed(data, caff_Error_BroadcastFailed);
             goto broadcast_error;
         }
 
@@ -315,7 +315,7 @@ namespace caff {
             || !request->stage->live
             || !caff_get_stage_feed(request->stage, feed_id))
         {
-            caffeine_stream_failed(data, CAFF_ERROR_BROADCAST_FAILED);
+            caffeine_stream_failed(data, caff_Error_BroadcastFailed);
             goto broadcast_error;
         }
 
@@ -353,13 +353,13 @@ namespace caff {
             pthread_mutex_unlock(&context->stream_mutex);
 
             if (!request) {
-                caffeine_stream_failed(data, CAFF_ERROR_UNKNOWN);
+                caffeine_stream_failed(data, caff_Error_Unknown);
                 goto broadcast_error;
             }
 
             Feed * feed = caff_get_stage_feed(request->stage, feed_id);
             if (!feed || !request->stage->live) {
-                caffeine_stream_failed(data, CAFF_ERROR_TAKEOVER);
+                caffeine_stream_failed(data, caff_Error_Takeover);
                 goto broadcast_error;
             }
 
@@ -384,7 +384,7 @@ namespace caff {
                 if (failures > max_failures) {
                     LOG_ERROR("Heartbeat failed %d times; ending stream.",
                         failures);
-                    caffeine_stream_failed(data, CAFF_ERROR_DISCONNECTED);
+                    caffeine_stream_failed(data, caff_Error_Disconnected);
                     break;
                 }
             }
@@ -412,7 +412,7 @@ namespace caff {
             if (!request->stage->live
                 || !caff_get_stage_feed(request->stage, feed_id))
             {
-                caffeine_stream_failed(data, CAFF_ERROR_TAKEOVER);
+                caffeine_stream_failed(data, caff_Error_Takeover);
                 goto broadcast_error;
             }
 
@@ -440,7 +440,7 @@ namespace caff {
             caff_clear_stage_feeds(request->stage);
 
             if (!requestStageUpdate(request, credentials, NULL, NULL)) {
-                caffeine_stream_failed(data, CAFF_ERROR_UNKNOWN);
+                caffeine_stream_failed(data, caff_Error_Unknown);
             }
         }
 
@@ -448,7 +448,7 @@ namespace caff {
         bfree(stream_url);
         bfree(feed_id);
         caff_free_stage_request(&request);
-        caff_free_game_list(&games);
+        caff_freeGameList(&games);
         return NULL;
     }
 
@@ -542,13 +542,13 @@ namespace caff {
     }
     */
 
-    void Stream::Start(
+    void Stream::start(
         std::function<void()> startedCallback,
-        std::function<void(caff_error)> failedCallback) {
+        std::function<void(caff_Error)> failedCallback) {
 
-        TransitionState(State::Offline, State::Starting);
+        transitionState(State::Offline, State::Starting);
 
-        auto doFailure = [=](caff_error error) {
+        auto doFailure = [=](caff_Error error) {
             failedCallback(error);
             state.store(State::Offline);
         };
@@ -602,10 +602,10 @@ namespace caff {
             webrtc::PeerConnectionInterface::RTCOfferAnswerOptions answerOptions;
             peerConnection->CreateOffer(creationObserver, answerOptions);
 
-            auto offer = creationObserver->GetFuture().get();
+            auto offer = creationObserver->getFuture().get();
             if (!offer) {
                 // Logged by the observer
-                failedCallback(CAFF_ERROR_SDP_OFFER);
+                failedCallback(caff_Error_SdpOffer);
                 state.store(State::Offline);
                 return;
             }
@@ -614,14 +614,14 @@ namespace caff {
                 RTC_LOG(LS_ERROR)
                     << "Expected " << webrtc::SessionDescriptionInterface::kOffer
                     << " but got " << offer->type();
-                doFailure(CAFF_ERROR_SDP_OFFER);
+                doFailure(caff_Error_SdpOffer);
                 return;
             }
 
             std::string offerSdp;
             if (!offer->ToString(&offerSdp)) {
                 RTC_LOG(LS_ERROR) << "Error serializing SDP offer";
-                doFailure(CAFF_ERROR_SDP_OFFER);
+                doFailure(caff_Error_SdpOffer);
                 return;
             }
 
@@ -629,7 +629,7 @@ namespace caff {
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP offer: " << offerError.description;
-                doFailure(CAFF_ERROR_SDP_OFFER);
+                doFailure(caff_Error_SdpOffer);
                 return;
             }
 
@@ -637,18 +637,18 @@ namespace caff {
                 new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
-            auto setLocalSuccess = setLocalObserver->GetFuture().get();
+            auto setLocalSuccess = setLocalObserver->getFuture().get();
             if (!setLocalSuccess) {
-                doFailure(CAFF_ERROR_SDP_OFFER);
+                doFailure(caff_Error_SdpOffer);
                 return;
             }
 
             // offerGenerated must be called before iceGathered so that a signed_payload
             // is available
-            auto answerSdp = OfferGenerated(offerSdp);
+            auto answerSdp = offerGenerated(offerSdp);
             if (!answerSdp) {
                 RTC_LOG(LS_ERROR) << "Did not get SDP answer";
-                doFailure(CAFF_ERROR_SDP_ANSWER);
+                doFailure(caff_Error_SdpAnswer);
                 return;
             }
 
@@ -656,13 +656,13 @@ namespace caff {
             auto remoteDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, *answerSdp, &answerError);
             if (!remoteDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP answer: " << answerError.description;
-                doFailure(CAFF_ERROR_SDP_ANSWER);
+                doFailure(caff_Error_SdpAnswer);
                 return;
             }
 
-            if (!IceGathered(observer->GetFuture().get())) {
+            if (!iceGathered(observer->getFuture().get())) {
                 RTC_LOG(LS_ERROR) << "Failed to negotiate ICE";
-                doFailure(CAFF_ERROR_ICE_TRICKLE);
+                doFailure(caff_Error_IceTrickle);
                 return;
             }
 
@@ -670,10 +670,10 @@ namespace caff {
                 new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
             peerConnection->SetRemoteDescription(setRemoteObserver, remoteDesc.release());
-            auto setRemoteSuccess = setRemoteObserver->GetFuture().get();
+            auto setRemoteSuccess = setRemoteObserver->getFuture().get();
             if (!setRemoteSuccess) {
                 // Logged by the observer
-                doFailure(CAFF_ERROR_SDP_ANSWER);
+                doFailure(caff_Error_SdpAnswer);
                 return;
             }
 
@@ -684,21 +684,21 @@ namespace caff {
         startThread.detach();
     }
 
-    void Stream::SendAudio(uint8_t const* samples, size_t samplesPerChannel) {
-        RTC_DCHECK(IsOnline());
-        audioDevice->SendAudio(samples, samplesPerChannel);
+    void Stream::sendAudio(uint8_t const* samples, size_t samplesPerChannel) {
+        RTC_DCHECK(isOnline());
+        audioDevice->sendAudio(samples, samplesPerChannel);
     }
 
-    void Stream::SendVideo(uint8_t const* frameData,
+    void Stream::sendVideo(uint8_t const* frameData,
         size_t frameBytes,
         int32_t width,
         int32_t height,
-        caff_format format) {
-        RTC_DCHECK(IsOnline());
-        videoCapturer->SendVideo(frameData, frameBytes, width, height, static_cast<webrtc::VideoType>(format));
+        caff_VideoFormat format) {
+        RTC_DCHECK(isOnline());
+        videoCapturer->sendVideo(frameData, frameBytes, width, height, static_cast<webrtc::VideoType>(format));
     }
 
-    caff_connection_quality Stream::GetConnectionQuality() {
+    caff_ConnectionQuality Stream::getConnectionQuality() {
         if (nextRequest && nextRequest->stage->feeds) {
             auto feedIt = nextRequest->stage->feeds->find(feedId);
             if (feedIt != nextRequest->stage->feeds->end() && feedIt->second.sourceConnectionQuality) {
@@ -706,7 +706,7 @@ namespace caff {
             }
         }
 
-        return CAFF_CONNECTION_QUALITY_UNKNOWN;
+        return caff_ConnectionQuality_Unknown;
     }
 
 }  // namespace caff

@@ -13,7 +13,7 @@ namespace caff {
 
     AudioDevice::AudioDevice() : buffer(chunkSize) {}
 
-    void AudioDevice::SendAudio(uint8_t const* data, size_t samplesPerChannel) {
+    void AudioDevice::sendAudio(uint8_t const* data, size_t samplesPerChannel) {
         RTC_DCHECK(data);
         RTC_DCHECK(samplesPerChannel);
 

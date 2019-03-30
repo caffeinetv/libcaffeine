@@ -11,7 +11,7 @@ namespace caff {
 
     class CreateSessionDescriptionObserver : public webrtc::CreateSessionDescriptionObserver {
     public:
-        std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> GetFuture();
+        std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> getFuture();
 
         virtual void OnSuccess(webrtc::SessionDescriptionInterface* desc) override;
         virtual void OnFailure(std::string const& error) override;
@@ -22,7 +22,7 @@ namespace caff {
 
     class SetSessionDescriptionObserver : public webrtc::SetSessionDescriptionObserver {
     public:
-        std::future<bool> GetFuture();
+        std::future<bool> getFuture();
 
         virtual void OnSuccess() override;
         virtual void OnFailure(std::string const& error) override;

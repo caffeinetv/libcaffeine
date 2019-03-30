@@ -4,7 +4,7 @@
 
 namespace caff {
 
-    std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> CreateSessionDescriptionObserver::GetFuture() {
+    std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> CreateSessionDescriptionObserver::getFuture() {
         return promise.get_future();
     }
 
@@ -17,7 +17,7 @@ namespace caff {
         promise.set_value(nullptr);
     }
 
-    std::future<bool> SetSessionDescriptionObserver::GetFuture() {
+    std::future<bool> SetSessionDescriptionObserver::getFuture() {
         return promise.get_future();
     }
 

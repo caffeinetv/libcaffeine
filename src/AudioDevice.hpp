@@ -12,7 +12,7 @@ namespace caff {
     public:
         AudioDevice();
 
-        void SendAudio(uint8_t const* data, size_t samples_per_channel);
+        void sendAudio(uint8_t const* data, size_t samples_per_channel);
 
         virtual int32_t RegisterAudioCallback(webrtc::AudioTransport* audioTransport) override;
         virtual int32_t Init() override;

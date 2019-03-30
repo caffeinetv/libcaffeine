@@ -13,7 +13,7 @@ namespace caff {
         outstr << '[' << tag << "]: " << message;
         auto finalMessage = outstr.str().c_str();
 
-        callback(static_cast<caff_log_severity>(severity), finalMessage);
+        callback(static_cast<caff_LogLevel>(severity), finalMessage);
     }
 
     void LogSink::OnLogMessage(const std::string& message) {
