@@ -130,7 +130,7 @@ namespace caff {
     // TODO: not pointers
     caff_GameList * getSupportedGames();
     bool isSupportedVersion();
-    caff_AuthResponse * caffSignin(char const * username, char const * password, char const * otp);
+    caff_AuthResponse * signin(char const * username, char const * password, char const * otp);
     Credentials * refreshAuth(char const * refreshToken);
     caff_UserInfo * getUserInfo(Credentials * creds);
 

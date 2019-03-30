@@ -323,7 +323,7 @@ namespace caff {
         };
     }
 
-    caff_AuthResponse * caffSignin(char const * username, char const * password, char const * otp)
+    caff_AuthResponse * signin(char const * username, char const * password, char const * otp)
     {
         RETRY_REQUEST(caff_AuthResponse*, doSignin(username, password, otp));
     }

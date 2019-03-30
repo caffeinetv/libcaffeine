@@ -81,7 +81,7 @@ CAFFEINE_API bool caff_isSupportedVersion()
 
 CAFFEINE_API caff_AuthResponse * caff_signin(char const * username, char const * password, char const * otp)
 {
-    return caffSignin(username, password, otp);
+    return signin(username, password, otp);
 }
 
 CAFFEINE_API caff_CredentialsHandle caff_refreshAuth(char const * refreshToken)
