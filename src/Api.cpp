@@ -74,7 +74,7 @@ namespace caff {
             applyHeaders();
         }
 
-        ScopedCurl(char const * contentType, Credentials * creds)
+        ScopedCurl(char const * contentType, Credentials & creds)
             : curl(curl_easy_init()), headers(authenticatedHeaders(contentType, creds))
         {
             applyHeaders();
@@ -106,15 +106,15 @@ namespace caff {
             return headers;
         }
 
-        static curl_slist * authenticatedHeaders(char const * contentType, Credentials * creds)
+        static curl_slist * authenticatedHeaders(char const * contentType, Credentials & creds)
         {
             std::string authorization("Authorization: Bearer ");
             std::string credential("X-Credential: ");
 
             {
-                std::lock_guard<std::mutex> lock(creds->mutex);
-                authorization += creds->accessToken;
-                credential += creds->credential;
+                std::lock_guard<std::mutex> lock(creds.mutex);
+                authorization += creds.accessToken;
+                credential += creds.credential;
             }
 
             curl_slist * headers = basicHeaders(contentType);
@@ -390,49 +390,42 @@ namespace caff {
         RETRY_REQUEST(Credentials *, doRefreshAuth(refreshToken));
     }
 
-    static bool doRefreshCredentials(Credentials * creds)
+    static bool doRefreshCredentials(Credentials & creds)
     {
         TRACE();
         std::string refreshToken;
         {
-            std::lock_guard<std::mutex> lock(creds->mutex);
-            refreshToken = creds->refreshToken;
+            std::lock_guard<std::mutex> lock(creds.mutex);
+            refreshToken = creds.refreshToken;
         }
 
-        Credentials * newCreds = doRefreshAuth(refreshToken.c_str());
-        if (!newCreds) {
+        std::unique_ptr<Credentials> newCreds(doRefreshAuth(refreshToken.c_str()));
+        if (newCreds) {
+            std::lock_guard<std::mutex> lock(creds.mutex);
+            std::swap(creds.accessToken, newCreds->accessToken);
+            std::swap(creds.caid, newCreds->caid);
+            std::swap(creds.refreshToken, newCreds->refreshToken);
+            std::swap(creds.credential, newCreds->credential);
+
+            // TODO see if this is needed (need a body for post)
+            return true;
+        }
+        else {
             return false;
         }
-
-        {
-            std::lock_guard<std::mutex> lock(creds->mutex);
-            std::swap(creds->accessToken, newCreds->accessToken);
-            std::swap(creds->caid, newCreds->caid);
-            std::swap(creds->refreshToken, newCreds->refreshToken);
-            std::swap(creds->credential, newCreds->credential);
-        }
-
-        // TODO see if this is needed (need a body for post)
-        delete newCreds;
-        return true;
     }
 
-    bool refreshCredentials(Credentials * creds)
+    static bool refreshCredentials(Credentials & creds)
     {
         RETRY_REQUEST(bool, doRefreshCredentials(creds));
     }
 
-    static caff_UserInfo * doGetUserInfo(Credentials * creds)
+    static caff_UserInfo * doGetUserInfo(Credentials & creds)
     {
         TRACE();
-        if (creds == nullptr) {
-            LOG_ERROR("Missing credentials");
-            return nullptr;
-        }
-
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
-        auto urlStr = GETUSER_URL(creds->caid);
+        auto urlStr = GETUSER_URL(creds.caid);
         curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
 
         std::string responseStr;
@@ -475,7 +468,7 @@ namespace caff {
         return nullptr;
     }
 
-    caff_UserInfo * getUserInfo(Credentials * creds)
+    caff_UserInfo * getUserInfo(Credentials & creds)
     {
         RETRY_REQUEST(caff_UserInfo*, doGetUserInfo(creds));
     }
@@ -526,7 +519,7 @@ namespace caff {
     static bool doTrickleCandidates(
         std::vector<IceInfo> const & candidates,
         std::string const & streamUrl,
-        Credentials * creds)
+        Credentials & creds)
     {
         TRACE();
         Json requestJson = { {"ice_candidates", candidates} }; // TODO see if this is needed (need a body for post)
@@ -577,7 +570,7 @@ namespace caff {
         return response;
     }
 
-    bool trickleCandidates(std::vector<IceInfo> const & candidates, std::string const & streamUrl, Credentials * creds)
+    bool trickleCandidates(std::vector<IceInfo> const & candidates, std::string const & streamUrl, Credentials & creds)
     {
         RETRY_REQUEST(bool, doTrickleCandidates(candidates, streamUrl, creds));
     }
@@ -722,15 +715,6 @@ namespace caff {
     }
     */
 
-    StageRequest * createStageRequest(std::string username, std::string clientId)
-    {
-        auto request = new StageRequest{};
-        request->client.id = std::move(clientId);
-        request->stage = Stage{};
-        request->stage->username = username;
-        return request;
-    }
-
     static bool isOutOfCapacityFailure(std::string const & type)
     {
         return type == "OutOfCapacity";
@@ -738,7 +722,7 @@ namespace caff {
 
     static optional<StageResponseResult> doStageUpdate(
         StageRequest const & request,
-        Credentials * creds)
+        Credentials & creds)
     {
         TRACE();
 
@@ -824,18 +808,18 @@ namespace caff {
         return {};
     }
 
-    optional<StageResponseResult> stageUpdate(StageRequest const & request, Credentials * creds)
+    optional<StageResponseResult> stageUpdate(StageRequest const & request, Credentials & creds)
     {
         RETRY_REQUEST(optional<StageResponseResult>, doStageUpdate(request, creds));
     }
 
     bool requestStageUpdate(
-        StageRequest * request,
-        Credentials * creds,
+        StageRequest & request,
+        Credentials & creds,
         double * retryIn,
         bool * isOutOfCapacity)
     {
-        auto result = stageUpdate(*request, creds);
+        auto result = stageUpdate(request, creds);
         if (!result.has_value()) {
             return false;
         }
@@ -845,8 +829,8 @@ namespace caff {
             if (retryIn) {
                 *retryIn = response->retryIn;
             }
-            request->cursor = std::move(response->cursor);
-            request->stage = std::move(response->stage);
+            request.cursor = std::move(response->cursor);
+            request.stage = std::move(response->stage);
             return true;
         }
         else

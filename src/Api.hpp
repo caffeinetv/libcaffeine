@@ -88,6 +88,13 @@ namespace caff {
         Client client;
         optional<std::string> cursor;
         optional<Stage> stage;
+
+        StageRequest(std::string username, std::string clientId)
+        {
+            client.id = std::move(clientId);
+            stage = Stage{};
+            stage->username = std::move(username);
+        }
     };
 
     struct StageResponse {
@@ -133,15 +140,13 @@ namespace caff {
     bool isSupportedVersion();
     caff_AuthResponse * signin(char const * username, char const * password, char const * otp);
     Credentials * refreshAuth(char const * refreshToken);
-    caff_UserInfo * getUserInfo(Credentials * creds);
+    caff_UserInfo * getUserInfo(Credentials & creds);
 
     bool trickleCandidates(
         std::vector<caff::IceInfo> const & candidates,
         std::string const & streamUrl,
-        Credentials * credentials);
+        Credentials & credentials);
 
-    StageRequest * createStageRequest(std::string username, std::string clientId);
-
-    bool requestStageUpdate(StageRequest * request, Credentials * creds, double * retryIn, bool * isOutOfCapacity);
+    bool requestStageUpdate(StageRequest & request, Credentials & creds, double * retryIn, bool * isOutOfCapacity);
 
 }

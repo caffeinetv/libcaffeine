@@ -122,17 +122,17 @@ namespace caff {
 
         // Make initial stage request to get a cursor
 
-        StageRequest * request = createStageRequest(username, clientId);
+        StageRequest request(username, clientId);
 
-        if (!requestStageUpdate(request, credentials, NULL, NULL)) {
+        if (!requestStageUpdate(request, *credentials, NULL, NULL)) {
             return {};
         }
 
         // Make request to add our feed and get a new broadcast id
-        request->stage->title = std::move(fullTitle);
-        request->stage->upsertBroadcast = true;
-        request->stage->broadcastId.reset();
-        request->stage->live = false;
+        request.stage->title = std::move(fullTitle);
+        request.stage->upsertBroadcast = true;
+        request.stage->broadcastId.reset();
+        request.stage->live = false;
 
         FeedStream stream{};
         stream.sdpOffer = offer;
@@ -145,10 +145,10 @@ namespace caff {
         feed.capabilities = { true, true };
         feed.stream = std::move(stream);
 
-        request->stage->feeds = { {feedId, std::move(feed)} };
+        request.stage->feeds = { {feedId, std::move(feed)} };
 
         bool isOutOfCapacity = false;
-        if (!requestStageUpdate(request, credentials, NULL, &isOutOfCapacity)) {
+        if (!requestStageUpdate(request, *credentials, NULL, &isOutOfCapacity)) {
             if (isOutOfCapacity) {
                 // TODO: figure out a way to reproduce this behavior
                 //set_error(context->output, "%s", obs_module_text("ErrorOutOfCapacity"));
@@ -157,8 +157,8 @@ namespace caff {
         }
 
         // Get stream details
-        auto feedIt = request->stage->feeds->find(feedId);
-        if (feedIt == request->stage->feeds->end()) {
+        auto feedIt = request.stage->feeds->find(feedId);
+        if (feedIt == request.stage->feeds->end()) {
             return {};
         }
 
@@ -173,14 +173,14 @@ namespace caff {
         }
 
         streamUrl = *responseStream->url;
-        nextRequest.reset(request);
+        nextRequest = std::move(request);
 
         return responseStream->sdpAnswer;
     }
 
     bool Stream::iceGathered(std::vector<IceInfo> candidates)
     {
-        return trickleCandidates(candidates, streamUrl, credentials);
+        return trickleCandidates(candidates, streamUrl, *credentials);
     }
 
     /*

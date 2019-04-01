@@ -123,7 +123,7 @@ CAFFEINE_API char const * caff_getRefreshToken(caff_CredentialsHandle credential
 CAFFEINE_API caff_UserInfo * caff_getUserInfo(caff_CredentialsHandle credentialsHandle)
 {
     RTC_DCHECK(credentialsHandle);
-    return getUserInfo(reinterpret_cast<Credentials *>(credentialsHandle));
+    return getUserInfo(*reinterpret_cast<Credentials *>(credentialsHandle));
 }
 
 CAFFEINE_API void caff_freeUserInfo(caff_UserInfo ** userInfo)
