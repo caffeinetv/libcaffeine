@@ -797,7 +797,7 @@ namespace caff {
 
         if (responseCode == 200) {
             try {
-                return StageResponseResult{ responseJson.get<StageResponse>(), {} };
+                return StageResponse{ responseJson };
             }
             catch (...) {
                 LOG_ERROR("Failed to unpack stage response");
@@ -813,16 +813,7 @@ namespace caff {
                     return {};
                 }
 
-                auto messageJson = responseJson.value("display_message", Json::object());
-                return StageResponseResult{
-                    {},
-                    FailureResponse{
-                        std::move(type),
-                        responseJson.value("reason", ""),
-                        DisplayMessage{
-                            messageJson.value("title", ""),
-                            messageJson.at("body").get<std::string>(),
-                        }} };
+                return FailureResponse{ responseJson };
             }
             catch (...) {
                 LOG_ERROR("Failed to unpack failure response");
@@ -845,24 +836,27 @@ namespace caff {
         bool * isOutOfCapacity)
     {
         auto result = stageUpdate(*request, creds);
+        if (!result.has_value()) {
+            return false;
+        }
 
-        bool success = result && result->response;
-        if (success) {
+        auto response = get_if<StageResponse>(&*result);
+        if (response) {
             if (retryIn) {
-                *retryIn = result->response->retryIn;
+                *retryIn = response->retryIn;
             }
-            request->cursor = std::move(result->response->cursor);
-            request->stage = std::move(result->response->stage);
+            request->cursor = std::move(response->cursor);
+            request->stage = std::move(response->stage);
+            return true;
         }
-        else if (isOutOfCapacity
-            && result
-            && result->failure
-            && isOutOfCapacityFailure(result->failure->type))
+        else
         {
-            *isOutOfCapacity = true;
+            auto & failure = get<FailureResponse>(*result);
+            if (isOutOfCapacity && isOutOfCapacityFailure(failure.type)) {
+                *isOutOfCapacity = true;
+            }
+            return false;
         }
-
-        return success;
     }
 
 }

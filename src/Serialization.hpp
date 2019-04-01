@@ -126,6 +126,7 @@ namespace caff {
     void from_json(Json const & json, Stage & stage);
 
     void to_json(Json & json, StageRequest const & request);
+
     void from_json(Json const & json, StageResponse & response);
 
     void from_json(Json const & json, DisplayMessage & message);

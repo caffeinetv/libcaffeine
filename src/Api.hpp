@@ -9,10 +9,14 @@
 #include <vector>
 #include <mutex>
 #include "absl/types/optional.h"
+#include "absl/types/variant.h"
 
 namespace caff {
-    template <typename T>
-    using optional = absl::optional<T>;
+    // TODO: Get C++17 working and use standard versions
+    using absl::optional;
+    using absl::variant;
+    using absl::get;
+    using absl::get_if;
 
     struct Credentials {
         std::string accessToken;
@@ -103,10 +107,7 @@ namespace caff {
         optional<DisplayMessage> displayMessage;
     };
 
-    struct StageResponseResult {
-        optional<StageResponse> response;
-        optional<FailureResponse> failure;
-    };
+    using StageResponseResult = variant<StageResponse, FailureResponse>;
 
     /*
     struct HeartbeatResponse {
