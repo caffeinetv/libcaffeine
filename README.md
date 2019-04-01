@@ -58,4 +58,4 @@ All names should be declared in the `caff` namespace, except when extending 3rd-
 In C, represent namespaces (including parent types) as underscore-separated prefixes. For example:
 `caff_Error_SdpAnswer`.
 
-C++ filenames use `.hpp` and `.cpp`. C filenames use `.h` and `.c` (currently only used in `caffeine.h`).
+C++ filenames use `.hpp` and `.cpp`. C filenames use `.h` and `.c`.
