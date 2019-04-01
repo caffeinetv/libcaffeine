@@ -406,8 +406,6 @@ namespace caff {
             std::swap(creds.caid, newCreds->caid);
             std::swap(creds.refreshToken, newCreds->refreshToken);
             std::swap(creds.credential, newCreds->credential);
-
-            // TODO see if this is needed (need a body for post)
             return true;
         }
         else {
@@ -495,7 +493,6 @@ namespace caff {
 
         Json responseJson;
         try {
-            // TODO see if this is needed (need a body for post)
             responseJson = Json::parse(responseStr);
         }
         catch (...) {
@@ -522,7 +519,7 @@ namespace caff {
         Credentials & creds)
     {
         TRACE();
-        Json requestJson = { {"ice_candidates", candidates} }; // TODO see if this is needed (need a body for post)
+        Json requestJson = { {"ice_candidates", candidates} };
 
         std::string requestBody = requestJson.dump();
 
