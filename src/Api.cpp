@@ -790,19 +790,15 @@ namespace caff {
                 auto type = responseJson.at("type").get<std::string>();
 
                 // As of now, the only failure response we want to return and not retry is `OutOfCapacity`
-                if (!isOutOfCapacityFailure(type)) {
-                    return {};
+                if (isOutOfCapacityFailure(type)) {
+                    return FailureResponse{ responseJson };
                 }
-
-                return FailureResponse{ responseJson };
             }
             catch (...) {
                 LOG_ERROR("Failed to unpack failure response");
-                return {};
             }
+            return {};
         }
-
-        return {};
     }
 
     optional<StageResponseResult> stageUpdate(StageRequest const & request, Credentials & creds)
