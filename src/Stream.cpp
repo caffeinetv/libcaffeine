@@ -20,13 +20,13 @@
 namespace caff {
 
     Stream::Stream(
-        Credentials * credentials,
+        SharedCredentials & sharedCredentials,
         std::string username,
         std::string title,
         caff_Rating rating,
         AudioDevice* audioDevice,
         webrtc::PeerConnectionFactoryInterface* factory)
-        : credentials(credentials)
+        : sharedCredentials(sharedCredentials)
         , username(std::move(username))
         , title(std::move(title))
         , rating(rating)
@@ -124,7 +124,7 @@ namespace caff {
 
         StageRequest request(username, clientId);
 
-        if (!requestStageUpdate(request, *credentials, NULL, NULL)) {
+        if (!requestStageUpdate(request, sharedCredentials, NULL, NULL)) {
             return {};
         }
 
@@ -148,7 +148,7 @@ namespace caff {
         request.stage->feeds = { {feedId, std::move(feed)} };
 
         bool isOutOfCapacity = false;
-        if (!requestStageUpdate(request, *credentials, NULL, &isOutOfCapacity)) {
+        if (!requestStageUpdate(request, sharedCredentials, NULL, &isOutOfCapacity)) {
             if (isOutOfCapacity) {
                 // TODO: figure out a way to reproduce this behavior
                 //set_error(context->output, "%s", obs_module_text("ErrorOutOfCapacity"));
@@ -180,7 +180,7 @@ namespace caff {
 
     bool Stream::iceGathered(std::vector<IceInfo> candidates)
     {
-        return trickleCandidates(candidates, streamUrl, *credentials);
+        return trickleCandidates(candidates, streamUrl, sharedCredentials);
     }
 
     /*

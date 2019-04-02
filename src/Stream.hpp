@@ -47,7 +47,7 @@ namespace caff {
         static int const kMaxBitrateBps = 2000000;
 
         Stream(
-            Credentials * credentials,
+            SharedCredentials & sharedCredentials,
             std::string username,
             std::string title,
             caff_Rating rating,
@@ -73,7 +73,7 @@ namespace caff {
         std::atomic<State> state{ State::Offline };
         static char const * stateString(State state);
 
-        Credentials * credentials; // TODO: Maybe should be owned by the Interface instead of user of libcaffeine
+        SharedCredentials & sharedCredentials;
         std::string username;
         std::string title;
         caff_Rating rating;

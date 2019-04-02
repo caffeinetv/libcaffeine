@@ -74,7 +74,7 @@ namespace caff {
             applyHeaders();
         }
 
-        ScopedCurl(char const * contentType, Credentials & creds)
+        ScopedCurl(char const * contentType, SharedCredentials & creds)
             : curl(curl_easy_init()), headers(authenticatedHeaders(contentType, creds))
         {
             applyHeaders();
@@ -106,15 +106,15 @@ namespace caff {
             return headers;
         }
 
-        static curl_slist * authenticatedHeaders(char const * contentType, Credentials & creds)
+        static curl_slist * authenticatedHeaders(char const * contentType, SharedCredentials & sharedCreds)
         {
             std::string authorization("Authorization: Bearer ");
             std::string credential("X-Credential: ");
 
             {
-                std::lock_guard<std::mutex> lock(creds.mutex);
-                authorization += creds.accessToken;
-                credential += creds.credential;
+                auto lockedCreds = sharedCreds.lock();
+                authorization += lockedCreds.credentials.accessToken;
+                credential += lockedCreds.credentials.credential;
             }
 
             curl_slist * headers = basicHeaders(contentType);
@@ -178,6 +178,19 @@ namespace caff {
         } \
         return {}
 
+    SharedCredentials::SharedCredentials(Credentials credentials) : credentials(std::move(credentials)) {}
+
+    LockedCredentials SharedCredentials::lock()
+    {
+        mutex.lock();
+        return LockedCredentials(*this);
+    }
+
+    LockedCredentials::LockedCredentials(SharedCredentials & sharedCredentials)
+        : credentials(sharedCredentials.credentials)
+        , lock(sharedCredentials.mutex, std::adopt_lock)
+    {}
+
     static bool doIsSupportedVersion()
     {
         TRACE();
@@ -226,7 +239,7 @@ namespace caff {
     /* TODO: refactor this - lots of dupe code between request types
      * TODO: reuse curl handle across requests
      */
-    static caff_AuthResponse * doSignin(char const * username, char const * password, char const * otp)
+    static AuthResponse doSignin(char const * username, char const * password, char const * otp)
     {
         TRACE();
         Json requestJson;
@@ -245,7 +258,7 @@ namespace caff {
         }
         catch (...) {
             LOG_ERROR("Failed to create request JSON");
-            return nullptr;
+            return {};
         }
 
         auto requestBody = requestJson.dump();
@@ -266,7 +279,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure signing in: [%d] %s", curlResult, curlError);
-            return nullptr;
+            return {};
         }
 
         Json responseJson;
@@ -275,7 +288,7 @@ namespace caff {
         }
         catch (...) {
             LOG_ERROR("Failed to parse signin response");
-            return nullptr;
+            return {};
         }
 
         auto errors = responseJson.find("errors");
@@ -284,51 +297,54 @@ namespace caff {
             if (otpError != errors->end()) {
                 auto errorText = otpError->at(0).get<std::string>();
                 LOG_ERROR("One time password error: %s", errorText.c_str());
-                return new caff_AuthResponse{ nullptr, cstrdup("mfa_otp_required"), nullptr };
+                if (otp && *otp) {
+                    return { caff_AuthResult_MfaOtpIncorrect };
+                }
+                else {
+                    return { caff_AuthResult_MfaOtpRequired };
+                }
             }
             auto errorText = errors->at("_error").at(0).get<std::string>();
             LOG_ERROR("Error logging in: %s", errorText.c_str());
-            return nullptr;
+            return {};
         }
-
-        std::string next;
-        std::string mfaOtpMethod;
-        Credentials * creds = nullptr;
 
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
-            creds = new Credentials{ *credsIt };
             LOG_DEBUG("Sign-in complete");
+            return { caff_AuthResult_Success, *credsIt };
         }
+
+        std::string mfaOtpMethod;
 
         auto nextIt = responseJson.find("next");
         if (nextIt != responseJson.end()) {
-            nextIt->get_to(next);
+            auto & next = nextIt->get_ref<std::string const &>();
+            if (next == "mfa_otp_required") {
+                return { caff_AuthResult_MfaOtpRequired };
+            }
+            else if (next == "legal_acceptance_required") {
+                return { caff_AuthResult_LegalAcceptanceRequired };
+            }
+            else if (next == "email_verification") {
+                return { caff_AuthResult_EmailVerificationRequired };
+            }
+            else {
+                LOG_ERROR("Unrecognized auth next step %s", next.c_str());
+                return {};
+            }
         }
 
-        auto methodIt = responseJson.find("mfa_otp_method");
-        if (methodIt != responseJson.end()) {
-            methodIt->get_to(mfaOtpMethod);
-            LOG_DEBUG("MFA required");
-        }
-
-        if (credsIt == responseJson.end() && nextIt == responseJson.end() && methodIt == responseJson.end()) {
-            LOG_ERROR("Sign-in response missing");
-        }
-
-        return new caff_AuthResponse{
-            reinterpret_cast<caff_CredentialsHandle>(creds),
-            cstrdup(next),
-            cstrdup(mfaOtpMethod)
-        };
+        LOG_ERROR("Sign-in response missing");
+        return {};
     }
 
-    caff_AuthResponse * signin(char const * username, char const * password, char const * otp)
+    AuthResponse signin(char const * username, char const * password, char const * otp)
     {
-        RETRY_REQUEST(caff_AuthResponse*, doSignin(username, password, otp));
+        RETRY_REQUEST(AuthResponse, doSignin(username, password, otp));
     }
 
-    static Credentials * doRefreshAuth(char const * refreshToken)
+    static AuthResponse doRefreshAuth(char const * refreshToken)
     {
         TRACE();
 
@@ -352,7 +368,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure refreshing tokens: [%d] %s", curlResult, curlError);
-            return nullptr;
+            return {};
         }
 
         long responseCode;
@@ -365,47 +381,38 @@ namespace caff {
         }
         catch (...) {
             LOG_ERROR("Failed to parse refresh response");
-            return nullptr;
+            return {};
         }
 
         auto errorsIt = responseJson.find("errors");
         if (errorsIt != responseJson.end()) {
             auto errorText = errorsIt->at("_error").at(0).get<std::string>();
             LOG_ERROR("Error refreshing tokens: %s", errorText.c_str());
-            return nullptr;
+            return {};
         }
 
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
             LOG_DEBUG("Sign-in complete");
-            return new Credentials{ *credsIt };
+            return { caff_AuthResult_Success, *credsIt };
         }
 
         LOG_ERROR("Failed to extract response info");
-        return nullptr;
+        return {};
     }
 
-    Credentials * refreshAuth(char const * refreshToken)
+    AuthResponse refreshAuth(char const * refreshToken)
     {
-        RETRY_REQUEST(Credentials *, doRefreshAuth(refreshToken));
+        RETRY_REQUEST(AuthResponse, doRefreshAuth(refreshToken));
     }
 
-    static bool doRefreshCredentials(Credentials & creds)
+    static bool doRefreshCredentials(SharedCredentials & creds)
     {
         TRACE();
-        std::string refreshToken;
-        {
-            std::lock_guard<std::mutex> lock(creds.mutex);
-            refreshToken = creds.refreshToken;
-        }
-
-        std::unique_ptr<Credentials> newCreds(doRefreshAuth(refreshToken.c_str()));
-        if (newCreds) {
-            std::lock_guard<std::mutex> lock(creds.mutex);
-            std::swap(creds.accessToken, newCreds->accessToken);
-            std::swap(creds.caid, newCreds->caid);
-            std::swap(creds.refreshToken, newCreds->refreshToken);
-            std::swap(creds.credential, newCreds->credential);
+        auto refreshToken = creds.lock().credentials.refreshToken;
+        auto response = doRefreshAuth(refreshToken.c_str());
+        if (response.credentials) {
+            creds.lock().credentials = std::move(*response.credentials);
             return true;
         }
         else {
@@ -413,17 +420,17 @@ namespace caff {
         }
     }
 
-    static bool refreshCredentials(Credentials & creds)
+    static bool refreshCredentials(SharedCredentials & creds)
     {
         RETRY_REQUEST(bool, doRefreshCredentials(creds));
     }
 
-    static caff_UserInfo * doGetUserInfo(Credentials & creds)
+    static caff_UserInfo * doGetUserInfo(SharedCredentials & creds)
     {
         TRACE();
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
-        auto urlStr = GETUSER_URL(creds.caid);
+        auto urlStr = GETUSER_URL(creds.lock().credentials.caid);
         curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
 
         std::string responseStr;
@@ -466,7 +473,7 @@ namespace caff {
         return nullptr;
     }
 
-    caff_UserInfo * getUserInfo(Credentials & creds)
+    caff_UserInfo * getUserInfo(SharedCredentials & creds)
     {
         RETRY_REQUEST(caff_UserInfo*, doGetUserInfo(creds));
     }
@@ -516,7 +523,7 @@ namespace caff {
     static bool doTrickleCandidates(
         std::vector<IceInfo> const & candidates,
         std::string const & streamUrl,
-        Credentials & creds)
+        SharedCredentials & creds)
     {
         TRACE();
         Json requestJson = { {"ice_candidates", candidates} };
@@ -567,16 +574,16 @@ namespace caff {
         return response;
     }
 
-    bool trickleCandidates(std::vector<IceInfo> const & candidates, std::string const & streamUrl, Credentials & creds)
+    bool trickleCandidates(std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds)
     {
         RETRY_REQUEST(bool, doTrickleCandidates(candidates, streamUrl, creds));
     }
     /*
-    static HeartbeatResponse * do_caffeine_heartbeat_stream(char const * streamUrl, Credentials * creds)
+    static HeartbeatResponse * do_caffeine_heartbeat_stream(char const * streamUrl, Credentials * sharedCreds)
     {
         TRACE();
 
-        ScopedCurl curl(CONTENT_TYPE_JSON, creds);
+        ScopedCurl curl(CONTENT_TYPE_JSON, sharedCreds);
 
         auto url = STREAM_HEARTBEAT_URL(streamUrl);
 
@@ -603,8 +610,8 @@ namespace caff {
 
         if (responseCode == 401) {
             LOG_INFO("Unauthorized - refreshing credentials");
-            if (refreshCredentials(creds)) {
-                return do_caffeine_heartbeat_stream(streamUrl, creds);
+            if (refreshCredentials(sharedCreds)) {
+                return do_caffeine_heartbeat_stream(streamUrl, sharedCreds);
             }
             return nullptr;
         }
@@ -629,9 +636,9 @@ namespace caff {
         };
     }
 
-    HeartbeatResponse * caff_heartbeat_stream(char const * streamUrl, Credentials * creds)
+    HeartbeatResponse * caff_heartbeat_stream(char const * streamUrl, Credentials * sharedCreds)
     {
-        RETRY_REQUEST(HeartbeatResponse *, do_caffeine_heartbeat_stream(streamUrl, creds));
+        RETRY_REQUEST(HeartbeatResponse *, do_caffeine_heartbeat_stream(streamUrl, sharedCreds));
     }
 
     void caff_free_heartbeat_response(HeartbeatResponse ** response)
@@ -649,10 +656,10 @@ namespace caff {
         char const * broadcastId,
         uint8_t const * screenshot_data,
         size_t screenshot_size,
-        Credentials * creds)
+        Credentials * sharedCreds)
     {
         TRACE();
-        ScopedCurl curl(CONTENT_TYPE_FORM, creds);
+        ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
         curl_httppost * post = nullptr;
         curl_httppost * last = nullptr;
@@ -701,14 +708,14 @@ namespace caff {
         char const * broadcastId,
         uint8_t const * screenshot_data,
         size_t screenshot_size,
-        Credentials * creds)
+        Credentials * sharedCreds)
     {
         if (!broadcastId) {
             LOG_ERROR("Passed in nullptr broadcastId");
             return false;
         }
 
-        RETRY_REQUEST(bool, do_update_broadcast_screenshot(broadcastId, screenshot_data, screenshot_size, creds));
+        RETRY_REQUEST(bool, do_update_broadcast_screenshot(broadcastId, screenshot_data, screenshot_size, sharedCreds));
     }
     */
 
@@ -719,7 +726,7 @@ namespace caff {
 
     static optional<StageResponseResult> doStageUpdate(
         StageRequest const & request,
-        Credentials & creds)
+        SharedCredentials & creds)
     {
         TRACE();
 
@@ -778,7 +785,7 @@ namespace caff {
 
         if (responseCode == 200) {
             try {
-                return StageResponse{ responseJson };
+                return StageResponse(responseJson);
             }
             catch (...) {
                 LOG_ERROR("Failed to unpack stage response");
@@ -791,7 +798,7 @@ namespace caff {
 
                 // As of now, the only failure response we want to return and not retry is `OutOfCapacity`
                 if (isOutOfCapacityFailure(type)) {
-                    return FailureResponse{ responseJson };
+                    return FailureResponse(responseJson);
                 }
             }
             catch (...) {
@@ -801,14 +808,14 @@ namespace caff {
         }
     }
 
-    optional<StageResponseResult> stageUpdate(StageRequest const & request, Credentials & creds)
+    static optional<StageResponseResult> stageUpdate(StageRequest const & request, SharedCredentials & creds)
     {
         RETRY_REQUEST(optional<StageResponseResult>, doStageUpdate(request, creds));
     }
 
     bool requestStageUpdate(
         StageRequest & request,
-        Credentials & creds,
+        SharedCredentials & creds,
         double * retryIn,
         bool * isOutOfCapacity)
     {

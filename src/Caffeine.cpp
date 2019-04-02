@@ -79,51 +79,52 @@ CAFFEINE_API bool caff_isSupportedVersion()
     return isSupportedVersion();
 }
 
-CAFFEINE_API caff_AuthResponse * caff_signin(char const * username, char const * password, char const * otp)
+CAFFEINE_API caff_AuthResult caff_signin(
+    caff_InterfaceHandle interfaceHandle,
+    char const * username,
+    char const * password,
+    char const * otp)
 {
-    return signin(username, password, otp);
+    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(username);
+    RTC_DCHECK(password);
+
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    return interface->signin(username, password, otp);
 }
 
-CAFFEINE_API caff_CredentialsHandle caff_refreshAuth(char const * refreshToken)
+CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHandle, char const * refreshToken)
 {
+    RTC_DCHECK(interfaceHandle);
     RTC_DCHECK(refreshToken);
-    return reinterpret_cast<caff_CredentialsHandle>(refreshAuth(refreshToken));
+    RTC_DCHECK(refreshToken[0]);
+
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    return interface->refreshAuth(refreshToken);
 }
 
-CAFFEINE_API void caff_freeCredentials(caff_CredentialsHandle * credentialsHandle)
+CAFFEINE_API bool caff_isSignedIn(caff_InterfaceHandle interfaceHandle)
 {
-    // TODO this may do bad things
-    auto credentials = reinterpret_cast<Credentials **>(credentialsHandle);
-    if (credentials && credentialsHandle) {
-        delete *credentials;
-        *credentials = nullptr;
-    }
+    RTC_DCHECK(interfaceHandle);
+
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    return interface->isSignedIn();
 }
 
-CAFFEINE_API void caff_freeAuthResponse(caff_AuthResponse ** authResponse)
+CAFFEINE_API char const * caff_getRefreshToken(caff_InterfaceHandle interfaceHandle)
 {
-    if (authResponse && *authResponse) {
-        caff_freeCredentials(&(*authResponse)->credentials);
+    RTC_DCHECK(interfaceHandle);
 
-        delete[](*authResponse)->next;
-        delete[](*authResponse)->mfaOtpMethod;
-
-        delete *authResponse;
-        *authResponse = nullptr;
-    }
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    return interface->getRefreshToken();
 }
 
-CAFFEINE_API char const * caff_getRefreshToken(caff_CredentialsHandle credentialsHandle)
+CAFFEINE_API caff_UserInfo * caff_getUserInfo(caff_InterfaceHandle interfaceHandle)
 {
-    RTC_DCHECK(credentialsHandle);
-    auto creds = reinterpret_cast<Credentials *>(credentialsHandle);
-    return creds->refreshToken.c_str();
-}
+    RTC_DCHECK(interfaceHandle);
 
-CAFFEINE_API caff_UserInfo * caff_getUserInfo(caff_CredentialsHandle credentialsHandle)
-{
-    RTC_DCHECK(credentialsHandle);
-    return getUserInfo(*reinterpret_cast<Credentials *>(credentialsHandle));
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    return interface->getUserInfo();
 }
 
 CAFFEINE_API void caff_freeUserInfo(caff_UserInfo ** userInfo)
@@ -172,14 +173,14 @@ CAFFEINE_API void caff_freeGameList(caff_GameList ** games)
 CAFFEINE_API caff_StreamHandle caff_startStream(
     caff_InterfaceHandle interfaceHandle,
     void * user_data,
-    caff_CredentialsHandle credentialsHandle,
-    char const * username,
     char const * title,
     caff_Rating rating,
     caff_StreamStartedCallback startedCallbackPtr,
     caff_StreamFailedCallback failedCallbackPtr)
 {
     RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(title);
+    RTC_DCHECK(rating >= 0 && rating < caff_Rating_Max);
     RTC_DCHECK(startedCallbackPtr);
     RTC_DCHECK(failedCallbackPtr);
 
@@ -189,9 +190,8 @@ CAFFEINE_API caff_StreamHandle caff_startStream(
         failedCallbackPtr(user_data, error);
     };
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    auto credentials = reinterpret_cast<Credentials*>(credentialsHandle);
-    auto stream = interface->startStream(credentials, username, title, rating, startedCallback, failedCallback);
+    auto interface = reinterpret_cast<Interface *>(interfaceHandle);
+    auto stream = interface->startStream(title, rating, startedCallback, failedCallback);
 
     return reinterpret_cast<caff_StreamHandle>(stream);
 }

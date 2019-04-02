@@ -26,7 +26,8 @@ namespace caff {
     public:
         virtual ~EncoderFactory() {}
 
-        virtual std::vector<webrtc::SdpVideoFormat> GetSupportedFormats() const override {
+        virtual std::vector<webrtc::SdpVideoFormat> GetSupportedFormats() const override
+        {
             auto profileId = webrtc::H264::ProfileLevelId(
                 webrtc::H264::kProfileConstrainedBaseline, webrtc::H264::kLevel3_1);
             auto name = cricket::kH264CodecName;
@@ -36,17 +37,20 @@ namespace caff {
             return { webrtc::SdpVideoFormat(name, parameters) };
         }
 
-        virtual CodecInfo QueryVideoEncoder(const webrtc::SdpVideoFormat& format) const override {
+        virtual CodecInfo QueryVideoEncoder(const webrtc::SdpVideoFormat& format) const override
+        {
             return { false, false };
         }
 
         virtual std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
-            const webrtc::SdpVideoFormat& format) override {
+            const webrtc::SdpVideoFormat& format) override
+        {
             return std::make_unique<X264Encoder>(cricket::VideoCodec(format));
         }
     };
 
-    Interface::Interface() {
+    Interface::Interface()
+    {
         networkThread = rtc::Thread::CreateWithSocketServer();
         networkThread->SetName("caffeine-network", nullptr);
         networkThread->Start();
@@ -74,14 +78,61 @@ namespace caff {
         factory = nullptr;
     }
 
-    Stream* Interface::startStream(
-        Credentials * credentials,
-        std::string username,
+    caff_AuthResult Interface::signin(char const * username, char const * password, char const * otp)
+    {
+        auto response = caff::signin(username, password, otp);
+        if (response.credentials) {
+            refreshToken = response.credentials->refreshToken;
+            sharedCredentials.emplace(std::move(*response.credentials));
+            this->username = username;
+        }
+        return response.result;
+    }
+
+    caff_AuthResult Interface::refreshAuth(char const * refreshToken)
+    {
+        auto response = caff::refreshAuth(refreshToken);
+        if (response.credentials) {
+            sharedCredentials.emplace(std::move(*response.credentials));
+            this->refreshToken = refreshToken;
+            std::unique_ptr<caff_UserInfo> userInfo(caff::getUserInfo(*sharedCredentials));
+            if (userInfo) {
+                username = userInfo->username;
+            }
+        }
+        return response.result;
+    }
+
+    bool Interface::isSignedIn() const
+    {
+        return sharedCredentials.has_value() && username.has_value();
+    }
+
+    char const * Interface::getRefreshToken() const
+    {
+        return refreshToken ? refreshToken->c_str() : nullptr;
+    }
+
+    caff_UserInfo * Interface::getUserInfo()
+    {
+        if (!isSignedIn()) {
+            RTC_LOG(LS_ERROR) << "Getting user info without signing in";
+            return nullptr;
+        }
+        return caff::getUserInfo(*sharedCredentials);
+    }
+
+    Stream * Interface::startStream(
         std::string title,
         caff_Rating rating,
         std::function<void()> startedCallback,
-        std::function<void(caff_Error)> failedCallback) {
-        auto stream = new Stream(credentials, username, title, rating, audioDevice, factory);
+        std::function<void(caff_Error)> failedCallback)
+    {
+        if (!sharedCredentials || !username) {
+            failedCallback(caff_Error_NotSignedIn);
+            return nullptr;
+        }
+        auto stream = new Stream(*sharedCredentials, *username, title, rating, audioDevice, factory);
         stream->start(startedCallback, failedCallback);
         return stream;
     }

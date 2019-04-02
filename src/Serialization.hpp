@@ -92,10 +92,12 @@ namespace caff {
     inline void set_value_from(Json & json, char const * key, optional<T> const & source)
     {
         if (source) {
-            set_value_from(json, key, *source);
+            json[key] = *source;
+            return;
         }
-        else {
-            json.erase(key);
+        auto it = json.find(key);
+        if (it != json.end()) {
+            json.erase(it);
         }
     }
 

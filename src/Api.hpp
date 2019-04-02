@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <mutex>
+#include <thread>
 #include "absl/types/optional.h"
 #include "absl/types/variant.h"
 
@@ -23,8 +24,39 @@ namespace caff {
         std::string refreshToken;
         std::string caid;
         std::string credential;
+    };
 
-        std::mutex mutex; // TODO: there's surely a better place for this
+    class SharedCredentials;
+
+    class LockedCredentials {
+    public:
+        Credentials & credentials;
+
+    private:
+        friend class SharedCredentials;
+        explicit LockedCredentials(SharedCredentials & credentials);
+        std::unique_lock<std::mutex> lock;
+    };
+
+    class SharedCredentials {
+    public:
+        explicit SharedCredentials(Credentials credentials);
+        LockedCredentials lock();
+
+    private:
+        friend class LockedCredentials;
+        Credentials credentials;
+        std::mutex mutex;
+    };
+
+    struct AuthResponse {
+        caff_AuthResult result = caff_AuthResult_RequestFailed;
+        optional<Credentials> credentials;
+
+        // Helper for RETRY_REQUEST
+        operator bool() const {
+            return result != caff_AuthResult_RequestFailed;
+        }
     };
 
     struct IceInfo {
@@ -138,15 +170,15 @@ namespace caff {
     // TODO: not pointers
     caff_GameList * getSupportedGames();
     bool isSupportedVersion();
-    caff_AuthResponse * signin(char const * username, char const * password, char const * otp);
-    Credentials * refreshAuth(char const * refreshToken);
-    caff_UserInfo * getUserInfo(Credentials & creds);
+    AuthResponse signin(char const * username, char const * password, char const * otp);
+    AuthResponse refreshAuth(char const * refreshToken);
+    caff_UserInfo * getUserInfo(SharedCredentials & creds);
 
     bool trickleCandidates(
         std::vector<caff::IceInfo> const & candidates,
         std::string const & streamUrl,
-        Credentials & credentials);
+        SharedCredentials & credentials);
 
-    bool requestStageUpdate(StageRequest & request, Credentials & creds, double * retryIn, bool * isOutOfCapacity);
+    bool requestStageUpdate(StageRequest & request, SharedCredentials & creds, double * retryIn, bool * isOutOfCapacity);
 
 }

@@ -28,9 +28,13 @@ namespace caff {
 
         virtual ~Interface();
 
+        caff_AuthResult signin(char const * username, char const * password, char const * otp);
+        caff_AuthResult refreshAuth(char const * refreshToken);
+        bool isSignedIn() const;
+        char const * getRefreshToken() const;
+        caff_UserInfo * getUserInfo();
+
         Stream* startStream(
-            Credentials * credentials,
-            std::string username,
             std::string title,
             caff_Rating rating,
             std::function<void()> startedCallback,
@@ -42,6 +46,12 @@ namespace caff {
         std::unique_ptr<rtc::Thread> networkThread;
         std::unique_ptr<rtc::Thread> workerThread;
         std::unique_ptr<rtc::Thread> signalingThread;
+
+        optional<SharedCredentials> sharedCredentials;
+
+        // copies for sharing with C
+        optional<std::string> username;
+        optional<std::string> refreshToken;
     };
 
 }  // namespace caff
