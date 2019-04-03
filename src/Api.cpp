@@ -9,13 +9,13 @@
 
 
 /* TODO: C++ify (namespace, raii, not libcurl, etc) */
-// TODO: get this from client code
+
 // TODO: should backend differentiate client from libcaffeine version?
-#define API_VERSION "22.2"
+#define API_VERSION "0.1"
 
 #define UNUSED_PARAMETER(p) ((void) p)
 
-/* TODO: load these from config? */
+/* TODO: load these from config? environment? */
 #if CAFFEINE_STAGING
 #define CAFFEINE_DOMAIN "staging.caffeine.tv/"
 #else
@@ -101,7 +101,7 @@ namespace caff {
         {
             curl_slist * headers = nullptr;
             headers = curl_slist_append(headers, contentType);
-            headers = curl_slist_append(headers, "X-Client-Type: obs"); // TODO client type parameter
+            headers = curl_slist_append(headers, "X-Client-Type: libcaffeine");
             headers = curl_slist_append(headers, "X-Client-Version: " API_VERSION);
             return headers;
         }
