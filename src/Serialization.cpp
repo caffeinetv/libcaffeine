@@ -55,8 +55,8 @@ namespace caff {
         }
 
         auto copylen = strlen(str) + 1;
-        auto result = new char[copylen];
-        strncpy(result, str, copylen);
+        auto result = new char[copylen] {'\0'};
+        std::copy(str, str + copylen, result);
         return result;
     }
 
