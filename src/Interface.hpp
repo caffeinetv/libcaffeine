@@ -45,7 +45,7 @@ namespace caff {
             std::function<void(caff_Error)> failedCallback);
 
     private:
-        caff_AuthResult updateUserInfo(caff_AuthResult origResult);
+        caff_AuthResult doSignin(std::function<AuthResponse()> signinFunc);
 
         rtc::scoped_refptr<AudioDevice> audioDevice;
         rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory;

@@ -82,11 +82,6 @@ CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, 
     return reinterpret_cast<caff_InterfaceHandle>(interface);
 }
 
-CAFFEINE_API bool caff_isSupportedVersion()
-{
-    return isSupportedVersion();
-}
-
 CAFFEINE_API caff_AuthResult caff_signin(
     caff_InterfaceHandle interfaceHandle,
     char const * username,

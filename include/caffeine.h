@@ -98,6 +98,7 @@ typedef struct caff_Stream* caff_StreamHandle;
 /* Result of sign in attempt */
 typedef enum caff_AuthResult {
     caff_AuthResult_Success,
+    caff_AuthResult_OldVersion,
     caff_AuthResult_InfoIncorrect,
     caff_AuthResult_LegalAcceptanceRequired,
     caff_AuthResult_EmailVerificationRequired,
@@ -209,8 +210,6 @@ CAFFEINE_API void caff_deinitialize(caff_InterfaceHandle* interfaceHandle);
 
 /* TODO: sort these into above, and document */
 /* TODO: have the Interface own more of these to reduce API footprint */
-
-CAFFEINE_API bool caff_isSupportedVersion();
 
 CAFFEINE_API caff_AuthResult caff_signin(
     caff_InterfaceHandle interfaceHandle,
