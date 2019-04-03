@@ -42,6 +42,8 @@ Rule of thumb: mimic the style of whatever is around what you're changing. Here 
 * 120-column text width
 * 4-space indentation
 * Always use braces for compound statements (`if`, `for`, `switch`, etc)
+* Spaces on both sides of `&` and `*` in declarations. `char * foo;`
+* East const (`char const * const` instead of `const char * const`)
 
 ### Naming
 
