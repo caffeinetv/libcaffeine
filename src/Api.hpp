@@ -59,6 +59,12 @@ namespace caff {
         }
     };
 
+    struct UserInfo {
+        std::string username;
+        std::string stageId;
+        bool canBroadcast;
+    };
+
     struct IceInfo {
         std::string sdp;
         std::string sdpMid;
@@ -172,7 +178,7 @@ namespace caff {
     bool isSupportedVersion();
     AuthResponse signin(char const * username, char const * password, char const * otp);
     AuthResponse refreshAuth(char const * refreshToken);
-    caff_UserInfo * getUserInfo(SharedCredentials & creds);
+    optional<UserInfo> getUserInfo(SharedCredentials & creds);
 
     bool trickleCandidates(
         std::vector<caff::IceInfo> const & candidates,

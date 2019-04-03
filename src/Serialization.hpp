@@ -12,7 +12,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(caff_ConnectionQuality, {
     {caff_ConnectionQuality_Unknown, nullptr},
     })
 
-void from_json(nlohmann::json const & json, caff_UserInfo & userInfo);
 void from_json(nlohmann::json const & json, caff_GameInfo & gameInfo);
 void from_json(nlohmann::json const & json, caff_GameList & games);
 
@@ -107,6 +106,8 @@ namespace caff {
         })
 
     void from_json(Json const & json, Credentials & credentials);
+
+    void from_json(Json const & json, UserInfo & userInfo);
 
     void to_json(Json & json, IceInfo const & iceInfo);
 

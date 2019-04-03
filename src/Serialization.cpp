@@ -2,14 +2,6 @@
 
 #include <sstream>
 
-void from_json(nlohmann::json const & json, caff_UserInfo & userInfo)
-{
-    caff::get_value_to(json, "caid", userInfo.caid);
-    caff::get_value_to(json, "username", userInfo.username);
-    caff::get_value_to(json, "stage_id", userInfo.stageId);
-    caff::get_value_to(json, "can_broadcast", userInfo.canBroadcast);
-}
-
 void from_json(nlohmann::json const & json, caff_GameInfo & gameInfo)
 {
     auto idNum = json.at("id").get<size_t>();
@@ -85,6 +77,13 @@ namespace caff {
         get_value_to(json, "refresh_token", credentials.refreshToken);
         get_value_to(json, "caid", credentials.caid);
         get_value_to(json, "credential", credentials.credential);
+    }
+
+    void from_json(Json const & json, UserInfo & userInfo)
+    {
+        caff::get_value_to(json, "username", userInfo.username);
+        caff::get_value_to(json, "stage_id", userInfo.stageId);
+        caff::get_value_to(json, "can_broadcast", userInfo.canBroadcast);
     }
 
     void to_json(Json & json, IceInfo const & iceInfo)

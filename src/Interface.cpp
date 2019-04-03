@@ -84,7 +84,7 @@ namespace caff {
         if (response.credentials) {
             refreshToken = response.credentials->refreshToken;
             sharedCredentials.emplace(std::move(*response.credentials));
-            this->username = username;
+            return updateUserInfo(response.result);
         }
         return response.result;
     }
@@ -95,17 +95,32 @@ namespace caff {
         if (response.credentials) {
             sharedCredentials.emplace(std::move(*response.credentials));
             this->refreshToken = refreshToken;
-            std::unique_ptr<caff_UserInfo> userInfo(caff::getUserInfo(*sharedCredentials));
-            if (userInfo) {
-                username = userInfo->username;
-            }
+            return updateUserInfo(response.result);
         }
         return response.result;
     }
 
+    caff_AuthResult Interface::updateUserInfo(caff_AuthResult origResult)
+    {
+        userInfo = caff::getUserInfo(*sharedCredentials);
+        if (userInfo) {
+            return origResult;
+        }
+        sharedCredentials.reset();
+        this->refreshToken.reset();
+        return caff_AuthResult_RequestFailed;
+    }
+
+    void Interface::signout()
+    {
+        sharedCredentials.reset();
+        refreshToken.reset();
+        userInfo.reset();
+    }
+
     bool Interface::isSignedIn() const
     {
-        return sharedCredentials.has_value() && username.has_value();
+        return sharedCredentials.has_value() && userInfo.has_value();
     }
 
     char const * Interface::getRefreshToken() const
@@ -113,13 +128,19 @@ namespace caff {
         return refreshToken ? refreshToken->c_str() : nullptr;
     }
 
-    caff_UserInfo * Interface::getUserInfo()
+    char const * Interface::getUsername() const
     {
-        if (!isSignedIn()) {
-            RTC_LOG(LS_ERROR) << "Getting user info without signing in";
-            return nullptr;
-        }
-        return caff::getUserInfo(*sharedCredentials);
+        return userInfo ? userInfo->username.c_str() : nullptr;
+    }
+
+    char const * Interface::getStageId() const
+    {
+        return userInfo ? userInfo->stageId.c_str() : nullptr;
+    }
+
+    bool Interface::canBroadcast() const
+    {
+        return userInfo ? userInfo->canBroadcast : false;
     }
 
     Stream * Interface::startStream(
@@ -128,11 +149,11 @@ namespace caff {
         std::function<void()> startedCallback,
         std::function<void(caff_Error)> failedCallback)
     {
-        if (!sharedCredentials || !username) {
+        if (!isSignedIn()) {
             failedCallback(caff_Error_NotSignedIn);
             return nullptr;
         }
-        auto stream = new Stream(*sharedCredentials, *username, title, rating, audioDevice, factory);
+        auto stream = new Stream(*sharedCredentials, userInfo->username, title, rating, audioDevice, factory);
         stream->start(startedCallback, failedCallback);
         return stream;
     }

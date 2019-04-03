@@ -425,7 +425,7 @@ namespace caff {
         RETRY_REQUEST(bool, doRefreshCredentials(creds));
     }
 
-    static caff_UserInfo * doGetUserInfo(SharedCredentials & creds)
+    static optional<UserInfo> doGetUserInfo(SharedCredentials & creds)
     {
         TRACE();
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
@@ -444,7 +444,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure fetching user: [%d] %s", curlResult, curlError);
-            return nullptr;
+            return {};
         }
 
         Json responseJson;
@@ -453,29 +453,29 @@ namespace caff {
         }
         catch (...) {
             LOG_ERROR("Failed to parse user response");
-            return nullptr;
+            return {};
         }
 
         auto errorsIt = responseJson.find("errors");
         if (errorsIt != responseJson.end()) {
             auto errorText = errorsIt->at("_error").at(0).get<std::string>();
             LOG_ERROR("Error fetching user: %s", errorText.c_str());
-            return nullptr;
+            return {};
         }
 
         auto userIt = responseJson.find("user");
         if (userIt != responseJson.end()) {
             LOG_DEBUG("Got user details");
-            return new caff_UserInfo(*userIt);
+            return UserInfo(*userIt);
         }
 
         LOG_ERROR("Failed to get user info");
-        return nullptr;
+        return {};
     }
 
-    caff_UserInfo * getUserInfo(SharedCredentials & creds)
+    optional<UserInfo> getUserInfo(SharedCredentials & creds)
     {
-        RETRY_REQUEST(caff_UserInfo*, doGetUserInfo(creds));
+        RETRY_REQUEST(optional<UserInfo>, doGetUserInfo(creds));
     }
 
     static caff_GameList * doGetSupportedGames()

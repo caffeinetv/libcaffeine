@@ -31,8 +31,12 @@ namespace caff {
         caff_AuthResult signin(char const * username, char const * password, char const * otp);
         caff_AuthResult refreshAuth(char const * refreshToken);
         bool isSignedIn() const;
+        void signout();
+
         char const * getRefreshToken() const;
-        caff_UserInfo * getUserInfo();
+        char const * getUsername() const;
+        char const * getStageId() const;
+        bool canBroadcast() const;
 
         Stream* startStream(
             std::string title,
@@ -41,6 +45,8 @@ namespace caff {
             std::function<void(caff_Error)> failedCallback);
 
     private:
+        caff_AuthResult updateUserInfo(caff_AuthResult origResult);
+
         rtc::scoped_refptr<AudioDevice> audioDevice;
         rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory;
         std::unique_ptr<rtc::Thread> networkThread;
@@ -50,8 +56,8 @@ namespace caff {
         optional<SharedCredentials> sharedCredentials;
 
         // copies for sharing with C
-        optional<std::string> username;
         optional<std::string> refreshToken;
+        optional<UserInfo> userInfo;
     };
 
 }  // namespace caff

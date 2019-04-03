@@ -99,14 +99,6 @@ typedef enum caff_AuthResult {
     caff_AuthResult_RequestFailed,
 } caff_AuthResult;
 
-/* User details */
-typedef struct caff_UserInfo {
-    char * caid;
-    char * username;
-    char * stageId;
-    bool canBroadcast;
-} caff_UserInfo;
-
 /* TODO: is there a way to encapsulate this without touching on privacy issues? */
 
 /* Supported game detection info */
@@ -221,12 +213,14 @@ CAFFEINE_API caff_AuthResult caff_signin(
 
 CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHandle, char const * refreshToken);
 
+CAFFEINE_API void caff_signout(caff_InterfaceHandle interfaceHandle);
+
 CAFFEINE_API bool caff_isSignedIn(caff_InterfaceHandle interfaceHandle);
 
 CAFFEINE_API char const * caff_getRefreshToken(caff_InterfaceHandle interfaceHandle);
-
-CAFFEINE_API caff_UserInfo * caff_getUserInfo(caff_InterfaceHandle interfaceHandle);
-CAFFEINE_API void caff_freeUserInfo(caff_UserInfo ** userInfo);
+CAFFEINE_API char const * caff_getUsername(caff_InterfaceHandle interfaceHandle);
+CAFFEINE_API char const * caff_getStageId(caff_InterfaceHandle interfaceHandle);
+CAFFEINE_API bool caff_canBroadcast(caff_InterfaceHandle interfaceHandle);
 
 CAFFEINE_API caff_GameList * caff_getGameList();
 CAFFEINE_API void caff_freeGameInfo(caff_GameInfo ** info);

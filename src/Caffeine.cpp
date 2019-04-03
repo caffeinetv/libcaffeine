@@ -103,6 +103,14 @@ CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHand
     return interface->refreshAuth(refreshToken);
 }
 
+CAFFEINE_API void caff_signout(caff_InterfaceHandle interfaceHandle)
+{
+    RTC_DCHECK(interfaceHandle);
+
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    interface->signout();
+}
+
 CAFFEINE_API bool caff_isSignedIn(caff_InterfaceHandle interfaceHandle)
 {
     RTC_DCHECK(interfaceHandle);
@@ -119,23 +127,28 @@ CAFFEINE_API char const * caff_getRefreshToken(caff_InterfaceHandle interfaceHan
     return interface->getRefreshToken();
 }
 
-CAFFEINE_API caff_UserInfo * caff_getUserInfo(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API char const * caff_getUsername(caff_InterfaceHandle interfaceHandle)
 {
     RTC_DCHECK(interfaceHandle);
 
     auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->getUserInfo();
+    return interface->getUsername();
 }
 
-CAFFEINE_API void caff_freeUserInfo(caff_UserInfo ** userInfo)
+CAFFEINE_API char const * caff_getStageId(caff_InterfaceHandle interfaceHandle)
 {
-    if (userInfo && *userInfo) {
-        delete[](*userInfo)->caid;
-        delete[](*userInfo)->username;
-        delete[](*userInfo)->stageId;
-        delete *userInfo;
-        *userInfo = nullptr;
-    }
+    RTC_DCHECK(interfaceHandle);
+
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    return interface->getStageId();
+}
+
+CAFFEINE_API bool caff_canBroadcast(caff_InterfaceHandle interfaceHandle)
+{
+    RTC_DCHECK(interfaceHandle);
+
+    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
+    return interface->canBroadcast();
 }
 
 CAFFEINE_API caff_GameList * caff_getGameList()
