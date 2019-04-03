@@ -99,9 +99,6 @@ namespace caff {
         static const size_t MAX_TITLE_LENGTH = 60; // TODO: policy- should be somewhere else
         static std::string const ratingStrings[] = { "", "[17+] " }; // TODO maybe same here
 
-        if (rating < caff_Rating_None || rating >= caff_Rating_Max)
-            rating = caff_Rating_None;
-
         auto fullTitle = ratingStrings[rating] + title;
         if (fullTitle.length() > MAX_TITLE_LENGTH)
             fullTitle.resize(MAX_TITLE_LENGTH);
