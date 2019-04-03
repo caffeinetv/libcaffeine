@@ -20,26 +20,34 @@ using namespace caff;
 
 CAFFEINE_API char const* caff_errorString(caff_Error error)
 {
+    RTC_DCHECK(error >= 0 && error < caff_Error_End);
+
     switch (error) {
+    case caff_Error_NotSignedIn:
+        return "Not signed in";
     case caff_Error_SdpOffer:
         return "Error making SDP offer";
     case caff_Error_SdpAnswer:
         return "Error reading SDP answer";
     case caff_Error_IceTrickle:
         return "Error during ICE negotiation";
-    case caff_Error_Disconnected:
-        return "Disconnected from server";
     case caff_Error_Takeover:
         return "Stream takeover";
+    case caff_Error_Disconnected:
+        return "Disconnected from server";
+    case caff_Error_BroadcastFailed:
+        return "Broadcast failed";
     case caff_Error_Unknown:
-    default:
         return "Unknown error";
+    case caff_Error_End:
+        return nullptr;
     }
 }
 
-CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel min_severity)
+CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity)
 {
     RTC_DCHECK(logCallback);
+    RTC_DCHECK(minSeverity >= 0 && minSeverity < caff_LogLevel_End);
 
     // TODO: make this thread safe
     static bool firstInit = true;
@@ -54,7 +62,7 @@ CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, 
 
         // TODO: Figure out why this log sink isn't working and uncomment above two
         // lines
-        rtc::LogMessage::AddLogToStream(new LogSink(logCallback), static_cast<rtc::LoggingSeverity>(min_severity));
+        rtc::LogMessage::AddLogToStream(new LogSink(logCallback), static_cast<rtc::LoggingSeverity>(minSeverity));
 
         // Initialize WebRTC
 
@@ -193,7 +201,7 @@ CAFFEINE_API caff_StreamHandle caff_startStream(
 {
     RTC_DCHECK(interfaceHandle);
     RTC_DCHECK(title);
-    RTC_DCHECK(rating >= 0 && rating < caff_Rating_Max);
+    RTC_DCHECK(rating >= 0 && rating < caff_Rating_End);
     RTC_DCHECK(startedCallbackPtr);
     RTC_DCHECK(failedCallbackPtr);
 
@@ -233,7 +241,7 @@ CAFFEINE_API void caff_sendVideo(
     RTC_DCHECK(frameBytes);
     RTC_DCHECK(width);
     RTC_DCHECK(height);
-    RTC_DCHECK(format);
+    RTC_DCHECK(format >= 0 && format < caff_VideoFormat_End);
 
     auto stream = reinterpret_cast<Stream*>(streamHandle);
     stream->sendVideo(frameData, frameBytes, width, height, format);
