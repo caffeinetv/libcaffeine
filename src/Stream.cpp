@@ -277,7 +277,7 @@ namespace caff {
             if (!requestStageUpdate(request, credentials, NULL, NULL)
                 || !caff_get_stage_feed(request->stage, feed_id))
             {
-                caffeine_stream_failed(data, caff_Error_Unknown);
+                caffeine_stream_failed(data, caff_ErrorUnknown);
                 goto broadcast_error;
             }
 
@@ -297,7 +297,7 @@ namespace caff {
             credentials);
 
         if (!screenshot_success) {
-            caffeine_stream_failed(data, caff_Error_BroadcastFailed);
+            caffeine_stream_failed(data, caff_ErrorBroadcastFailed);
             goto broadcast_error;
         }
 
@@ -312,7 +312,7 @@ namespace caff {
             || !request->stage->live
             || !caff_get_stage_feed(request->stage, feed_id))
         {
-            caffeine_stream_failed(data, caff_Error_BroadcastFailed);
+            caffeine_stream_failed(data, caff_ErrorBroadcastFailed);
             goto broadcast_error;
         }
 
@@ -350,13 +350,13 @@ namespace caff {
             pthread_mutex_unlock(&context->stream_mutex);
 
             if (!request) {
-                caffeine_stream_failed(data, caff_Error_Unknown);
+                caffeine_stream_failed(data, caff_ErrorUnknown);
                 goto broadcast_error;
             }
 
             Feed * feed = caff_get_stage_feed(request->stage, feed_id);
             if (!feed || !request->stage->live) {
-                caffeine_stream_failed(data, caff_Error_Takeover);
+                caffeine_stream_failed(data, caff_ErrorTakeover);
                 goto broadcast_error;
             }
 
@@ -381,7 +381,7 @@ namespace caff {
                 if (failures > max_failures) {
                     LOG_ERROR("Heartbeat failed %d times; ending stream.",
                         failures);
-                    caffeine_stream_failed(data, caff_Error_Disconnected);
+                    caffeine_stream_failed(data, caff_ErrorDisconnected);
                     break;
                 }
             }
@@ -409,7 +409,7 @@ namespace caff {
             if (!request->stage->live
                 || !caff_get_stage_feed(request->stage, feed_id))
             {
-                caffeine_stream_failed(data, caff_Error_Takeover);
+                caffeine_stream_failed(data, caff_ErrorTakeover);
                 goto broadcast_error;
             }
 
@@ -437,7 +437,7 @@ namespace caff {
             caff_clear_stage_feeds(request->stage);
 
             if (!requestStageUpdate(request, credentials, NULL, NULL)) {
-                caffeine_stream_failed(data, caff_Error_Unknown);
+                caffeine_stream_failed(data, caff_ErrorUnknown);
             }
         }
 
@@ -602,7 +602,7 @@ namespace caff {
             auto offer = creationObserver->getFuture().get();
             if (!offer) {
                 // Logged by the observer
-                failedCallback(caff_Error_SdpOffer);
+                failedCallback(caff_ErrorSdpOffer);
                 state.store(State::Offline);
                 return;
             }
@@ -611,14 +611,14 @@ namespace caff {
                 RTC_LOG(LS_ERROR)
                     << "Expected " << webrtc::SessionDescriptionInterface::kOffer
                     << " but got " << offer->type();
-                doFailure(caff_Error_SdpOffer);
+                doFailure(caff_ErrorSdpOffer);
                 return;
             }
 
             std::string offerSdp;
             if (!offer->ToString(&offerSdp)) {
                 RTC_LOG(LS_ERROR) << "Error serializing SDP offer";
-                doFailure(caff_Error_SdpOffer);
+                doFailure(caff_ErrorSdpOffer);
                 return;
             }
 
@@ -626,7 +626,7 @@ namespace caff {
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP offer: " << offerError.description;
-                doFailure(caff_Error_SdpOffer);
+                doFailure(caff_ErrorSdpOffer);
                 return;
             }
 
@@ -636,7 +636,7 @@ namespace caff {
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
             auto setLocalSuccess = setLocalObserver->getFuture().get();
             if (!setLocalSuccess) {
-                doFailure(caff_Error_SdpOffer);
+                doFailure(caff_ErrorSdpOffer);
                 return;
             }
 
@@ -645,7 +645,7 @@ namespace caff {
             auto answerSdp = offerGenerated(offerSdp);
             if (!answerSdp) {
                 RTC_LOG(LS_ERROR) << "Did not get SDP answer";
-                doFailure(caff_Error_SdpAnswer);
+                doFailure(caff_ErrorSdpAnswer);
                 return;
             }
 
@@ -653,13 +653,13 @@ namespace caff {
             auto remoteDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, *answerSdp, &answerError);
             if (!remoteDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP answer: " << answerError.description;
-                doFailure(caff_Error_SdpAnswer);
+                doFailure(caff_ErrorSdpAnswer);
                 return;
             }
 
             if (!iceGathered(observer->getFuture().get())) {
                 RTC_LOG(LS_ERROR) << "Failed to negotiate ICE";
-                doFailure(caff_Error_IceTrickle);
+                doFailure(caff_ErrorIceTrickle);
                 return;
             }
 
@@ -670,7 +670,7 @@ namespace caff {
             auto setRemoteSuccess = setRemoteObserver->getFuture().get();
             if (!setRemoteSuccess) {
                 // Logged by the observer
-                doFailure(caff_Error_SdpAnswer);
+                doFailure(caff_ErrorSdpAnswer);
                 return;
             }
 
@@ -703,7 +703,7 @@ namespace caff {
             }
         }
 
-        return caff_ConnectionQuality_Unknown;
+        return caff_ConnectionQualityUnknown;
     }
 
 }  // namespace caff

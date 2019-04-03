@@ -57,7 +57,8 @@ Acronyms, abbreviations, initialisms, etc should be treated like words, e.g. `Ic
 
 All names should be declared in the `caff` namespace, except when extending 3rd-party namespaces.
 
-In C, represent namespaces (including parent types) as underscore-separated prefixes. For example:
-`caff_Error_SdpAnswer`.
+In C, all names should be prefixed with `caff_`, and otherwise follow the same conventions.
+
+In C++, prefer `enum class`es. In C, include the enum type in the name of the enum value, e.g. `caff_ErrorNotSignedIn`
 
 C++ filenames use `.hpp` and `.cpp`. C filenames use `.h` and `.c`.

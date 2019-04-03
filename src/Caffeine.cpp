@@ -27,21 +27,21 @@ CAFFEINE_API char const* caff_errorString(caff_Error error)
     }
 
     switch (error) {
-    case caff_Error_NotSignedIn:
+    case caff_ErrorNotSignedIn:
         return "Not signed in";
-    case caff_Error_SdpOffer:
+    case caff_ErrorSdpOffer:
         return "Error making SDP offer";
-    case caff_Error_SdpAnswer:
+    case caff_ErrorSdpAnswer:
         return "Error reading SDP answer";
-    case caff_Error_IceTrickle:
+    case caff_ErrorIceTrickle:
         return "Error during ICE negotiation";
-    case caff_Error_Takeover:
+    case caff_ErrorTakeover:
         return "Stream takeover";
-    case caff_Error_Disconnected:
+    case caff_ErrorDisconnected:
         return "Disconnected from server";
-    case caff_Error_BroadcastFailed:
+    case caff_ErrorBroadcastFailed:
         return "Broadcast failed";
-    case caff_Error_Unknown:
+    case caff_ErrorUnknown:
         return "Unknown error";
     }
 }

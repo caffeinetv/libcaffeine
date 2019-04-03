@@ -14,22 +14,22 @@
 #include "common_types.h"
 #include "rtc_base/scoped_ref_ptr.h"
 
-ASSERT_MATCH(caff_VideoFormat_Unknown, webrtc::VideoType::kUnknown);
-ASSERT_MATCH(caff_VideoFormat_I420, webrtc::VideoType::kI420);
-ASSERT_MATCH(caff_VideoFormat_Iyuv, webrtc::VideoType::kIYUV);
-ASSERT_MATCH(caff_VideoFormat_Rgb24, webrtc::VideoType::kRGB24);
-ASSERT_MATCH(caff_VideoFormat_Abgr, webrtc::VideoType::kABGR);
-ASSERT_MATCH(caff_VideoFormat_Argb, webrtc::VideoType::kARGB);
-ASSERT_MATCH(caff_VideoFormat_Argb4444, webrtc::VideoType::kARGB4444);
-ASSERT_MATCH(caff_VideoFormat_Rgb565, webrtc::VideoType::kRGB565);
-ASSERT_MATCH(caff_VideoFormat_Argb1555, webrtc::VideoType::kARGB1555);
-ASSERT_MATCH(caff_VideoFormat_Yuy2, webrtc::VideoType::kYUY2);
-ASSERT_MATCH(caff_VideoFormat_Yv12, webrtc::VideoType::kYV12);
-ASSERT_MATCH(caff_VideoFormat_Uyvy, webrtc::VideoType::kUYVY);
-ASSERT_MATCH(caff_VideoFormat_Mjpeg, webrtc::VideoType::kMJPEG);
-ASSERT_MATCH(caff_VideoFormat_Nv21, webrtc::VideoType::kNV21);
-ASSERT_MATCH(caff_VideoFormat_Nv12, webrtc::VideoType::kNV12);
-ASSERT_MATCH(caff_VideoFormat_Bgra, webrtc::VideoType::kBGRA);
+ASSERT_MATCH(caff_VideoFormatUnknown, webrtc::VideoType::kUnknown);
+ASSERT_MATCH(caff_VideoFormatI420, webrtc::VideoType::kI420);
+ASSERT_MATCH(caff_VideoFormatIyuv, webrtc::VideoType::kIYUV);
+ASSERT_MATCH(caff_VideoFormatRgb24, webrtc::VideoType::kRGB24);
+ASSERT_MATCH(caff_VideoFormatAbgr, webrtc::VideoType::kABGR);
+ASSERT_MATCH(caff_VideoFormatArgb, webrtc::VideoType::kARGB);
+ASSERT_MATCH(caff_VideoFormatArgb4444, webrtc::VideoType::kARGB4444);
+ASSERT_MATCH(caff_VideoFormatRgb565, webrtc::VideoType::kRGB565);
+ASSERT_MATCH(caff_VideoFormatArgb1555, webrtc::VideoType::kARGB1555);
+ASSERT_MATCH(caff_VideoFormatYuy2, webrtc::VideoType::kYUY2);
+ASSERT_MATCH(caff_VideoFormatYv12, webrtc::VideoType::kYV12);
+ASSERT_MATCH(caff_VideoFormatUyvy, webrtc::VideoType::kUYVY);
+ASSERT_MATCH(caff_VideoFormatMjpeg, webrtc::VideoType::kMJPEG);
+ASSERT_MATCH(caff_VideoFormatNv21, webrtc::VideoType::kNV21);
+ASSERT_MATCH(caff_VideoFormatNv12, webrtc::VideoType::kNV12);
+ASSERT_MATCH(caff_VideoFormatBgra, webrtc::VideoType::kBGRA);
 
 namespace webrtc {
     class PeerConnectionFactoryInterface;

@@ -298,10 +298,10 @@ namespace caff {
                 auto errorText = otpError->at(0).get<std::string>();
                 LOG_ERROR("One time password error: %s", errorText.c_str());
                 if (otp && *otp) {
-                    return { caff_AuthResult_MfaOtpIncorrect };
+                    return { caff_AuthResultMfaOtpIncorrect };
                 }
                 else {
-                    return { caff_AuthResult_MfaOtpRequired };
+                    return { caff_AuthResultMfaOtpRequired };
                 }
             }
             auto errorText = errors->at("_error").at(0).get<std::string>();
@@ -312,7 +312,7 @@ namespace caff {
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
             LOG_DEBUG("Sign-in complete");
-            return { caff_AuthResult_Success, *credsIt };
+            return { caff_AuthResultSuccess, *credsIt };
         }
 
         std::string mfaOtpMethod;
@@ -321,13 +321,13 @@ namespace caff {
         if (nextIt != responseJson.end()) {
             auto & next = nextIt->get_ref<std::string const &>();
             if (next == "mfa_otp_required") {
-                return { caff_AuthResult_MfaOtpRequired };
+                return { caff_AuthResultMfaOtpRequired };
             }
             else if (next == "legal_acceptance_required") {
-                return { caff_AuthResult_LegalAcceptanceRequired };
+                return { caff_AuthResultLegalAcceptanceRequired };
             }
             else if (next == "email_verification") {
-                return { caff_AuthResult_EmailVerificationRequired };
+                return { caff_AuthResultEmailVerificationRequired };
             }
             else {
                 LOG_ERROR("Unrecognized auth next step %s", next.c_str());
@@ -394,7 +394,7 @@ namespace caff {
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
             LOG_DEBUG("Sign-in complete");
-            return { caff_AuthResult_Success, *credsIt };
+            return { caff_AuthResultSuccess, *credsIt };
         }
 
         LOG_ERROR("Failed to extract response info");

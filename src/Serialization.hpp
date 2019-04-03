@@ -7,9 +7,9 @@
 //// TODO: don't pass ownership of these to C-side
 
 NLOHMANN_JSON_SERIALIZE_ENUM(caff_ConnectionQuality, {
-    {caff_ConnectionQuality_Good, "GOOD"},
-    {caff_ConnectionQuality_Bad, "BAD"},
-    {caff_ConnectionQuality_Unknown, nullptr},
+    {caff_ConnectionQualityGood, "GOOD"},
+    {caff_ConnectionQualityPoor, "POOR"},
+    {caff_ConnectionQualityUnknown, nullptr},
     })
 
 void from_json(nlohmann::json const & json, caff_GameInfo & gameInfo);
