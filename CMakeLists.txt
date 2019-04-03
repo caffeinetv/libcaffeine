@@ -59,7 +59,7 @@ if(WIN32)
 endif()
 
 if(MSVC)
-    add_compile_options("/MP")
+    add_compile_options("/MP" "/WX")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
 
