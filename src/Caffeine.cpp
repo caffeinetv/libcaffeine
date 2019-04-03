@@ -20,26 +20,26 @@ using namespace caff;
 
 CAFFEINE_API char const* caff_errorString(caff_Error error)
 {
-    RTC_DCHECK(error >= 0 && error < caff_Error_End);
+    RTC_DCHECK(error >= 0 && error < caff_ErrorEnd);
 
     switch (error) {
-    case caff_Error_NotSignedIn:
+    case caff_ErrorNotSignedIn:
         return "Not signed in";
-    case caff_Error_SdpOffer:
+    case caff_ErrorSdpOffer:
         return "Error making SDP offer";
-    case caff_Error_SdpAnswer:
+    case caff_ErrorSdpAnswer:
         return "Error reading SDP answer";
-    case caff_Error_IceTrickle:
+    case caff_ErrorIceTrickle:
         return "Error during ICE negotiation";
-    case caff_Error_Takeover:
+    case caff_ErrorTakeover:
         return "Stream takeover";
-    case caff_Error_Disconnected:
+    case caff_ErrorDisconnected:
         return "Disconnected from server";
-    case caff_Error_BroadcastFailed:
+    case caff_ErrorBroadcastFailed:
         return "Broadcast failed";
-    case caff_Error_Unknown:
+    case caff_ErrorUnknown:
         return "Unknown error";
-    case caff_Error_End:
+    case caff_ErrorEnd:
         return nullptr;
     }
 }
@@ -47,7 +47,7 @@ CAFFEINE_API char const* caff_errorString(caff_Error error)
 CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity)
 {
     RTC_DCHECK(logCallback);
-    RTC_DCHECK(minSeverity >= 0 && minSeverity < caff_LogLevel_End);
+    RTC_DCHECK(minSeverity >= 0 && minSeverity < caff_LogLevelEnd);
 
     // TODO: make this thread safe
     static bool firstInit = true;
@@ -196,7 +196,7 @@ CAFFEINE_API caff_StreamHandle caff_startStream(
 {
     RTC_DCHECK(interfaceHandle);
     RTC_DCHECK(title);
-    RTC_DCHECK(rating >= 0 && rating < caff_Rating_End);
+    RTC_DCHECK(rating >= 0 && rating < caff_RatingEnd);
     RTC_DCHECK(startedCallbackPtr);
     RTC_DCHECK(failedCallbackPtr);
 
@@ -236,7 +236,7 @@ CAFFEINE_API void caff_sendVideo(
     RTC_DCHECK(frameBytes);
     RTC_DCHECK(width);
     RTC_DCHECK(height);
-    RTC_DCHECK(format >= 0 && format < caff_VideoFormat_End);
+    RTC_DCHECK(format >= 0 && format < caff_VideoFormatEnd);
 
     auto stream = reinterpret_cast<Stream*>(streamHandle);
     stream->sendVideo(frameData, frameBytes, width, height, format);

@@ -91,7 +91,7 @@ namespace caff {
     caff_AuthResult Interface::doSignin(std::function<AuthResponse()> signinFunc)
     {
         if (!isSupportedVersion()) {
-            return caff_AuthResult_OldVersion;
+            return caff_AuthResultOldVersion;
         }
         auto response = signinFunc();
         if (!response.credentials) {
@@ -103,7 +103,7 @@ namespace caff {
         if (!userInfo) {
             sharedCredentials.reset();
             this->refreshToken.reset();
-            return caff_AuthResult_RequestFailed;
+            return caff_AuthResultRequestFailed;
         }
         return response.result;
     }
@@ -147,7 +147,7 @@ namespace caff {
         std::function<void(caff_Error)> failedCallback)
     {
         if (!isSignedIn()) {
-            failedCallback(caff_Error_NotSignedIn);
+            failedCallback(caff_ErrorNotSignedIn);
             return nullptr;
         }
         auto stream = new Stream(*sharedCredentials, userInfo->username, title, rating, audioDevice, factory);
