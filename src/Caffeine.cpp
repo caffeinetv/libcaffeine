@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "Interface.hpp"
+#include "Instance.hpp"
 #include "LogSink.hpp"
 #include "Stream.hpp"
 
@@ -44,7 +44,7 @@ CAFFEINE_API char const* caff_errorString(caff_Error error)
     }
 }
 
-CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity)
+CAFFEINE_API caff_InstanceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity)
 {
     RTC_DCHECK(logCallback);
     RTC_DCHECK(minSeverity >= 0 && minSeverity < caff_LogLevelEnd);
@@ -78,80 +78,80 @@ CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, 
         firstInit = false;
     }
 
-    auto interface = new Interface;
-    return reinterpret_cast<caff_InterfaceHandle>(interface);
+    auto instance = new Instance;
+    return reinterpret_cast<caff_InstanceHandle>(instance);
 }
 
 CAFFEINE_API caff_AuthResult caff_signin(
-    caff_InterfaceHandle interfaceHandle,
+    caff_InstanceHandle instanceHandle,
     char const * username,
     char const * password,
     char const * otp)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
     RTC_DCHECK(username);
     RTC_DCHECK(password);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->signin(username, password, otp);
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    return instance->signin(username, password, otp);
 }
 
-CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHandle, char const * refreshToken)
+CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
     RTC_DCHECK(refreshToken);
     RTC_DCHECK(refreshToken[0]);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->refreshAuth(refreshToken);
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    return instance->refreshAuth(refreshToken);
 }
 
-CAFFEINE_API void caff_signout(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API void caff_signout(caff_InstanceHandle instanceHandle)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    interface->signout();
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    instance->signout();
 }
 
-CAFFEINE_API bool caff_isSignedIn(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->isSignedIn();
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    return instance->isSignedIn();
 }
 
-CAFFEINE_API char const * caff_getRefreshToken(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->getRefreshToken();
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    return instance->getRefreshToken();
 }
 
-CAFFEINE_API char const * caff_getUsername(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->getUsername();
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    return instance->getUsername();
 }
 
-CAFFEINE_API char const * caff_getStageId(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->getStageId();
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    return instance->getStageId();
 }
 
-CAFFEINE_API bool caff_canBroadcast(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
 
-    auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->canBroadcast();
+    auto instance = reinterpret_cast<Instance*>(instanceHandle);
+    return instance->canBroadcast();
 }
 
 CAFFEINE_API caff_GameList * caff_getGameList()
@@ -187,14 +187,14 @@ CAFFEINE_API void caff_freeGameList(caff_GameList ** games)
 }
 
 CAFFEINE_API caff_StreamHandle caff_startStream(
-    caff_InterfaceHandle interfaceHandle,
+    caff_InstanceHandle instanceHandle,
     void * user_data,
     char const * title,
     caff_Rating rating,
     caff_StreamStartedCallback startedCallbackPtr,
     caff_StreamFailedCallback failedCallbackPtr)
 {
-    RTC_DCHECK(interfaceHandle);
+    RTC_DCHECK(instanceHandle);
     RTC_DCHECK(title);
     RTC_DCHECK(rating >= 0 && rating < caff_RatingEnd);
     RTC_DCHECK(startedCallbackPtr);
@@ -206,8 +206,8 @@ CAFFEINE_API caff_StreamHandle caff_startStream(
         failedCallbackPtr(user_data, error);
     };
 
-    auto interface = reinterpret_cast<Interface *>(interfaceHandle);
-    auto stream = interface->startStream(title, rating, startedCallback, failedCallback);
+    auto instance = reinterpret_cast<Instance *>(instanceHandle);
+    auto stream = instance->startStream(title, rating, startedCallback, failedCallback);
 
     return reinterpret_cast<caff_StreamHandle>(stream);
 }
@@ -260,12 +260,12 @@ CAFFEINE_API void caff_endStream(caff_StreamHandle* streamHandle)
     RTC_LOG(LS_INFO) << "Caffeine stream ended";
 }
 
-CAFFEINE_API void caff_deinitialize(caff_InterfaceHandle* interfaceHandle)
+CAFFEINE_API void caff_deinitialize(caff_InstanceHandle* instanceHandle)
 {
-    RTC_DCHECK(interfaceHandle);
-    RTC_DCHECK(*interfaceHandle);
-    auto interface = reinterpret_cast<Interface*>(*interfaceHandle);
-    delete interface;
-    *interfaceHandle = nullptr;
+    RTC_DCHECK(instanceHandle);
+    RTC_DCHECK(*instanceHandle);
+    auto instance = reinterpret_cast<Instance*>(*instanceHandle);
+    delete instance;
+    *instanceHandle = nullptr;
     RTC_LOG(LS_INFO) << "Caffeine RTC deinitialized";
 }

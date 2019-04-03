@@ -1,6 +1,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "Interface.hpp"
+#include "Instance.hpp"
 
 #include "AudioDevice.hpp"
 #include "Stream.hpp"
@@ -49,7 +49,7 @@ namespace caff {
         }
     };
 
-    Interface::Interface()
+    Instance::Instance()
     {
         networkThread = rtc::Thread::CreateWithSocketServer();
         networkThread->SetName("caffeine-network", nullptr);
@@ -74,21 +74,21 @@ namespace caff {
             webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);
     }
 
-    Interface::~Interface() {
+    Instance::~Instance() {
         factory = nullptr;
     }
 
-    caff_AuthResult Interface::signin(char const * username, char const * password, char const * otp)
+    caff_AuthResult Instance::signin(char const * username, char const * password, char const * otp)
     {
         return doSignin([=] { return caff::signin(username, password, otp); });
     }
 
-    caff_AuthResult Interface::refreshAuth(char const * refreshToken)
+    caff_AuthResult Instance::refreshAuth(char const * refreshToken)
     {
         return doSignin([=] { return caff::refreshAuth(refreshToken); });
     }
 
-    caff_AuthResult Interface::doSignin(std::function<AuthResponse()> signinFunc)
+    caff_AuthResult Instance::doSignin(std::function<AuthResponse()> signinFunc)
     {
         if (!isSupportedVersion()) {
             return caff_AuthResultOldVersion;
@@ -108,39 +108,39 @@ namespace caff {
         return response.result;
     }
 
-    void Interface::signout()
+    void Instance::signout()
     {
         sharedCredentials.reset();
         refreshToken.reset();
         userInfo.reset();
     }
 
-    bool Interface::isSignedIn() const
+    bool Instance::isSignedIn() const
     {
         return sharedCredentials.has_value() && userInfo.has_value();
     }
 
-    char const * Interface::getRefreshToken() const
+    char const * Instance::getRefreshToken() const
     {
         return refreshToken ? refreshToken->c_str() : nullptr;
     }
 
-    char const * Interface::getUsername() const
+    char const * Instance::getUsername() const
     {
         return userInfo ? userInfo->username.c_str() : nullptr;
     }
 
-    char const * Interface::getStageId() const
+    char const * Instance::getStageId() const
     {
         return userInfo ? userInfo->stageId.c_str() : nullptr;
     }
 
-    bool Interface::canBroadcast() const
+    bool Instance::canBroadcast() const
     {
         return userInfo ? userInfo->canBroadcast : false;
     }
 
-    Stream * Interface::startStream(
+    Stream * Instance::startStream(
         std::string title,
         caff_Rating rating,
         std::function<void()> startedCallback,
