@@ -98,10 +98,10 @@ typedef enum caff_AuthResult {
 
 /* Opaque handles to internal objects */
 struct caff_Interface;
-typedef struct caff_Interface* caff_InterfaceHandle;
+typedef struct caff_Instance * caff_InstanceHandle;
 
 struct caff_Stream;
-typedef struct caff_Stream* caff_StreamHandle;
+typedef struct caff_Stream * caff_StreamHandle;
 
 /* TODO: is there a way to encapsulate game process detection without touching on privacy issues? */
 /* Supported game detection info */
@@ -142,7 +142,7 @@ CAFFEINE_API char const* caff_errorString(caff_Error error);
  * Returns a handle to the caffeine management object to be passed into other
  * functions. If there is an error during initialization this will be NULL
  */
-CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity);
+CAFFEINE_API caff_InstanceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity);
 
 /* start stream on Caffeine
  *
@@ -150,7 +150,7 @@ CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, 
  * into streamStartedCallback or streamFailedCallback with the result. This may
  * happen on a different thread than the caller.
  *
- * interfaceHandle: handle to the caffeine interface from caff_initialize
+ * instanceHandle: handle to the caffeine instance from caff_initialize
  * userData: an optional pointer passed blindly to the callbacks
  * credentials: authentication credentials obtained from signIn/refreshAuth
  * username: the username of the broadcaster
@@ -164,7 +164,7 @@ CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, 
  * streamFailedCallback will NOT be called
  */
 CAFFEINE_API caff_StreamHandle caff_startStream(
-    caff_InterfaceHandle interfaceHandle,
+    caff_InstanceHandle instanceHandle,
     void* userData,
     char const * title,
     caff_Rating rating,
@@ -198,30 +198,30 @@ CAFFEINE_API void caff_endStream(caff_StreamHandle* streamHandle);
  *
  * This destroys the internal factory objects, shuts down worker threads, etc.
  *
- * interfaceHandle: the interface handle received from caff_initialize. This
+ * instanceHandle: the instance handle received from caff_initialize. This
  *     handle will no longer be valid after the function returns.
  */
-CAFFEINE_API void caff_deinitialize(caff_InterfaceHandle* interfaceHandle);
+CAFFEINE_API void caff_deinitialize(caff_InstanceHandle* instanceHandle);
 
 /* TODO: sort these into above, and document */
-/* TODO: have the Interface own more of these to reduce API footprint */
+/* TODO: have the Instance own more of these to reduce API footprint */
 
 CAFFEINE_API caff_AuthResult caff_signIn(
-    caff_InterfaceHandle interfaceHandle,
+    caff_InstanceHandle instanceHandle,
     char const * username,
     char const * password,
     char const * otp);
 
-CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHandle, char const * refreshToken);
+CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken);
 
-CAFFEINE_API void caff_signOut(caff_InterfaceHandle interfaceHandle);
+CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle);
 
-CAFFEINE_API bool caff_isSignedIn(caff_InterfaceHandle interfaceHandle);
+CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle);
 
-CAFFEINE_API char const * caff_getRefreshToken(caff_InterfaceHandle interfaceHandle);
-CAFFEINE_API char const * caff_getUsername(caff_InterfaceHandle interfaceHandle);
-CAFFEINE_API char const * caff_getStageId(caff_InterfaceHandle interfaceHandle);
-CAFFEINE_API bool caff_canBroadcast(caff_InterfaceHandle interfaceHandle);
+CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle);
+CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle);
+CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle);
+CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle);
 
 CAFFEINE_API caff_GameList * caff_getGameList();
 CAFFEINE_API void caff_freeGameInfo(caff_GameInfo ** info);

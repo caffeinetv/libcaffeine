@@ -36,8 +36,8 @@ set(libcaffeine_SOURCES
     src/AudioDeviceDefaultImpl.hpp
     src/Caffeine.cpp
     src/CaffeineHelpers.hpp
-    src/Interface.cpp
-    src/Interface.hpp
+    src/Instance.cpp
+    src/Instance.hpp
     src/LogSink.cpp
     src/LogSink.hpp
     src/PeerConnectionObserver.cpp

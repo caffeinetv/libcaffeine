@@ -22,11 +22,11 @@ namespace caff {
     class Stream;
     class AudioDevice;
 
-    class Interface {
+    class Instance {
     public:
-        Interface();
+        Instance();
 
-        virtual ~Interface();
+        virtual ~Instance();
 
         caff_AuthResult signIn(char const * username, char const * password, char const * otp);
         caff_AuthResult refreshAuth(char const * refreshToken);
