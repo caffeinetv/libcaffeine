@@ -80,35 +80,32 @@ namespace caff {
 
     caff_AuthResult Interface::signIn(char const * username, char const * password, char const * otp)
     {
-        auto response = caff::signIn(username, password, otp);
-        if (response.credentials) {
-            refreshToken = response.credentials->refreshToken;
-            sharedCredentials.emplace(std::move(*response.credentials));
-            return updateUserInfo(response.result);
-        }
-        return response.result;
+        return doSignin([=] { return caff::signIn(username, password, otp); });
     }
 
     caff_AuthResult Interface::refreshAuth(char const * refreshToken)
     {
-        auto response = caff::refreshAuth(refreshToken);
-        if (response.credentials) {
-            sharedCredentials.emplace(std::move(*response.credentials));
-            this->refreshToken = refreshToken;
-            return updateUserInfo(response.result);
-        }
-        return response.result;
+        return doSignin([=] { return caff::refreshAuth(refreshToken); });
     }
 
-    caff_AuthResult Interface::updateUserInfo(caff_AuthResult origResult)
+    caff_AuthResult Interface::doSignin(std::function<AuthResponse()> signinFunc)
     {
-        userInfo = caff::getUserInfo(*sharedCredentials);
-        if (userInfo) {
-            return origResult;
+        if (!isSupportedVersion()) {
+            return caff_AuthResult_OldVersion;
         }
-        sharedCredentials.reset();
-        this->refreshToken.reset();
-        return caff_AuthResult_RequestFailed;
+        auto response = signinFunc();
+        if (!response.credentials) {
+            return response.result;
+        }
+        refreshToken = response.credentials->refreshToken;
+        sharedCredentials.emplace(std::move(*response.credentials));
+        userInfo = caff::getUserInfo(*sharedCredentials);
+        if (!userInfo) {
+            sharedCredentials.reset();
+            this->refreshToken.reset();
+            return caff_AuthResult_RequestFailed;
+        }
+        return response.result;
     }
 
     void Interface::signOut()
