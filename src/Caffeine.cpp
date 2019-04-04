@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "CaffeineHelpers.hpp"
 #include "Interface.hpp"
 #include "LogSink.hpp"
 #include "Stream.hpp"
@@ -20,7 +21,10 @@ using namespace caff;
 
 CAFFEINE_API char const* caff_errorString(caff_Error error)
 {
-    RTC_DCHECK(error >= 0 && error < caff_Error_End);
+    if (!IS_VALID_ENUM_VALUE(caff_Error, error)) {
+        RTC_LOG(LS_ERROR) << "invalid enum value provided";
+        return nullptr;
+    }
 
     switch (error) {
     case caff_Error_NotSignedIn:
@@ -39,15 +43,16 @@ CAFFEINE_API char const* caff_errorString(caff_Error error)
         return "Broadcast failed";
     case caff_Error_Unknown:
         return "Unknown error";
-    case caff_Error_End:
-        return nullptr;
     }
 }
 
 CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity)
 {
     RTC_DCHECK(logCallback);
-    RTC_DCHECK(minSeverity >= 0 && minSeverity < caff_LogLevel_End);
+    if (!IS_VALID_ENUM_VALUE(caff_LogLevel, minSeverity)) {
+        RTC_LOG(LS_ERROR) << "Invalid enum value";
+        return nullptr;
+    }
 
     // TODO: make this thread safe
     static bool firstInit = true;
@@ -196,7 +201,10 @@ CAFFEINE_API caff_StreamHandle caff_startStream(
 {
     RTC_DCHECK(interfaceHandle);
     RTC_DCHECK(title);
-    RTC_DCHECK(rating >= 0 && rating < caff_Rating_End);
+    if (!IS_VALID_ENUM_VALUE(caff_Rating, rating)) {
+        RTC_LOG(LS_ERROR) << "Invalid rating";
+        return nullptr;
+    }
     RTC_DCHECK(startedCallbackPtr);
     RTC_DCHECK(failedCallbackPtr);
 
@@ -236,7 +244,10 @@ CAFFEINE_API void caff_sendVideo(
     RTC_DCHECK(frameBytes);
     RTC_DCHECK(width);
     RTC_DCHECK(height);
-    RTC_DCHECK(format >= 0 && format < caff_VideoFormat_End);
+    if (!IS_VALID_ENUM_VALUE(caff_VideoFormat, format)) {
+        RTC_LOG(LS_ERROR) << "Invalid rating";
+        return;
+    }
 
     auto stream = reinterpret_cast<Stream*>(streamHandle);
     stream->sendVideo(frameData, frameBytes, width, height, format);

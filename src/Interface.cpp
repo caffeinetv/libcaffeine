@@ -80,15 +80,15 @@ namespace caff {
 
     caff_AuthResult Interface::signIn(char const * username, char const * password, char const * otp)
     {
-        return doSignin([=] { return caff::signIn(username, password, otp); });
+        return authenticate([=] { return caff::signIn(username, password, otp); });
     }
 
     caff_AuthResult Interface::refreshAuth(char const * refreshToken)
     {
-        return doSignin([=] { return caff::refreshAuth(refreshToken); });
+        return authenticate([=] { return caff::refreshAuth(refreshToken); });
     }
 
-    caff_AuthResult Interface::doSignin(std::function<AuthResponse()> signinFunc)
+    caff_AuthResult Interface::authenticate(std::function<AuthResponse()> signinFunc)
     {
         if (!isSupportedVersion()) {
             return caff_AuthResult_OldVersion;
