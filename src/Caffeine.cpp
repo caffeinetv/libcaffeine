@@ -22,7 +22,7 @@ using namespace caff;
 CAFFEINE_API char const* caff_errorString(caff_Error error)
 {
     if (!IS_VALID_ENUM_VALUE(caff_Error, error)) {
-        RTC_LOG(LS_ERROR) << "invalid enum value provided";
+        RTC_LOG(LS_ERROR) << "Invalid caff_Error enum value";
         return nullptr;
     }
 
@@ -50,7 +50,7 @@ CAFFEINE_API caff_InstanceHandle caff_initialize(caff_LogCallback logCallback, c
 {
     RTC_DCHECK(logCallback);
     if (!IS_VALID_ENUM_VALUE(caff_LogLevel, minSeverity)) {
-        RTC_LOG(LS_ERROR) << "Invalid enum value";
+        RTC_LOG(LS_ERROR) << "Invalid caff_LogLevel enum value";
         return nullptr;
     }
 
@@ -202,7 +202,7 @@ CAFFEINE_API caff_StreamHandle caff_startStream(
     RTC_DCHECK(instanceHandle);
     RTC_DCHECK(title);
     if (!IS_VALID_ENUM_VALUE(caff_Rating, rating)) {
-        RTC_LOG(LS_ERROR) << "Invalid rating";
+        RTC_LOG(LS_ERROR) << "Invalid caff_Rating enum value";
         return nullptr;
     }
     RTC_DCHECK(startedCallbackPtr);
@@ -245,7 +245,7 @@ CAFFEINE_API void caff_sendVideo(
     RTC_DCHECK(width);
     RTC_DCHECK(height);
     if (!IS_VALID_ENUM_VALUE(caff_VideoFormat, format)) {
-        RTC_LOG(LS_ERROR) << "Invalid rating";
+        RTC_LOG(LS_ERROR) << "Invalid caff_VideoFormat enum value";
         return;
     }
 
