@@ -88,12 +88,12 @@ namespace caff {
         return authenticate([=] { return caff::refreshAuth(refreshToken); });
     }
 
-    caff_AuthResult Instance::authenticate(std::function<AuthResponse()> signinFunc)
+    caff_AuthResult Instance::authenticate(std::function<AuthResponse()> authFunc)
     {
         if (!isSupportedVersion()) {
             return caff_AuthResultOldVersion;
         }
-        auto response = signinFunc();
+        auto response = authFunc();
         if (!response.credentials) {
             return response.result;
         }
