@@ -78,9 +78,9 @@ namespace caff {
         factory = nullptr;
     }
 
-    caff_AuthResult Interface::signin(char const * username, char const * password, char const * otp)
+    caff_AuthResult Interface::signIn(char const * username, char const * password, char const * otp)
     {
-        auto response = caff::signin(username, password, otp);
+        auto response = caff::signIn(username, password, otp);
         if (response.credentials) {
             refreshToken = response.credentials->refreshToken;
             sharedCredentials.emplace(std::move(*response.credentials));
@@ -111,7 +111,7 @@ namespace caff {
         return caff_AuthResult_RequestFailed;
     }
 
-    void Interface::signout()
+    void Interface::signOut()
     {
         sharedCredentials.reset();
         refreshToken.reset();

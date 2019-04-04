@@ -149,7 +149,7 @@ CAFFEINE_API caff_InterfaceHandle caff_initialize(caff_LogCallback logCallback, 
  *
  * interfaceHandle: handle to the caffeine interface from caff_initialize
  * userData: an optional pointer passed blindly to the callbacks
- * credentials: authentication credentials obtained from signin/refreshAuth
+ * credentials: authentication credentials obtained from signIn/refreshAuth
  * username: the username of the broadcaster
  * title: the raw (untagged) broadcast title
  * rating: the content rating (17+ or none)
@@ -205,7 +205,7 @@ CAFFEINE_API void caff_deinitialize(caff_InterfaceHandle* interfaceHandle);
 
 CAFFEINE_API bool caff_isSupportedVersion();
 
-CAFFEINE_API caff_AuthResult caff_signin(
+CAFFEINE_API caff_AuthResult caff_signIn(
     caff_InterfaceHandle interfaceHandle,
     char const * username,
     char const * password,
@@ -213,7 +213,7 @@ CAFFEINE_API caff_AuthResult caff_signin(
 
 CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHandle, char const * refreshToken);
 
-CAFFEINE_API void caff_signout(caff_InterfaceHandle interfaceHandle);
+CAFFEINE_API void caff_signOut(caff_InterfaceHandle interfaceHandle);
 
 CAFFEINE_API bool caff_isSignedIn(caff_InterfaceHandle interfaceHandle);
 

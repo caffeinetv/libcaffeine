@@ -339,7 +339,7 @@ namespace caff {
         return {};
     }
 
-    AuthResponse signin(char const * username, char const * password, char const * otp)
+    AuthResponse signIn(char const * username, char const * password, char const * otp)
     {
         RETRY_REQUEST(AuthResponse, doSignin(username, password, otp));
     }

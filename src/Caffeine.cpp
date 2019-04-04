@@ -79,7 +79,7 @@ CAFFEINE_API bool caff_isSupportedVersion()
     return isSupportedVersion();
 }
 
-CAFFEINE_API caff_AuthResult caff_signin(
+CAFFEINE_API caff_AuthResult caff_signIn(
     caff_InterfaceHandle interfaceHandle,
     char const * username,
     char const * password,
@@ -90,7 +90,7 @@ CAFFEINE_API caff_AuthResult caff_signin(
     RTC_DCHECK(password);
 
     auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    return interface->signin(username, password, otp);
+    return interface->signIn(username, password, otp);
 }
 
 CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHandle, char const * refreshToken)
@@ -103,12 +103,12 @@ CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InterfaceHandle interfaceHand
     return interface->refreshAuth(refreshToken);
 }
 
-CAFFEINE_API void caff_signout(caff_InterfaceHandle interfaceHandle)
+CAFFEINE_API void caff_signOut(caff_InterfaceHandle interfaceHandle)
 {
     RTC_DCHECK(interfaceHandle);
 
     auto interface = reinterpret_cast<Interface*>(interfaceHandle);
-    interface->signout();
+    interface->signOut();
 }
 
 CAFFEINE_API bool caff_isSignedIn(caff_InterfaceHandle interfaceHandle)

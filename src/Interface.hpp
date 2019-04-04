@@ -28,10 +28,10 @@ namespace caff {
 
         virtual ~Interface();
 
-        caff_AuthResult signin(char const * username, char const * password, char const * otp);
+        caff_AuthResult signIn(char const * username, char const * password, char const * otp);
         caff_AuthResult refreshAuth(char const * refreshToken);
         bool isSignedIn() const;
-        void signout();
+        void signOut();
 
         char const * getRefreshToken() const;
         char const * getUsername() const;
