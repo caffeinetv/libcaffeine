@@ -50,6 +50,7 @@ namespace caff {
     };
 
     Instance::Instance()
+        : taskQueue("caffeine-dispatcher")
     {
         networkThread = rtc::Thread::CreateWithSocketServer();
         networkThread->SetName("caffeine-network", nullptr);
@@ -140,19 +141,42 @@ namespace caff {
         return userInfo ? userInfo->canBroadcast : false;
     }
 
-    Stream * Instance::startStream(
+    caff_Error Instance::startStream(
         std::string title,
         caff_Rating rating,
         std::function<void()> startedCallback,
         std::function<void(caff_Error)> failedCallback)
     {
         if (!isSignedIn()) {
-            failedCallback(caff_ErrorNotSignedIn);
-            return nullptr;
+            return caff_ErrorNotSignedIn;
         }
-        auto stream = new Stream(*sharedCredentials, userInfo->username, title, rating, audioDevice, factory);
-        stream->start(startedCallback, failedCallback);
-        return stream;
+        if (stream) {
+            return caff_ErrorInvalid;
+        }
+
+        auto dispatchFailure = [=](caff_Error error) {
+            taskQueue.PostTask([=] {
+                failedCallback(error);
+                endStream();
+            });
+        };
+
+        stream = std::make_unique<Stream>(*sharedCredentials, userInfo->username, title, rating, audioDevice, factory);
+        stream->start(startedCallback, dispatchFailure);
+        return caff_ErrorNone;
+    }
+
+    Stream * Instance::getStream()
+    {
+        return stream.get();
+    }
+
+    void Instance::endStream()
+    {
+        if (stream) {
+            stream->stop();
+            stream.reset(nullptr);
+        }
     }
 
 }  // namespace caff

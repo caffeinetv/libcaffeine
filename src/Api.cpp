@@ -574,12 +574,15 @@ namespace caff {
         return response;
     }
 
-    bool trickleCandidates(std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds)
+    bool trickleCandidates(
+        std::vector<IceInfo> const & candidates,
+        std::string const & streamUrl,
+        SharedCredentials & creds)
     {
         RETRY_REQUEST(bool, doTrickleCandidates(candidates, streamUrl, creds));
     }
-    /*
-    static HeartbeatResponse * do_caffeine_heartbeat_stream(char const * streamUrl, Credentials * sharedCreds)
+
+    static optional<HeartbeatResponse> doHeartbeatStream(std::string const & streamUrl, SharedCredentials & sharedCreds)
     {
         TRACE();
 
@@ -602,7 +605,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure hearbeating stream: [%d] %s", curlResult, curlError);
-            return nullptr;
+            return {};
         }
 
         long responseCode;
@@ -611,14 +614,14 @@ namespace caff {
         if (responseCode == 401) {
             LOG_INFO("Unauthorized - refreshing credentials");
             if (refreshCredentials(sharedCreds)) {
-                return do_caffeine_heartbeat_stream(streamUrl, sharedCreds);
+                return doHeartbeatStream(streamUrl, sharedCreds);
             }
-            return nullptr;
+            return {};
         }
 
         if (responseCode != 200) {
             LOG_ERROR("Error heartbeating stream: %ld", responseCode);
-            return nullptr;
+            return {};
         }
 
         Json responseJson;
@@ -627,31 +630,19 @@ namespace caff {
         }
         catch (...) {
             LOG_ERROR("Failed to parse refresh response");
-            return nullptr;
+            return {};
         }
 
         LOG_DEBUG("Stream heartbeat succeeded");
-        return new HeartbeatResponse{
-            cstrdup(responseJson.at("connection_quality").get<std::string>())
-        };
+        return HeartbeatResponse(responseJson);
     }
 
-    HeartbeatResponse * caff_heartbeat_stream(char const * streamUrl, Credentials * sharedCreds)
+    optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & sharedCreds)
     {
-        RETRY_REQUEST(HeartbeatResponse *, do_caffeine_heartbeat_stream(streamUrl, sharedCreds));
+        RETRY_REQUEST(optional<HeartbeatResponse>, doHeartbeatStream(streamUrl, sharedCreds));
     }
 
-    void caff_free_heartbeat_response(HeartbeatResponse ** response)
-    {
-        if (!response || !*response) {
-            return;
-        }
-
-        delete[](*response)->connection_quality;
-        delete *response;
-        *response = nullptr;
-    }
-
+    /*
     static bool do_update_broadcast_screenshot(
         char const * broadcastId,
         uint8_t const * screenshot_data,
@@ -816,7 +807,7 @@ namespace caff {
     bool requestStageUpdate(
         StageRequest & request,
         SharedCredentials & creds,
-        double * retryIn,
+        std::chrono::milliseconds * retryIn,
         bool * isOutOfCapacity)
     {
         auto result = stageUpdate(request, creds);

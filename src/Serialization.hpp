@@ -132,6 +132,8 @@ namespace caff {
 
     void from_json(Json const & json, StageResponse & response);
 
+    void from_json(Json const & json, HeartbeatResponse & response);
+
     void from_json(Json const & json, DisplayMessage & message);
 
     void from_json(Json const & json, FailureResponse & response);

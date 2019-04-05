@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "rtc_base/scoped_ref_ptr.h"
+#include "rtc_base/task_queue.h"
 
 namespace webrtc {
     class PeerConnectionFactoryInterface;
@@ -38,11 +39,15 @@ namespace caff {
         char const * getStageId() const;
         bool canBroadcast() const;
 
-        Stream* startStream(
+        caff_Error startStream(
             std::string title,
             caff_Rating rating,
             std::function<void()> startedCallback,
             std::function<void(caff_Error)> failedCallback);
+
+        Stream * getStream();
+
+        void endStream();
 
     private:
         caff_AuthResult authenticate(std::function<AuthResponse()> signinFunc);
@@ -52,8 +57,10 @@ namespace caff {
         std::unique_ptr<rtc::Thread> networkThread;
         std::unique_ptr<rtc::Thread> workerThread;
         std::unique_ptr<rtc::Thread> signalingThread;
+        rtc::TaskQueue taskQueue; // TODO: only used for disptaching failures; find a better way
 
         optional<SharedCredentials> sharedCredentials;
+        std::unique_ptr<Stream> stream;
 
         // copies for sharing with C
         optional<std::string> refreshToken;

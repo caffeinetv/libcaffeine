@@ -197,11 +197,25 @@ namespace caff {
         set_value_from(json, "payload", request.stage);
     }
 
+    template <typename RepT, typename PeriodT, typename SecondsT>
+    static void setDurationSeconds(std::chrono::duration<RepT, PeriodT> & duration, SecondsT seconds)
+    {
+        seconds *= PeriodT::den;
+        seconds /= PeriodT::num;
+        duration = std::chrono::duration<RepT, PeriodT>(static_cast<RepT>(seconds));
+    }
+
     void from_json(Json const & json, StageResponse & response)
     {
         get_value_to(json, "cursor", response.cursor);
-        get_value_to(json, "retry_in", response.retryIn);
         get_value_to(json, "payload", response.stage);
+        // retry_in comes as floating point seconds. Convert to chrono
+        setDurationSeconds(response.retryIn, json.at("retry_in").get<double>());
+    }
+
+    void from_json(Json const & json, HeartbeatResponse & response)
+    {
+        get_value_to(json, "connection_quality", response.connectionQuality);
     }
 
     void from_json(Json const & json, DisplayMessage & message)

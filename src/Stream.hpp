@@ -59,6 +59,7 @@ namespace caff {
         void start(
             std::function<void()> startedCallback,
             std::function<void(caff_Error)> failedCallback);
+        void stop();
 
         void sendAudio(uint8_t const* samples, size_t samplesPerChannel);
         void sendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format);
@@ -72,6 +73,13 @@ namespace caff {
         enum class State { Offline, Starting, Online, Stopping };
         std::atomic<State> state{ State::Offline };
         static char const * stateString(State state);
+        std::thread broadcastThread;
+        std::thread longpollThread;
+
+        std::atomic<bool> isMutatingFeed;
+        std::mutex mutex;
+
+        std::function<void(caff_Error)> failedCallback;
 
         SharedCredentials & sharedCredentials;
         std::string username;
@@ -86,14 +94,14 @@ namespace caff {
         std::string streamUrl;
         std::string feedId;
         optional<StageRequest> nextRequest;
-        //std::atomic<bool> isMutatingFeed{ false }; // TODO: heartbeat
 
         bool requireState(State expectedState) const;
         bool transitionState(State oldState, State newState);
         bool isOnline() const;
 
-        optional<std::string> offerGenerated(std::string const & offer);
-        bool iceGathered(std::vector<IceInfo> candidates);
+        variant<std::string, caff_Error> createFeed(std::string const & offer);
+        void startHeartbeat();
+        void startLongpollThread();
     };
 
 }  // namespace caff

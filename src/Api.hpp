@@ -9,6 +9,7 @@
 #include <vector>
 #include <mutex>
 #include <thread>
+#include <chrono>
 #include "absl/types/optional.h"
 #include "absl/types/variant.h"
 
@@ -137,7 +138,7 @@ namespace caff {
 
     struct StageResponse {
         std::string cursor;
-        double retryIn;
+        std::chrono::milliseconds retryIn;
         optional<Stage> stage;
     };
 
@@ -154,18 +155,13 @@ namespace caff {
 
     using StageResponseResult = variant<StageResponse, FailureResponse>;
 
-    /*
     struct HeartbeatResponse {
-        char * connection_quality;
+        caff_ConnectionQuality connectionQuality;
     };
-    void caff_set_string(char ** dest, char const * new_value);
 
-    void caff_free_string(char ** str);
+    optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & creds);
 
-    HeartbeatResponse * caff_heartbeat_stream(char const * stream_url, Credentials * creds);
-
-    void caff_free_heartbeat_response(HeartbeatResponse ** response);
-
+    /*
     bool caff_update_broadcast_screenshot(
         char const * broadcastId,
         uint8_t const * screenshot_data,
@@ -185,6 +181,10 @@ namespace caff {
         std::string const & streamUrl,
         SharedCredentials & credentials);
 
-    bool requestStageUpdate(StageRequest & request, SharedCredentials & creds, double * retryIn, bool * isOutOfCapacity);
+    bool requestStageUpdate(
+        StageRequest & request,
+        SharedCredentials & creds,
+        std::chrono::milliseconds * retryIn,
+        bool * isOutOfCapacity);
 
 }
