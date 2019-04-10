@@ -100,7 +100,6 @@ typedef enum caff_AuthResult {
 } caff_AuthResult;
 
 /* Opaque handles to Caffeine instance */
-struct caff_Interface;
 typedef struct caff_Instance * caff_InstanceHandle;
 
 /* TODO: is there a way to encapsulate game process detection without touching on privacy issues? */
@@ -120,9 +119,9 @@ typedef struct caff_GameList {
 /* Callback type for WebRTC log messages */
 typedef void(*caff_LogCallback)(caff_LogLevel severity, char const * message);
 
-/* Callback types for starting stream */
-typedef void(*caff_StreamStartedCallback)(void * userData);
-typedef void(*caff_StreamFailedCallback)(void * userData, caff_Error error);
+/* Callback types for starting broadcast */
+typedef void(*caff_BroadcastStartedCallback)(void * userData);
+typedef void(*caff_BroadcastFailedCallback)(void * userData, caff_Error error);
 
 /* Get string representation of error enum
  *
@@ -144,10 +143,10 @@ CAFFEINE_API char const * caff_errorString(caff_Error error);
  */
 CAFFEINE_API caff_InstanceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity);
 
-/* start stream on Caffeine
+/* start broadcast on Caffeine
  *
  * Sets up the WebRTC connection with Caffeine asynchronously. Calls
- * into streamStartedCallback or streamFailedCallback with the result. This may
+ * into broadcastStartedCallback or broadcastFailedCallback with the result. This may
  * happen on a different thread than the caller.
  *
  * instanceHandle: handle to the caffeine instance from caff_initialize
@@ -156,20 +155,16 @@ CAFFEINE_API caff_InstanceHandle caff_initialize(caff_LogCallback logCallback, c
  * username: the username of the broadcaster
  * title: the raw (untagged) broadcast title
  * rating: the content rating (17+ or none)
- * streamStartedCallback: called when stream successfully starts
- * streamFailedCallback: called when stream fails to start
- *
- * returns a handle to the stream. If an error occurs before starting
- * the asynchronous operation, the handle will be NULL and the
- * streamFailedCallback will NOT be called
+ * broadcastStartedCallback: called when broadcast successfully starts
+ * broadcastFailedCallback: called when broadcast fails to start
  */
-CAFFEINE_API caff_Error caff_startStream(
+CAFFEINE_API caff_Error caff_startBroadcast(
     caff_InstanceHandle instanceHandle,
     void * userData,
     char const * title,
     caff_Rating rating,
-    caff_StreamStartedCallback streamStartedCallback,
-    caff_StreamFailedCallback streamFailedCallback);
+    caff_BroadcastStartedCallback broadcastStartedCallback,
+    caff_BroadcastFailedCallback broadcastFailedCallback);
 
 /* TODO pass format, channels, etc */
 CAFFEINE_API void caff_sendAudio(caff_InstanceHandle instanceHandle, uint8_t * samples, size_t samplesPerChannel);
@@ -185,14 +180,11 @@ CAFFEINE_API void caff_sendVideo(
 
 CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle);
 
-/* End a Caffeine stream
+/* End a Caffeine broadcast
  *
- * This signals the server to end the stream and closes the RTC connection.
- *
- * streamHandle: the stream handle received from caff_startStream.
- *     This handle will no longer be valid after the function returns.
+ * This signals the server to end the broadcast and closes the RTC connection.
  */
-CAFFEINE_API void caff_endStream(caff_InstanceHandle instanceHandle);
+CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle);
 
 /* Deinitialize Caffeine library
  *

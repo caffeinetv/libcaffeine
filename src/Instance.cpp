@@ -3,7 +3,7 @@
 #include "Instance.hpp"
 
 #include "AudioDevice.hpp"
-#include "Stream.hpp"
+#include "Broadcast.hpp"
 #include "X264Encoder.hpp"
 
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
@@ -141,7 +141,7 @@ namespace caff {
         return userInfo ? userInfo->canBroadcast : false;
     }
 
-    caff_Error Instance::startStream(
+    caff_Error Instance::startBroadcast(
         std::string title,
         caff_Rating rating,
         std::function<void()> startedCallback,
@@ -150,32 +150,38 @@ namespace caff {
         if (!isSignedIn()) {
             return caff_ErrorNotSignedIn;
         }
-        if (stream) {
+        if (broadcast) {
             return caff_ErrorInvalid;
         }
 
         auto dispatchFailure = [=](caff_Error error) {
             taskQueue.PostTask([=] {
                 failedCallback(error);
-                endStream();
+                endBroadcast();
             });
         };
 
-        stream = std::make_unique<Stream>(*sharedCredentials, userInfo->username, title, rating, audioDevice, factory);
-        stream->start(startedCallback, dispatchFailure);
+        broadcast = std::make_unique<Broadcast>(
+            *sharedCredentials,
+            userInfo->username,
+            title,
+            rating,
+            audioDevice,
+            factory);
+        broadcast->start(startedCallback, dispatchFailure);
         return caff_ErrorNone;
     }
 
-    Stream * Instance::getStream()
+    Broadcast * Instance::getBroadcast()
     {
-        return stream.get();
+        return broadcast.get();
     }
 
-    void Instance::endStream()
+    void Instance::endBroadcast()
     {
-        if (stream) {
-            stream->stop();
-            stream.reset(nullptr);
+        if (broadcast) {
+            broadcast->stop();
+            broadcast.reset(nullptr);
         }
     }
 

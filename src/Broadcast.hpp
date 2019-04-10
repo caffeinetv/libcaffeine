@@ -41,12 +41,12 @@ namespace caff {
     class AudioDevice;
     class VideoCapturer;
 
-    // TODO: split functionality into Stage and Feed
-    class Stream {
+    // TODO: separate Broadcast & Feed/Stream functionality
+    class Broadcast {
     public:
         static int const kMaxBitrateBps = 2000000;
 
-        Stream(
+        Broadcast(
             SharedCredentials & sharedCredentials,
             std::string username,
             std::string title,
@@ -54,7 +54,7 @@ namespace caff {
             AudioDevice* audioDevice,
             webrtc::PeerConnectionFactoryInterface* factory);
 
-        virtual ~Stream();
+        virtual ~Broadcast();
 
         void start(
             std::function<void()> startedCallback,

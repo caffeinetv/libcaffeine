@@ -1,6 +1,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "Stream.hpp"
+#include "Broadcast.hpp"
 
 #include <thread>
 #include <ctime>
@@ -22,7 +22,7 @@ using namespace std::chrono_literals;
 
 namespace caff {
 
-    Stream::Stream(
+    Broadcast::Broadcast(
         SharedCredentials & sharedCredentials,
         std::string username,
         std::string title,
@@ -36,7 +36,7 @@ namespace caff {
         , audioDevice(audioDevice)
         , factory(factory) {}
 
-    Stream::~Stream() {}
+    Broadcast::~Broadcast() {}
 
     // TODO something better?
     static std::string createUniqueId()
@@ -56,7 +56,7 @@ namespace caff {
         return id;
     }
 
-    char const * Stream::stateString(Stream::State state)
+    char const * Broadcast::stateString(Broadcast::State state)
     {
         switch (state) {
         case State::Offline:
@@ -72,7 +72,7 @@ namespace caff {
         }
     }
 
-    bool Stream::requireState(State expectedState) const
+    bool Broadcast::requireState(State expectedState) const
     {
         State currentState = state;
         if (currentState != expectedState) {
@@ -83,7 +83,7 @@ namespace caff {
         return true;
     }
 
-    bool Stream::transitionState(State oldState, State newState)
+    bool Broadcast::transitionState(State oldState, State newState)
     {
         bool result = state.compare_exchange_strong(oldState, newState);
         if (!result)
@@ -92,7 +92,7 @@ namespace caff {
         return result;
     }
 
-    bool Stream::isOnline() const
+    bool Broadcast::isOnline() const
     {
         return state == State::Online;
     }
@@ -109,7 +109,7 @@ namespace caff {
         return fullTitle;
     }
 
-    variant<std::string, caff_Error> Stream::createFeed(std::string const & offer)
+    variant<std::string, caff_Error> Broadcast::createFeed(std::string const & offer)
     {
         feedId = createUniqueId();
 
@@ -157,7 +157,7 @@ namespace caff {
             }
         }
 
-        // Get stream details
+        // Get broadcast details
         auto feedIt = request.stage->feeds->find(feedId);
         if (feedIt == request.stage->feeds->end()) {
             return caff_ErrorBroadcastFailed;
@@ -238,7 +238,7 @@ namespace caff {
     }
     */
 
-    void Stream::start(
+    void Broadcast::start(
         std::function<void()> startedCallback,
         std::function<void(caff_Error)> failedCallback)
     {
@@ -410,7 +410,7 @@ namespace caff {
     }
     */
 
-    void Stream::startHeartbeat()
+    void Broadcast::startHeartbeat()
     {
         if (!requireState(State::Online)) {
             return;
@@ -520,7 +520,7 @@ namespace caff {
 
             bool shouldMutateFeed = false;
 
-            // Heartbeat stream
+            // Heartbeat broadcast
 
             auto heartbeatResponse = heartbeatStream(streamUrl, sharedCredentials);
 
@@ -536,7 +536,7 @@ namespace caff {
                 RTC_LOG(LS_ERROR) << "Heartbeat failed";
                 ++failures;
                 if (failures > max_failures) {
-                    RTC_LOG(LS_ERROR) << "Heartbeat failed " << failures << "times; ending stream.";
+                    RTC_LOG(LS_ERROR) << "Heartbeat failed " << failures << "times; ending broadcast.";
                     failedCallback(caff_ErrorDisconnected);
                     break;
                 }
@@ -557,7 +557,7 @@ namespace caff {
 
             if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL)) {
                 isMutatingFeed = false;
-                // If we have a stream going but can't talk to
+                // If we have a broadcast going but can't talk to
                 // the stage endpoint, retry the mutation next loop
                 continue;
             }
@@ -599,7 +599,7 @@ namespace caff {
         }
     }
 
-    void Stream::startLongpollThread()
+    void Broadcast::startLongpollThread()
     {
         longpollThread = std::thread([=] {
             // This thread is purely for hearbeating our feed.
@@ -628,7 +628,7 @@ namespace caff {
                 auto retryIn = 0ms;
 
                 if (!requestStageUpdate(*request, sharedCredentials, &retryIn, NULL)) {
-                    //If we have a stream going but can't talk to the stage endpoint,
+                    //If we have a broadcast going but can't talk to the stage endpoint,
                     // just continually retry with some waiting
                     retryInterval = 5000ms;
                     continue;
@@ -654,7 +654,7 @@ namespace caff {
         });
     }
 
-    void Stream::stop()
+    void Broadcast::stop()
     {
         state = State::Stopping;
         if (broadcastThread.joinable()) {
@@ -663,14 +663,14 @@ namespace caff {
         state = State::Offline;
     }
 
-    void Stream::sendAudio(uint8_t const* samples, size_t samplesPerChannel)
+    void Broadcast::sendAudio(uint8_t const* samples, size_t samplesPerChannel)
     {
         if (isOnline()) {
             audioDevice->sendAudio(samples, samplesPerChannel);
         }
     }
 
-    void Stream::sendVideo(uint8_t const* frameData,
+    void Broadcast::sendVideo(uint8_t const* frameData,
         size_t frameBytes,
         int32_t width,
         int32_t height,
@@ -681,7 +681,7 @@ namespace caff {
         }
     }
 
-    caff_ConnectionQuality Stream::getConnectionQuality()
+    caff_ConnectionQuality Broadcast::getConnectionQuality()
     {
         if (nextRequest && nextRequest->stage->feeds) {
             auto feedIt = nextRequest->stage->feeds->find(feedId);

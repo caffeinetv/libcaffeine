@@ -34,6 +34,8 @@ set(libcaffeine_SOURCES
     src/AudioDevice.cpp
     src/AudioDevice.hpp
     src/AudioDeviceDefaultImpl.hpp
+    src/Broadcast.cpp
+    src/Broadcast.hpp
     src/Caffeine.cpp
     src/CaffeineHelpers.hpp
     src/Instance.cpp
@@ -46,8 +48,6 @@ set(libcaffeine_SOURCES
     src/Serialization.hpp
     src/SessionDescriptionObserver.cpp
     src/SessionDescriptionObserver.hpp
-    src/Stream.cpp
-    src/Stream.hpp
     src/VideoCapturer.cpp
     src/VideoCapturer.hpp
     src/X264Encoder.cpp

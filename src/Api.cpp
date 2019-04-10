@@ -633,7 +633,7 @@ namespace caff {
             return {};
         }
 
-        LOG_DEBUG("Stream heartbeat succeeded");
+        LOG_DEBUG("Broadcast heartbeat succeeded");
         return HeartbeatResponse(responseJson);
     }
 

@@ -20,7 +20,7 @@ namespace rtc {
 }
 
 namespace caff {
-    class Stream;
+    class Broadcast;
     class AudioDevice;
 
     class Instance {
@@ -39,15 +39,15 @@ namespace caff {
         char const * getStageId() const;
         bool canBroadcast() const;
 
-        caff_Error startStream(
+        caff_Error startBroadcast(
             std::string title,
             caff_Rating rating,
             std::function<void()> startedCallback,
             std::function<void(caff_Error)> failedCallback);
 
-        Stream * getStream();
+        Broadcast * getBroadcast();
 
-        void endStream();
+        void endBroadcast();
 
     private:
         caff_AuthResult authenticate(std::function<AuthResponse()> signinFunc);
@@ -60,7 +60,7 @@ namespace caff {
         rtc::TaskQueue taskQueue; // TODO: only used for disptaching failures; find a better way
 
         optional<SharedCredentials> sharedCredentials;
-        std::unique_ptr<Stream> stream;
+        std::unique_ptr<Broadcast> broadcast;
 
         // copies for sharing with C
         optional<std::string> refreshToken;

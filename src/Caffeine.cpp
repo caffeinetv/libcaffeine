@@ -9,7 +9,7 @@
 #include "CaffeineHelpers.hpp"
 #include "Instance.hpp"
 #include "LogSink.hpp"
-#include "Stream.hpp"
+#include "Broadcast.hpp"
 
 #include "rtc_base/ssladapter.h"
 
@@ -42,7 +42,7 @@ CAFFEINE_API char const* caff_errorString(caff_Error error)
     case caff_ErrorIceTrickle:
         return "Error during ICE negotiation";
     case caff_ErrorTakeover:
-        return "Stream takeover";
+        return "Broadcast takeover";
     case caff_ErrorDisconnected:
         return "Disconnected from server";
     case caff_ErrorBroadcastFailed:
@@ -197,13 +197,13 @@ CAFFEINE_API void caff_freeGameList(caff_GameList ** games)
     }
 }
 
-CAFFEINE_API caff_Error caff_startStream(
+CAFFEINE_API caff_Error caff_startBroadcast(
     caff_InstanceHandle instanceHandle,
     void * user_data,
     char const * title,
     caff_Rating rating,
-    caff_StreamStartedCallback startedCallbackPtr,
-    caff_StreamFailedCallback failedCallbackPtr)
+    caff_BroadcastStartedCallback broadcastStartedCallback,
+    caff_BroadcastFailedCallback broadcastFailedCallback)
 {
     RTC_DCHECK(instanceHandle);
     RTC_DCHECK(title);
@@ -211,17 +211,17 @@ CAFFEINE_API caff_Error caff_startStream(
         RTC_LOG(LS_ERROR) << "Invalid caff_Rating enum value";
         return caff_ErrorInvalid;
     }
-    RTC_DCHECK(startedCallbackPtr);
-    RTC_DCHECK(failedCallbackPtr);
+    RTC_DCHECK(broadcastStartedCallback);
+    RTC_DCHECK(broadcastFailedCallback);
 
     // Encapsulate void * inside lambdas, and other C++ -> C translations
-    auto startedCallback = [=] { startedCallbackPtr(user_data); };
+    auto startedCallback = [=] { broadcastStartedCallback(user_data); };
     auto failedCallback = [=](caff_Error error) {
-        failedCallbackPtr(user_data, error);
+        broadcastFailedCallback(user_data, error);
     };
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    return instance->startStream(title, rating, startedCallback, failedCallback);
+    return instance->startBroadcast(title, rating, startedCallback, failedCallback);
 }
 
 CAFFEINE_API void caff_sendAudio(
@@ -234,9 +234,9 @@ CAFFEINE_API void caff_sendAudio(
     RTC_DCHECK(samples_per_channel);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    auto stream = instance->getStream();
-    if (stream) {
-        stream->sendAudio(samples, samples_per_channel);
+    auto broadcast = instance->getBroadcast();
+    if (broadcast) {
+        broadcast->sendAudio(samples, samples_per_channel);
     }
 }
 
@@ -258,9 +258,9 @@ CAFFEINE_API void caff_sendVideo(
     }
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    auto stream = instance->getStream();
-    if (stream) {
-        stream->sendVideo(frameData, frameBytes, width, height, format);
+    auto broadcast = instance->getBroadcast();
+    if (broadcast) {
+        broadcast->sendVideo(frameData, frameBytes, width, height, format);
     }
 }
 
@@ -269,21 +269,21 @@ CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandl
     RTC_DCHECK(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    auto stream = instance->getStream();
-    if (stream) {
-        return stream->getConnectionQuality();
+    auto broadcast = instance->getBroadcast();
+    if (broadcast) {
+        return broadcast->getConnectionQuality();
     }
     else {
         return caff_ConnectionQualityUnknown;
     }
 }
 
-CAFFEINE_API void caff_endStream(caff_InstanceHandle instanceHandle)
+CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle)
 {
     RTC_DCHECK(instanceHandle);
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    instance->endStream();
-    RTC_LOG(LS_INFO) << "Caffeine stream ended";
+    instance->endBroadcast();
+    RTC_LOG(LS_INFO) << "Caffeine broadcast ended";
 }
 
 CAFFEINE_API void caff_deinitialize(caff_InstanceHandle * instanceHandle)
