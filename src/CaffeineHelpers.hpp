@@ -8,5 +8,15 @@
     "Mismatch between " #left " and " #right)
 
 // Used to protect against invalid enum values coming from C
-#define IS_VALID_ENUM_VALUE(enumPrefix, value) \
-    ((value) >= 0 && (value) <= (enumPrefix ## Last))
+#define IS_VALID_ENUM_VALUE(prefix, value) \
+    ((value) >= 0 && (value) <= (prefix ## Last))
+
+#define INVALID_ENUM_RETURN(ret, prefix, value) \
+    do { \
+        if (!IS_VALID_ENUM_VALUE(prefix, value)) { \
+            RTC_LOG(LS_ERROR) << "Invalid " #prefix " enum value"; \
+            return ret; \
+        } \
+    } while (false)
+
+#define INVALID_ENUM_CHECK(prefix, value) INVALID_ENUM_RETURN( , prefix, value)

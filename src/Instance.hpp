@@ -45,7 +45,7 @@ namespace caff {
             std::function<void()> startedCallback,
             std::function<void(caff_Error)> failedCallback);
 
-        Broadcast * getBroadcast();
+        std::shared_ptr<Broadcast> getBroadcast() { return broadcast; }
 
         void endBroadcast();
 
@@ -60,7 +60,7 @@ namespace caff {
         rtc::TaskQueue taskQueue; // TODO: only used for disptaching failures; find a better way
 
         optional<SharedCredentials> sharedCredentials;
-        std::unique_ptr<Broadcast> broadcast;
+        std::shared_ptr<Broadcast> broadcast;
 
         // copies for sharing with C
         optional<std::string> refreshToken;

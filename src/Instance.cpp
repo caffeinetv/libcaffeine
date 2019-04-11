@@ -151,7 +151,7 @@ namespace caff {
             return caff_ErrorNotSignedIn;
         }
         if (broadcast) {
-            return caff_ErrorInvalid;
+            return caff_ErrorInvalidState;
         }
 
         auto dispatchFailure = [=](caff_Error error) {
@@ -172,16 +172,11 @@ namespace caff {
         return caff_ErrorNone;
     }
 
-    Broadcast * Instance::getBroadcast()
-    {
-        return broadcast.get();
-    }
-
     void Instance::endBroadcast()
     {
         if (broadcast) {
             broadcast->stop();
-            broadcast.reset(nullptr);
+            broadcast.reset();
         }
     }
 
