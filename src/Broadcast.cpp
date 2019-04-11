@@ -14,6 +14,17 @@
 #include "SessionDescriptionObserver.hpp"
 #include "VideoCapturer.hpp"
 
+#include "libyuv.h"
+
+//#define WRITE_SCREENSHOT
+
+#ifndef WRITE_SCREENSHOT
+#define STBI_WRITE_NO_STDIO
+#endif
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../third_party/stb/stb_image_write.h"
+
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"
 #include "rtc_base/logging.h"
@@ -29,12 +40,14 @@ namespace caff {
         caff_Rating rating,
         AudioDevice* audioDevice,
         webrtc::PeerConnectionFactoryInterface* factory)
-        : sharedCredentials(sharedCredentials)
+        : isScreenshotNeeded(true)
+        , sharedCredentials(sharedCredentials)
         , username(std::move(username))
         , title(std::move(title))
         , rating(rating)
         , audioDevice(audioDevice)
-        , factory(factory) {}
+        , factory(factory)
+    {}
 
     Broadcast::~Broadcast() {}
 
@@ -245,11 +258,6 @@ namespace caff {
         this->failedCallback = failedCallback;
         transitionState(State::Offline, State::Starting);
 
-        auto doFailure = [=](caff_Result error) {
-            failedCallback(error);
-            state.store(State::Offline);
-        };
-
         broadcastThread = std::thread([=] {
             videoCapturer = new VideoCapturer;
             auto videoSource = factory->CreateVideoSource(videoCapturer);
@@ -306,14 +314,14 @@ namespace caff {
                 RTC_LOG(LS_ERROR)
                     << "Expected " << webrtc::SessionDescriptionInterface::kOffer
                     << " but got " << offer->type();
-                doFailure(caff_ResultRequestFailed);
+                failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
             std::string offerSdp;
             if (!offer->ToString(&offerSdp)) {
                 RTC_LOG(LS_ERROR) << "Error serializing SDP offer";
-                doFailure(caff_ResultRequestFailed);
+                failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
@@ -321,7 +329,7 @@ namespace caff {
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP offer: " << offerError.description;
-                doFailure(caff_ResultRequestFailed);
+                failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
@@ -331,7 +339,7 @@ namespace caff {
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
             auto setLocalSuccess = setLocalObserver->getFuture().get();
             if (!setLocalSuccess) {
-                doFailure(caff_ResultRequestFailed);
+                failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
@@ -339,7 +347,7 @@ namespace caff {
             auto error = get_if<caff_Result>(&result);
             if (error) {
                 RTC_LOG(LS_ERROR) << "Failed to create feed";
-                doFailure(*error);
+                failedCallback(*error);
                 return;
             }
 
@@ -350,14 +358,14 @@ namespace caff {
                 &answerError);
             if (!remoteDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP answer: " << answerError.description;
-                doFailure(caff_ResultRequestFailed);
+                failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
             auto & candidates = observer->getFuture().get();
             if (!trickleCandidates(candidates, streamUrl, sharedCredentials)) {
                 RTC_LOG(LS_ERROR) << "Failed to negotiate ICE";
-                doFailure(caff_ResultRequestFailed);
+                failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
@@ -368,7 +376,7 @@ namespace caff {
             auto setRemoteSuccess = setRemoteObserver->getFuture().get();
             if (!setRemoteSuccess) {
                 // Logged by the observer
-                doFailure(caff_ResultRequestFailed);
+                failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
@@ -446,22 +454,20 @@ namespace caff {
             return;
         }
 
-        //pthread_mutex_lock(&context->screenshot_mutex);
-        //while (context->screenshot_needed)
-        //    pthread_cond_wait(&context->screenshot_cond,
-        //        &context->screenshot_mutex);
-        //pthread_mutex_unlock(&context->screenshot_mutex);
-
-        //bool screenshot_success = caff_update_broadcast_screenshot(
-        //    broadcastId,
-        //    context->screenshot.data,
-        //    context->screenshot.size,
-        //    credentials);
-
-        //if (!screenshot_success) {
-        //    caffeine_stream_failed(data, caff_ResultBroadcastFailed);
-        //    goto broadcast_error;
-        //}
+        auto screenshotFuture = screenshotPromise.get_future();
+        try {
+            auto screenshotData = screenshotFuture.get();
+            if (!updateScreenshot(*broadcastId, screenshotData, sharedCredentials)) {
+                RTC_LOG(LS_ERROR) << "Failed to send screenshot";
+                //failedCallback(caff_ResultBroadcastFailed);
+                //return;
+            }
+        }
+        catch (...) {
+            // Already logged
+            //failedCallback(caff_ResultBroadcastFailed);
+            //return;
+        }
 
         // Set stage live with current game content
 
@@ -679,11 +685,70 @@ namespace caff {
         caff_VideoFormat format)
     {
         if (isOnline()) {
-            videoCapturer->sendVideo(frameData, frameBytes, width, height, static_cast<webrtc::VideoType>(format));
+            auto rtcFormat = static_cast<webrtc::VideoType>(format);
+            auto i420frame = videoCapturer->sendVideo(frameData, frameBytes, width, height, rtcFormat);
+
+            bool expected = true;
+            if (isScreenshotNeeded.compare_exchange_strong(expected, false)) {
+                try {
+                    screenshotPromise.set_value(createScreenshot(i420frame));
+                }
+                catch (std::exception ex) {
+                    RTC_LOG(LS_ERROR) << "Failed to create screenshot: " << ex.what();
+                    screenshotPromise.set_exception(std::current_exception());
+                }
+                catch (...) {
+                    RTC_LOG(LS_ERROR) << "Failed to create screenshot: (unknown exception)";
+                    screenshotPromise.set_exception(std::current_exception());
+                }
+            }
         }
     }
 
-    caff_ConnectionQuality Broadcast::getConnectionQuality()
+    static void writeFunc(void * context, void * data, int size)
+    {
+        auto screenshot = reinterpret_cast<ScreenshotData *>(context);
+        auto pixels = reinterpret_cast<uint8_t *>(data);
+        screenshot->insert(screenshot->end(), pixels, pixels + size);
+    }
+
+    ScreenshotData Broadcast::createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer)
+    {
+        auto const width = buffer->width();
+        auto const height = buffer->height();
+        auto constexpr channels = 3;
+        auto const destStride = width * channels;
+
+        std::vector<uint8_t> raw;
+        raw.resize(destStride * height);
+
+        auto ret = libyuv::I420ToRAW(
+            buffer->DataY(),
+            buffer->StrideY(),
+            buffer->DataU(),
+            buffer->StrideU(),
+            buffer->DataV(),
+            buffer->StrideV(),
+            &raw[0],
+            destStride,
+            width,
+            height);
+        if (ret != 0) {
+            throw std::exception("Failed to convert I420 to RAW");
+        }
+#ifdef WRITE_SCREENSHOT
+        ret = stbi_write_png(R"(screenshot.png)", width, height, channels, &raw[0], destStride);
+        ret = stbi_write_jpg(R"(screenshot.jpg)", width, height, channels, &raw[0], 95);
+#endif
+        ScreenshotData screenshot;
+        ret = stbi_write_jpg_to_func( writeFunc, &screenshot, width, height, channels, &raw[0], 95);
+        if (ret == 0) {
+            throw std::exception("Failed to convert RGBA to JPEG");
+        }
+        return screenshot;
+    }
+
+    caff_ConnectionQuality Broadcast::getConnectionQuality() const
     {
         if (nextRequest && nextRequest->stage->feeds) {
             auto feedIt = nextRequest->stage->feeds->find(feedId);

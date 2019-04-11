@@ -124,34 +124,11 @@ namespace caff {
         }
     };
 
-    class ScopedPost {
-    public:
-        ScopedPost(curl_httppost * post) : post(post) {}
-        virtual ~ScopedPost() { curl_formfree(post); }
-    private:
-        curl_httppost * post;
+    struct ScopedPost {
+        ~ScopedPost() { curl_formfree(head); }
+        curl_httppost * head = nullptr;
+        curl_httppost * tail = nullptr;
     };
-
-    /*
-    void caff_set_string(char ** dest, char const * new_value)
-    {
-        if (!dest) return;
-
-        if (*dest) {
-            delete[] * dest;
-            *dest = nullptr;
-        }
-
-        *dest = cstrdup(new_value);
-    }
-
-    void caff_free_string(char ** str)
-    {
-        if (!str) return;
-        delete[] * str;
-        *str = nullptr;
-    }
-    */
 
     static size_t curlWriteCallback(char * ptr, size_t size, size_t nmemb, void * userData)
     {
@@ -642,31 +619,27 @@ namespace caff {
         RETRY_REQUEST(optional<HeartbeatResponse>, doHeartbeatStream(streamUrl, sharedCreds));
     }
 
-    /*
-    static bool do_update_broadcast_screenshot(
-        char const * broadcastId,
-        uint8_t const * screenshot_data,
-        size_t screenshot_size,
-        Credentials * sharedCreds)
+    static bool doUpdateScreenshot(
+        std::string broadcastId,
+        ScreenshotData const & screenshotData,
+        SharedCredentials & sharedCreds)
     {
         TRACE();
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
-        curl_httppost * post = nullptr;
-        curl_httppost * last = nullptr;
-        ScopedPost cleanup(post);
+        ScopedPost post;
 
-        if (screenshot_data) {
-            curl_formadd(&post, &last,
+        if (!screenshotData.empty()) {
+            curl_formadd(&post.head, &post.tail,
                 CURLFORM_COPYNAME, "broadcast[game_image]",
                 CURLFORM_BUFFER, "game_image.jpg",
-                CURLFORM_BUFFERPTR, screenshot_data,
-                CURLFORM_BUFFERLENGTH, screenshot_size,
+                CURLFORM_BUFFERPTR, &screenshotData[0],
+                CURLFORM_BUFFERLENGTH, screenshotData.size(),
                 CURLFORM_CONTENTTYPE, "image/jpeg",
                 CURLFORM_END);
         }
 
-        curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
+        curl_easy_setopt(curl, CURLOPT_HTTPPOST, post.head);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
 
         auto url = BROADCAST_URL(broadcastId);
@@ -695,20 +668,13 @@ namespace caff {
         return result;
     }
 
-    bool caff_update_broadcast_screenshot(
-        char const * broadcastId,
-        uint8_t const * screenshot_data,
-        size_t screenshot_size,
-        Credentials * sharedCreds)
+    bool updateScreenshot(
+        std::string broadcastId,
+        ScreenshotData const & screenshotData,
+        SharedCredentials & sharedCreds)
     {
-        if (!broadcastId) {
-            LOG_ERROR("Passed in nullptr broadcastId");
-            return false;
-        }
-
-        RETRY_REQUEST(bool, do_update_broadcast_screenshot(broadcastId, screenshot_data, screenshot_size, sharedCreds));
+        RETRY_REQUEST(bool, doUpdateScreenshot(broadcastId, screenshotData, sharedCreds));
     }
-    */
 
     static bool isOutOfCapacityFailure(std::string const & type)
     {

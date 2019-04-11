@@ -5,6 +5,7 @@
 #include <atomic>
 #include <functional>
 #include <vector>
+#include <future>
 
 #include "caffeine.h"
 #include "Api.hpp"
@@ -13,6 +14,7 @@
 #include "absl/types/optional.h"
 #include "common_types.h"
 #include "rtc_base/scoped_ref_ptr.h"
+#include "api/video/i420_buffer.h"
 
 ASSERT_MATCH(caff_VideoFormatUnknown, webrtc::VideoType::kUnknown);
 ASSERT_MATCH(caff_VideoFormatI420, webrtc::VideoType::kI420);
@@ -64,7 +66,7 @@ namespace caff {
         void sendAudio(uint8_t const* samples, size_t samplesPerChannel);
         void sendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format);
 
-        caff_ConnectionQuality getConnectionQuality();
+        caff_ConnectionQuality getConnectionQuality() const;
 
         //void SetTitle(std::string title);
         //void SetRating(std::string rating);
@@ -76,6 +78,8 @@ namespace caff {
         std::thread broadcastThread;
         std::thread longpollThread;
 
+        std::promise<ScreenshotData> screenshotPromise;
+        std::atomic<bool> isScreenshotNeeded;
         std::atomic<bool> isMutatingFeed;
         std::mutex mutex;
 
@@ -102,6 +106,7 @@ namespace caff {
         variant<std::string, caff_Result> createFeed(std::string const & offer);
         void startHeartbeat();
         void startLongpollThread();
+        ScreenshotData createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer);
     };
 
 }  // namespace caff

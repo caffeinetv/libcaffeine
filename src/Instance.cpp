@@ -75,7 +75,8 @@ namespace caff {
             webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);
     }
 
-    Instance::~Instance() {
+    Instance::~Instance()
+    {
         factory = nullptr;
     }
 

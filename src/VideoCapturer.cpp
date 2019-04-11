@@ -2,7 +2,6 @@
 
 #include "VideoCapturer.hpp"
 
-#include "api/video/i420_buffer.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "rtc_base/logging.h"
 #include "libyuv.h"
@@ -69,7 +68,7 @@ namespace caff {
     // FPS limit is 30 (fudged a bit for variance)
     static int64_t const minFrameMicros = (1000000 / 32);
 
-    void VideoCapturer::sendVideo(
+    rtc::scoped_refptr<webrtc::I420Buffer> VideoCapturer::sendVideo(
         uint8_t const* frameData,
         size_t frameByteCount,
         int32_t width,
@@ -80,7 +79,7 @@ namespace caff {
         auto span = now - lastFrameMicros;
         if (span < minFrameMicros) {
             RTC_LOG(LS_INFO) << "Dropping frame";
-            return;
+            return nullptr;
         }
         lastFrameMicros = now;
 
@@ -96,7 +95,7 @@ namespace caff {
             &adaptedWidth, &adaptedHeight, &cropWidth, &cropHeight,
             &cropX, &cropY, &translatedCameraTime)) {
             RTC_LOG(LS_INFO) << "Adapter dropped the frame.";
-            return;
+            return nullptr;
         }
 
         // we will cap the minimum resolution to be 360 on the smaller of either width
@@ -136,6 +135,8 @@ namespace caff {
         webrtc::VideoFrame frame(scaledBuffer, webrtc::kVideoRotation_0, translatedCameraTime);
 
         OnFrame(frame, adaptedWidth, adaptedHeight);
+
+        return unscaledBuffer;
     }
 
     void VideoCapturer::Stop() {}

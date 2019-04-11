@@ -155,19 +155,18 @@ namespace caff {
 
     using StageResponseResult = variant<StageResponse, FailureResponse>;
 
+    using ScreenshotData = std::vector<uint8_t>;
+
     struct HeartbeatResponse {
         caff_ConnectionQuality connectionQuality;
     };
 
     optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & creds);
 
-    /*
-    bool caff_update_broadcast_screenshot(
-        char const * broadcastId,
-        uint8_t const * screenshot_data,
-        size_t screenshot_size,
-        Credentials * creds);
-    */
+    bool updateScreenshot(
+        std::string broadcastId,
+        ScreenshotData const & screenshotData,
+        SharedCredentials & sharedCreds);
 
     // TODO: not pointers
     caff_GameList * getSupportedGames();
