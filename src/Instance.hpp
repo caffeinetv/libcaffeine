@@ -29,8 +29,8 @@ namespace caff {
 
         virtual ~Instance();
 
-        caff_AuthResult signIn(char const * username, char const * password, char const * otp);
-        caff_AuthResult refreshAuth(char const * refreshToken);
+        caff_Result signIn(char const * username, char const * password, char const * otp);
+        caff_Result refreshAuth(char const * refreshToken);
         bool isSignedIn() const;
         void signOut();
 
@@ -39,18 +39,18 @@ namespace caff {
         char const * getStageId() const;
         bool canBroadcast() const;
 
-        caff_Error startBroadcast(
+        caff_Result startBroadcast(
             std::string title,
             caff_Rating rating,
             std::function<void()> startedCallback,
-            std::function<void(caff_Error)> failedCallback);
+            std::function<void(caff_Result)> failedCallback);
 
         std::shared_ptr<Broadcast> getBroadcast() { return broadcast; }
 
         void endBroadcast();
 
     private:
-        caff_AuthResult authenticate(std::function<AuthResponse()> signinFunc);
+        caff_Result authenticate(std::function<AuthResponse()> signinFunc);
 
         rtc::scoped_refptr<AudioDevice> audioDevice;
         rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory;

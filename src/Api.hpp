@@ -51,12 +51,12 @@ namespace caff {
     };
 
     struct AuthResponse {
-        caff_AuthResult result = caff_AuthResultRequestFailed;
+        caff_Result result = caff_ResultRequestFailed;
         optional<Credentials> credentials;
 
         // Helper for RETRY_REQUEST
         operator bool() const {
-            return result != caff_AuthResultRequestFailed;
+            return result != caff_ResultRequestFailed;
         }
     };
 

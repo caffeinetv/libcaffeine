@@ -28,35 +28,43 @@ using namespace caff;
 #define CATCHALL CATCHALL_RETURN()
 
 
-CAFFEINE_API char const* caff_errorString(caff_Error error)
+CAFFEINE_API char const* caff_resultString(caff_Result error)
 try {
-    INVALID_ENUM_RETURN(nullptr, caff_Error, error);
+    INVALID_ENUM_RETURN(nullptr, caff_Result, error);
 
     switch (error) {
-    case caff_ErrorNone:
+    case caff_ResultSuccess:
         return "Success";
-    case caff_ErrorInvalidArgument:
+    case caff_ResultRequestFailed:
+        return "Request failed";
+    case caff_ResultInvalidArgument:
         return "Invalid argument";
-    case caff_ErrorInvalidState:
+    case caff_ResultInvalidState:
         return "Invalid state";
-    case caff_ErrorNotSignedIn:
+
+    case caff_ResultOldVersion:
+        return "Old version";
+    case caff_ResultInfoIncorrect:
+        return "Incorrect signin info";
+    case caff_ResultLegalAcceptanceRequired:
+        return "User must accept Terms of Service";
+    case caff_ResultEmailVerificationRequired:
+        return "User must verify email address";
+    case caff_ResultMfaOtpRequired:
+        return "One-time password required";
+    case caff_ResultMfaOtpIncorrect:
+        return "One-time password incorrect";
+
+    case caff_ResultNotSignedIn:
         return "Not signed in";
-    case caff_ErrorOutOfCapacity:
+    case caff_ResultOutOfCapacity:
         return "Out of capacity";
-    case caff_ErrorSdpOffer:
-        return "Error making SDP offer";
-    case caff_ErrorSdpAnswer:
-        return "Error reading SDP answer";
-    case caff_ErrorIceTrickle:
-        return "Error during ICE negotiation";
-    case caff_ErrorTakeover:
+    case caff_ResultTakeover:
         return "Broadcast takeover";
-    case caff_ErrorDisconnected:
+    case caff_ResultDisconnected:
         return "Disconnected from server";
-    case caff_ErrorBroadcastFailed:
+    case caff_ResultBroadcastFailed:
         return "Broadcast failed";
-    case caff_ErrorUnknown:
-        return "Unknown error";
     }
 }
 CATCHALL_RETURN(nullptr)
@@ -102,7 +110,7 @@ try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API caff_AuthResult caff_signIn(
+CAFFEINE_API caff_Result caff_signIn(
     caff_InstanceHandle instanceHandle,
     char const * username,
     char const * password,
@@ -115,10 +123,10 @@ try {
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->signIn(username, password, otp);
 }
-CATCHALL_RETURN(caff_AuthResultRequestFailed)
+CATCHALL_RETURN(caff_ResultRequestFailed)
 
 
-CAFFEINE_API caff_AuthResult caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken)
+CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken)
 try {
     RTC_DCHECK(instanceHandle);
     RTC_DCHECK(refreshToken);
@@ -127,7 +135,7 @@ try {
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->refreshAuth(refreshToken);
 }
-CATCHALL_RETURN(caff_AuthResultRequestFailed)
+CATCHALL_RETURN(caff_ResultRequestFailed)
 
 
 CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle)
@@ -228,7 +236,7 @@ try {
 CATCHALL
 
 
-CAFFEINE_API caff_Error caff_startBroadcast(
+CAFFEINE_API caff_Result caff_startBroadcast(
     caff_InstanceHandle instanceHandle,
     void * user_data,
     char const * title,
@@ -238,20 +246,20 @@ CAFFEINE_API caff_Error caff_startBroadcast(
 try {
     RTC_DCHECK(instanceHandle);
     RTC_DCHECK(title);
-    INVALID_ENUM_RETURN(caff_ErrorInvalidArgument, caff_Rating, rating);
+    INVALID_ENUM_RETURN(caff_ResultInvalidArgument, caff_Rating, rating);
     RTC_DCHECK(broadcastStartedCallback);
     RTC_DCHECK(broadcastFailedCallback);
 
     // Encapsulate void * inside lambdas, and other C++ -> C translations
     auto startedCallback = [=] { broadcastStartedCallback(user_data); };
-    auto failedCallback = [=](caff_Error error) {
+    auto failedCallback = [=](caff_Result error) {
         broadcastFailedCallback(user_data, error);
     };
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->startBroadcast(title, rating, startedCallback, failedCallback);
 }
-CATCHALL_RETURN(caff_ErrorBroadcastFailed)
+CATCHALL_RETURN(caff_ResultBroadcastFailed)
 
 
 CAFFEINE_API void caff_sendAudio(
