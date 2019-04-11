@@ -109,12 +109,12 @@ namespace caff {
         return fullTitle;
     }
 
-    variant<std::string, caff_Error> Broadcast::createFeed(std::string const & offer)
+    variant<std::string, caff_Result> Broadcast::createFeed(std::string const & offer)
     {
         feedId = createUniqueId();
 
         if (!requireState(State::Starting)) {
-            return caff_ErrorBroadcastFailed;
+            return caff_ResultBroadcastFailed;
         }
 
         auto fullTitle = annotateTitle(title, rating);
@@ -125,7 +125,7 @@ namespace caff {
         StageRequest request(username, clientId);
 
         if (!requestStageUpdate(request, sharedCredentials, NULL, NULL)) {
-            return caff_ErrorBroadcastFailed;
+            return caff_ResultBroadcastFailed;
         }
 
         // Make request to add our feed and get a new broadcast id
@@ -150,17 +150,17 @@ namespace caff {
         bool isOutOfCapacity = false;
         if (!requestStageUpdate(request, sharedCredentials, NULL, &isOutOfCapacity)) {
             if (isOutOfCapacity) {
-                return caff_ErrorOutOfCapacity;
+                return caff_ResultOutOfCapacity;
             }
             else {
-                return caff_ErrorBroadcastFailed;
+                return caff_ResultBroadcastFailed;
             }
         }
 
         // Get broadcast details
         auto feedIt = request.stage->feeds->find(feedId);
         if (feedIt == request.stage->feeds->end()) {
-            return caff_ErrorBroadcastFailed;
+            return caff_ResultBroadcastFailed;
         }
 
         auto & responseStream = feedIt->second.stream;
@@ -170,7 +170,7 @@ namespace caff {
             || responseStream->sdpAnswer->empty()
             || !responseStream->url
             || responseStream->url->empty()) {
-            return caff_ErrorSdpAnswer;
+            return caff_ResultRequestFailed;
         }
 
         streamUrl = *responseStream->url;
@@ -240,12 +240,12 @@ namespace caff {
 
     void Broadcast::start(
         std::function<void()> startedCallback,
-        std::function<void(caff_Error)> failedCallback)
+        std::function<void(caff_Result)> failedCallback)
     {
         this->failedCallback = failedCallback;
         transitionState(State::Offline, State::Starting);
 
-        auto doFailure = [=](caff_Error error) {
+        auto doFailure = [=](caff_Result error) {
             failedCallback(error);
             state.store(State::Offline);
         };
@@ -297,7 +297,7 @@ namespace caff {
             auto offer = creationObserver->getFuture().get();
             if (!offer) {
                 // Logged by the observer
-                failedCallback(caff_ErrorSdpOffer);
+                failedCallback(caff_ResultRequestFailed);
                 state.store(State::Offline);
                 return;
             }
@@ -306,14 +306,14 @@ namespace caff {
                 RTC_LOG(LS_ERROR)
                     << "Expected " << webrtc::SessionDescriptionInterface::kOffer
                     << " but got " << offer->type();
-                doFailure(caff_ErrorSdpOffer);
+                doFailure(caff_ResultRequestFailed);
                 return;
             }
 
             std::string offerSdp;
             if (!offer->ToString(&offerSdp)) {
                 RTC_LOG(LS_ERROR) << "Error serializing SDP offer";
-                doFailure(caff_ErrorSdpOffer);
+                doFailure(caff_ResultRequestFailed);
                 return;
             }
 
@@ -321,7 +321,7 @@ namespace caff {
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP offer: " << offerError.description;
-                doFailure(caff_ErrorSdpOffer);
+                doFailure(caff_ResultRequestFailed);
                 return;
             }
 
@@ -331,12 +331,12 @@ namespace caff {
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
             auto setLocalSuccess = setLocalObserver->getFuture().get();
             if (!setLocalSuccess) {
-                doFailure(caff_ErrorSdpOffer);
+                doFailure(caff_ResultRequestFailed);
                 return;
             }
 
             auto result = createFeed(offerSdp);
-            auto error = get_if<caff_Error>(&result);
+            auto error = get_if<caff_Result>(&result);
             if (error) {
                 RTC_LOG(LS_ERROR) << "Failed to create feed";
                 doFailure(*error);
@@ -350,14 +350,14 @@ namespace caff {
                 &answerError);
             if (!remoteDesc) {
                 RTC_LOG(LS_ERROR) << "Error parsing SDP answer: " << answerError.description;
-                doFailure(caff_ErrorSdpAnswer);
+                doFailure(caff_ResultRequestFailed);
                 return;
             }
 
             auto & candidates = observer->getFuture().get();
             if (!trickleCandidates(candidates, streamUrl, sharedCredentials)) {
                 RTC_LOG(LS_ERROR) << "Failed to negotiate ICE";
-                doFailure(caff_ErrorIceTrickle);
+                doFailure(caff_ResultRequestFailed);
                 return;
             }
 
@@ -368,7 +368,7 @@ namespace caff {
             auto setRemoteSuccess = setRemoteObserver->getFuture().get();
             if (!setRemoteSuccess) {
                 // Logged by the observer
-                doFailure(caff_ErrorSdpAnswer);
+                doFailure(caff_ResultRequestFailed);
                 return;
             }
 
@@ -434,7 +434,7 @@ namespace caff {
                 || !request->stage->feeds
                 || request->stage->feeds->find(feedId) == request->stage->feeds->end())
             {
-                failedCallback(caff_ErrorBroadcastFailed);
+                failedCallback(caff_ResultBroadcastFailed);
                 return;
             }
 
@@ -442,7 +442,7 @@ namespace caff {
         }
 
         if (!broadcastId) {
-            failedCallback(caff_ErrorBroadcastFailed);
+            failedCallback(caff_ResultBroadcastFailed);
             return;
         }
 
@@ -459,7 +459,7 @@ namespace caff {
         //    credentials);
 
         //if (!screenshot_success) {
-        //    caffeine_stream_failed(data, caff_ErrorBroadcastFailed);
+        //    caffeine_stream_failed(data, caff_ResultBroadcastFailed);
         //    goto broadcast_error;
         //}
 
@@ -475,7 +475,7 @@ namespace caff {
             || !request->stage->feeds
             || request->stage->feeds->find(feedId) == request->stage->feeds->end())
         {
-            failedCallback(caff_ErrorBroadcastFailed);
+            failedCallback(caff_ResultBroadcastFailed);
             return;
         }
 
@@ -511,13 +511,13 @@ namespace caff {
             if (!request
                 || !request->stage
                 || !request->stage->feeds) {
-                failedCallback(caff_ErrorUnknown);
+                failedCallback(caff_ResultBroadcastFailed);
                 return;
             }
 
             auto feedIt = request->stage->feeds->find(feedId);
             if (feedIt == request->stage->feeds->end()) {
-                failedCallback(caff_ErrorTakeover);
+                failedCallback(caff_ResultTakeover);
                 return;
             }
 
@@ -540,7 +540,7 @@ namespace caff {
                 ++failures;
                 if (failures > max_failures) {
                     RTC_LOG(LS_ERROR) << "Heartbeat failed " << failures << "times; ending broadcast.";
-                    failedCallback(caff_ErrorDisconnected);
+                    failedCallback(caff_ResultDisconnected);
                     break;
                 }
             }
@@ -569,7 +569,7 @@ namespace caff {
                 || !request->stage->feeds
                 || request->stage->feeds->find(feedId) == request->stage->feeds->end())
             {
-                failedCallback(caff_ErrorTakeover);
+                failedCallback(caff_ResultTakeover);
                 return;
             }
 
@@ -595,9 +595,8 @@ namespace caff {
                 request->stage->live = false;
                 request->stage->feeds->clear();
 
-                if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL)) {
-                    failedCallback(caff_ErrorUnknown);
-                }
+                // If this fails, the broadcast is either offline or failing anyway. Ignore result
+                requestStageUpdate(*request, sharedCredentials, NULL, NULL);
             }
         }
     }

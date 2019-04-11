@@ -58,7 +58,7 @@ namespace caff {
 
         void start(
             std::function<void()> startedCallback,
-            std::function<void(caff_Error)> failedCallback);
+            std::function<void(caff_Result)> failedCallback);
         void stop();
 
         void sendAudio(uint8_t const* samples, size_t samplesPerChannel);
@@ -79,7 +79,7 @@ namespace caff {
         std::atomic<bool> isMutatingFeed;
         std::mutex mutex;
 
-        std::function<void(caff_Error)> failedCallback;
+        std::function<void(caff_Result)> failedCallback;
 
         SharedCredentials & sharedCredentials;
         std::string username;
@@ -99,7 +99,7 @@ namespace caff {
         bool transitionState(State oldState, State newState);
         bool isOnline() const;
 
-        variant<std::string, caff_Error> createFeed(std::string const & offer);
+        variant<std::string, caff_Result> createFeed(std::string const & offer);
         void startHeartbeat();
         void startLongpollThread();
     };

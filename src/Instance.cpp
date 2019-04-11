@@ -79,20 +79,20 @@ namespace caff {
         factory = nullptr;
     }
 
-    caff_AuthResult Instance::signIn(char const * username, char const * password, char const * otp)
+    caff_Result Instance::signIn(char const * username, char const * password, char const * otp)
     {
         return authenticate([=] { return caff::signIn(username, password, otp); });
     }
 
-    caff_AuthResult Instance::refreshAuth(char const * refreshToken)
+    caff_Result Instance::refreshAuth(char const * refreshToken)
     {
         return authenticate([=] { return caff::refreshAuth(refreshToken); });
     }
 
-    caff_AuthResult Instance::authenticate(std::function<AuthResponse()> authFunc)
+    caff_Result Instance::authenticate(std::function<AuthResponse()> authFunc)
     {
         if (!isSupportedVersion()) {
-            return caff_AuthResultOldVersion;
+            return caff_ResultOldVersion;
         }
         auto response = authFunc();
         if (!response.credentials) {
@@ -104,7 +104,7 @@ namespace caff {
         if (!userInfo) {
             sharedCredentials.reset();
             this->refreshToken.reset();
-            return caff_AuthResultRequestFailed;
+            return caff_ResultRequestFailed;
         }
         return response.result;
     }
@@ -141,23 +141,23 @@ namespace caff {
         return userInfo ? userInfo->canBroadcast : false;
     }
 
-    caff_Error Instance::startBroadcast(
+    caff_Result Instance::startBroadcast(
         std::string title,
         caff_Rating rating,
         std::function<void()> startedCallback,
-        std::function<void(caff_Error)> failedCallback)
+        std::function<void(caff_Result)> failedCallback)
     {
         if (!isSignedIn()) {
-            return caff_ErrorNotSignedIn;
+            return caff_ResultNotSignedIn;
         }
 
         std::lock_guard<std::mutex> lock(broadcastMutex);
 
         if (broadcast) {
-            return caff_ErrorInvalidState;
+            return caff_ResultInvalidState;
         }
 
-        auto dispatchFailure = [=](caff_Error error) {
+        auto dispatchFailure = [=](caff_Result error) {
             taskQueue.PostTask([=] {
                 failedCallback(error);
                 endBroadcast();
@@ -172,7 +172,7 @@ namespace caff {
             audioDevice,
             factory);
         broadcast->start(startedCallback, dispatchFailure);
-        return caff_ErrorNone;
+        return caff_ResultSuccess;
     }
 
     std::shared_ptr<Broadcast> Instance::getBroadcast()
