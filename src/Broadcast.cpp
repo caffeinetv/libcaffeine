@@ -335,8 +335,6 @@ namespace caff {
                 return;
             }
 
-            // createFeed must be called before trickleCandidates so that a signed_payload
-            // is available
             auto result = createFeed(offerSdp);
             auto error = get_if<caff_Error>(&result);
             if (error) {
@@ -436,11 +434,16 @@ namespace caff {
                 || !request->stage->feeds
                 || request->stage->feeds->find(feedId) == request->stage->feeds->end())
             {
-                failedCallback(caff_ErrorUnknown);
+                failedCallback(caff_ErrorBroadcastFailed);
                 return;
             }
 
             broadcastId = request->stage->broadcastId;
+        }
+
+        if (!broadcastId) {
+            failedCallback(caff_ErrorBroadcastFailed);
+            return;
         }
 
         //pthread_mutex_lock(&context->screenshot_mutex);

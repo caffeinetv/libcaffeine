@@ -150,8 +150,11 @@ namespace caff {
         if (!isSignedIn()) {
             return caff_ErrorNotSignedIn;
         }
+
+        std::lock_guard<std::mutex> lock(broadcastMutex);
+
         if (broadcast) {
-            return caff_ErrorInvalid;
+            return caff_ErrorInvalidState;
         }
 
         auto dispatchFailure = [=](caff_Error error) {
@@ -161,7 +164,7 @@ namespace caff {
             });
         };
 
-        broadcast = std::make_unique<Broadcast>(
+        broadcast = std::make_shared<Broadcast>(
             *sharedCredentials,
             userInfo->username,
             title,
@@ -172,16 +175,18 @@ namespace caff {
         return caff_ErrorNone;
     }
 
-    Broadcast * Instance::getBroadcast()
+    std::shared_ptr<Broadcast> Instance::getBroadcast()
     {
-        return broadcast.get();
+        std::lock_guard<std::mutex> lock(broadcastMutex);
+        return broadcast;
     }
 
     void Instance::endBroadcast()
     {
+        std::lock_guard<std::mutex> lock(broadcastMutex);
         if (broadcast) {
             broadcast->stop();
-            broadcast.reset(nullptr);
+            broadcast.reset();
         }
     }
 
