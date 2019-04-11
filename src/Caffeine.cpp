@@ -21,16 +21,15 @@ using namespace caff;
 
 CAFFEINE_API char const* caff_errorString(caff_Error error)
 {
-    if (!IS_VALID_ENUM_VALUE(caff_Error, error)) {
-        RTC_LOG(LS_ERROR) << "Invalid caff_Error enum value";
-        return nullptr;
-    }
+    INVALID_ENUM_RETURN(nullptr, caff_Error, error);
 
     switch (error) {
     case caff_ErrorNone:
         return "Success";
-    case caff_ErrorInvalid:
-        return "Invalid call";
+    case caff_ErrorInvalidArgument:
+        return "Invalid argument";
+    case caff_ErrorInvalidState:
+        return "Invalid state";
     case caff_ErrorNotSignedIn:
         return "Not signed in";
     case caff_ErrorOutOfCapacity:
@@ -55,10 +54,7 @@ CAFFEINE_API char const* caff_errorString(caff_Error error)
 CAFFEINE_API caff_InstanceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity)
 {
     RTC_DCHECK(logCallback);
-    if (!IS_VALID_ENUM_VALUE(caff_LogLevel, minSeverity)) {
-        RTC_LOG(LS_ERROR) << "Invalid caff_LogLevel enum value";
-        return nullptr;
-    }
+    INVALID_ENUM_RETURN(nullptr, caff_LogLevel, minSeverity);
 
     // TODO: make this thread safe
     static bool firstInit = true;
@@ -207,10 +203,7 @@ CAFFEINE_API caff_Error caff_startBroadcast(
 {
     RTC_DCHECK(instanceHandle);
     RTC_DCHECK(title);
-    if (!IS_VALID_ENUM_VALUE(caff_Rating, rating)) {
-        RTC_LOG(LS_ERROR) << "Invalid caff_Rating enum value";
-        return caff_ErrorInvalid;
-    }
+    INVALID_ENUM_RETURN(caff_ErrorInvalidArgument, caff_Rating, rating);
     RTC_DCHECK(broadcastStartedCallback);
     RTC_DCHECK(broadcastFailedCallback);
 
@@ -227,16 +220,16 @@ CAFFEINE_API caff_Error caff_startBroadcast(
 CAFFEINE_API void caff_sendAudio(
     caff_InstanceHandle instanceHandle,
     uint8_t * samples,
-    size_t samples_per_channel)
+    size_t samplesPerChannel)
 {
     RTC_DCHECK(instanceHandle);
     RTC_DCHECK(samples);
-    RTC_DCHECK(samples_per_channel);
+    RTC_DCHECK(samplesPerChannel);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
-        broadcast->sendAudio(samples, samples_per_channel);
+        broadcast->sendAudio(samples, samplesPerChannel);
     }
 }
 
@@ -252,10 +245,7 @@ CAFFEINE_API void caff_sendVideo(
     RTC_DCHECK(frameBytes);
     RTC_DCHECK(width);
     RTC_DCHECK(height);
-    if (!IS_VALID_ENUM_VALUE(caff_VideoFormat, format)) {
-        RTC_LOG(LS_ERROR) << "Invalid caff_VideoFormat enum value";
-        return;
-    }
+    INVALID_ENUM_CHECK(caff_VideoFormat, format);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
