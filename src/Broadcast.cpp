@@ -23,7 +23,7 @@
 #endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../third_party/stb/stb_image_write.h"
+#include "stb_image_write.h"
 
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"
@@ -459,14 +459,14 @@ namespace caff {
             auto screenshotData = screenshotFuture.get();
             if (!updateScreenshot(*broadcastId, screenshotData, sharedCredentials)) {
                 RTC_LOG(LS_ERROR) << "Failed to send screenshot";
-                //failedCallback(caff_ResultBroadcastFailed);
-                //return;
+                failedCallback(caff_ResultBroadcastFailed);
+                return;
             }
         }
         catch (...) {
             // Already logged
-            //failedCallback(caff_ResultBroadcastFailed);
-            //return;
+            failedCallback(caff_ResultBroadcastFailed);
+            return;
         }
 
         // Set stage live with current game content
@@ -743,7 +743,7 @@ namespace caff {
         ScreenshotData screenshot;
         ret = stbi_write_jpg_to_func( writeFunc, &screenshot, width, height, channels, &raw[0], 95);
         if (ret == 0) {
-            throw std::exception("Failed to convert RGBA to JPEG");
+            throw std::exception("Failed to convert RAW to JPEG");
         }
         return screenshot;
     }

@@ -12,8 +12,9 @@ find_package(Libcurl REQUIRED) # TODO: use a C++ http library
 
 include_directories(
     include
-    x264/include #TODO find externally
+    third_party/x264/include #TODO find externally
     third_party/nlohmann_json/single_include
+    third_party/stb
 
     ${LIBCURL_INCLUDE_DIRS}
 
@@ -79,7 +80,7 @@ add_library(libcaffeine SHARED
 )
 
 target_link_libraries(libcaffeine PRIVATE
-    ${PROJECT_SOURCE_DIR}/x264/lib/win64/libx264.lib #TODO find externally
+    ${PROJECT_SOURCE_DIR}/third_party/x264/lib/win64/libx264.lib #TODO find externally
     ${LIBCURL_LIBRARIES}
     ${WEBRTC_LIBRARIES}
 	${WEBRTC_DEPENDENCIES}

@@ -136,7 +136,7 @@ namespace caff {
 
         OnFrame(frame, adaptedWidth, adaptedHeight);
 
-        return unscaledBuffer;
+        return scaledBuffer;
     }
 
     void VideoCapturer::Stop() {}
