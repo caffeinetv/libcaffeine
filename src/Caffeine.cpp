@@ -70,40 +70,50 @@ try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API caff_InstanceHandle caff_initialize(caff_LogCallback logCallback, caff_LogLevel minSeverity)
+CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback)
 try {
-    RTC_DCHECK(logCallback);
-    INVALID_ENUM_RETURN(nullptr, caff_LogLevel, minSeverity);
+    INVALID_ENUM_RETURN(caff_ResultInvalidArgument, caff_Severity, minSeverity);
 
-    // TODO: make this thread safe
-    static bool firstInit = true;
-    if (firstInit) {
+    // Thread-safe single-init
+    static caff_Result result = ([=]{
         // Set up logging
         rtc::LogMessage::LogThreads(true);
         rtc::LogMessage::LogTimestamps(true);
 
-        // Send logs only to our log sink. Not to stderr, windows debugger, etc
-        // rtc::LogMessage::LogToDebug(rtc::LoggingSeverity::LS_NONE);
-        // rtc::LogMessage::SetLogToStderr(false);
-
-        // TODO: Figure out why this log sink isn't working and uncomment above two
-        // lines
-        rtc::LogMessage::AddLogToStream(new LogSink(logCallback), static_cast<rtc::LoggingSeverity>(minSeverity));
+        if (logCallback) {
+            // Only send logs to the given callback
+            rtc::LogMessage::LogToDebug(rtc::LS_NONE);
+            rtc::LogMessage::SetLogToStderr(false);
+            rtc::LogMessage::AddLogToStream(new LogSink(logCallback), caffToRtcSeverity(minSeverity));
+        }
+        else {
+#ifdef NDEBUG
+            rtc::LogMessage::LogToDebug(rtc::LS_NONE);
+#else
+            rtc::LogMessage::LogToDebug(rtc::LS_INFO);
+#endif
+        }
 
         // Initialize WebRTC
-
 #ifdef _WIN32
         rtc::EnsureWinsockInit();
 #endif
         if (!rtc::InitializeSSL()) {
             RTC_LOG(LS_ERROR) << "Caffeine RTC failed to initialize SSL";
-            return nullptr;
+            return caff_ResultRequestFailed;
         }
 
         RTC_LOG(LS_INFO) << "Caffeine RTC initialized";
-        firstInit = false;
-    }
+        return caff_ResultSuccess;
+    })();
 
+    return result;
+}
+CATCHALL_RETURN(caff_ResultRequestFailed)
+
+
+CAFFEINE_API caff_InstanceHandle caff_createInstance()
+try {
     auto instance = new Instance;
     return reinterpret_cast<caff_InstanceHandle>(instance);
 }
@@ -329,7 +339,7 @@ try {
 CATCHALL
 
 
-CAFFEINE_API void caff_deinitialize(caff_InstanceHandle * instanceHandle)
+CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle)
 try {
     RTC_DCHECK(instanceHandle);
     RTC_DCHECK(*instanceHandle);
