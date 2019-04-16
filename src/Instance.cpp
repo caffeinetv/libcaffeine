@@ -21,7 +21,7 @@
 
 namespace caff {
 
-    // TODO: Use hardware encoding on low powered cpu
+    // TODO: Use hardware encoding on low powered cpu or high quality GPU
     class EncoderFactory : public webrtc::VideoEncoderFactory {
     public:
         virtual ~EncoderFactory() {}
@@ -73,11 +73,27 @@ namespace caff {
             webrtc::CreateBuiltinAudioDecoderFactory(),
             std::make_unique<EncoderFactory>(),
             webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);
+
+        gameList = getSupportedGames();
     }
 
     Instance::~Instance()
     {
         factory = nullptr;
+    }
+
+    caff_Result Instance::enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator) {
+        if (!gameList) {
+            gameList = getSupportedGames();
+        }
+        if (!gameList || gameList->empty()) {
+            LOG_ERROR("Failed to load supported game list");
+            return caff_ResultFailure;
+        }
+        for (auto const & entry : *gameList) {
+            enumerator(entry.first.c_str(), entry.second->id.c_str(), entry.second->name.c_str());
+        }
+        return caff_ResultSuccess;
     }
 
     caff_Result Instance::signIn(char const * username, char const * password, char const * otp)

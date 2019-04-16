@@ -1,76 +1,10 @@
 #include "Serialization.hpp"
 
+#include "ErrorLogging.hpp"
+
 #include <sstream>
 
-void from_json(nlohmann::json const & json, caff_GameInfo & gameInfo)
-{
-    auto idNum = json.at("id").get<size_t>();
-    std::ostringstream idStream;
-    idStream << idNum;
-
-    gameInfo.id = caff::cstrdup(idStream.str());
-    caff::get_value_to(json, "name", gameInfo.name);
-
-    auto const & processNames = json.at("process_names");
-    gameInfo.numProcessNames = processNames.size();
-    if (gameInfo.numProcessNames == 0) {
-        gameInfo.processNames = nullptr;
-        return;
-    }
-
-    gameInfo.processNames = new char *[gameInfo.numProcessNames] {0};
-    for (size_t i = 0; i < gameInfo.numProcessNames; ++i) {
-        try {
-            caff::get_value_to(processNames, i, gameInfo.processNames[i]);
-        }
-        catch (...) {
-            //LOG_WARN("Unable to read process name; ignoring");
-        }
-    }
-}
-
-void from_json(nlohmann::json const & json, caff_GameList & games)
-{
-    games.numGames = json.size();
-    if (games.numGames == 0) {
-        games.gameInfos = nullptr;
-        return;
-    }
-
-    games.gameInfos = new caff_GameInfo *[games.numGames] {0};
-    for (size_t i = 0; i < games.numGames; ++i) {
-        try {
-            games.gameInfos[i] = new caff_GameInfo(json.at(i));
-        }
-        catch (...) {
-            //LOG_WARN("Unable to read game info; ignoring");
-        }
-    }
-}
-
 namespace caff {
-    char * cstrdup(char const * str) {
-        if (!str) {
-            return nullptr;
-        }
-
-        auto copylen = strlen(str) + 1;
-        auto result = new char[copylen] {'\0'};
-        std::copy(str, str + copylen, result);
-        return result;
-    }
-
-    char * cstrdup(std::string const & str) {
-        if (str.empty()) {
-            return nullptr;
-        }
-
-        auto result = new char[str.length() + 1];
-        str.copy(result, str.length());
-        result[str.length()] = 0;
-        return result;
-    }
-
     void from_json(Json const & json, Credentials & credentials)
     {
         get_value_to(json, "access_token", credentials.accessToken);
@@ -84,6 +18,45 @@ namespace caff {
         caff::get_value_to(json, "username", userInfo.username);
         caff::get_value_to(json, "stage_id", userInfo.stageId);
         caff::get_value_to(json, "can_broadcast", userInfo.canBroadcast);
+    }
+
+    void from_json(Json const & json, GameInfo & gameInfo)
+    {
+        auto idNum = json.at("id").get<size_t>();
+        std::ostringstream idStream;
+        idStream << idNum;
+
+        gameInfo.id = idStream.str();
+        caff::get_value_to(json, "name", gameInfo.name);
+
+        for (auto & processName : json.at("process_names")) {
+            try {
+                auto processNameStr = processName.get<std::string>();
+                if (processNameStr.empty()) {
+                    LOG_DEBUG("Skipping empty process name");
+                    continue;
+                }
+                gameInfo.processNames.push_back(std::move(processNameStr));
+            }
+            catch (...) {
+                LOG_DEBUG("Skipping unreadable process name");
+            }
+        }
+    }
+
+    void from_json(Json const & json, GameList & games)
+    {
+        for (auto & entry : json) {
+            try {
+                auto info = std::make_shared<GameInfo>(entry);
+                for (auto & processName : info->processNames) {
+                    games[processName] = info;
+                }
+            }
+            catch (...) {
+                LOG_DEBUG("Skipping unreadable game info");
+            }
+        }
     }
 
     void to_json(Json & json, IceInfo const & iceInfo)

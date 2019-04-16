@@ -98,22 +98,15 @@ typedef enum caff_ConnectionQuality {
 /* Opaque handle to Caffeine instance */
 typedef struct caff_Instance * caff_InstanceHandle;
 
-/* TODO: is there a way to encapsulate game process detection without touching on privacy issues? */
-/* Supported game detection info */
-typedef struct caff_GameInfo {
-    char * id;
-    char * name;
-    char ** processNames;
-    size_t numProcessNames;
-} caff_GameInfo;
-
-typedef struct caff_GameList {
-    caff_GameInfo ** gameInfos;
-    size_t numGames;
-} caff_GameList;
-
 /* Callback type for WebRTC log messages */
 typedef void(*caff_LogCallback)(caff_Severity severity, char const * message);
+
+/* Game enumeration callback */
+typedef void(*caff_GameEnumerator)(
+    void * userData,
+    char const * processName,
+    char const * gameId,
+    char const * gameName);
 
 /* Callback types for starting broadcast */
 typedef void(*caff_BroadcastStartedCallback)(void * userData);
@@ -145,6 +138,13 @@ CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCall
 
 /* Create a caffeine instance */
 CAFFEINE_API caff_InstanceHandle caff_createInstance();
+
+/* Enumerate the supported games list
+ */
+CAFFEINE_API caff_Result caff_enumerateGames(
+    caff_InstanceHandle instanceHandle,
+    void * userData,
+    caff_GameEnumerator enumerator);
 
 /* start broadcast on Caffeine
  *
@@ -215,9 +215,5 @@ CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandl
 CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle);
 CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle);
 CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle);
-
-CAFFEINE_API caff_GameList * caff_getGameList();
-CAFFEINE_API void caff_freeGameInfo(caff_GameInfo ** info);
-CAFFEINE_API void caff_freeGameList(caff_GameList ** games);
 
 #endif /* LIBCAFFEINE_CAFFEINE_H */

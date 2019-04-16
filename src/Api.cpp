@@ -443,7 +443,7 @@ namespace caff {
         RETRY_REQUEST(optional<UserInfo>, doGetUserInfo(creds));
     }
 
-    static caff_GameList * doGetSupportedGames()
+    static optional<GameList> doGetSupportedGames()
     {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
@@ -460,7 +460,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure fetching supported games: [%d] %s", curlResult, curlError);
-            return nullptr;
+            return {};
         }
 
         Json responseJson;
@@ -469,20 +469,20 @@ namespace caff {
         }
         catch (...) {
             LOG_ERROR("Failed to parse game list response");
-            return nullptr;
+            return {};
         }
 
         if (!responseJson.is_array()) {
             LOG_ERROR("Unable to retrieve games list");
-            return nullptr;
+            return {};
         }
 
-        return new caff_GameList(responseJson);
+        return GameList(responseJson);
     }
 
-    caff_GameList * getSupportedGames()
+    optional<GameList> getSupportedGames()
     {
-        RETRY_REQUEST(caff_GameList *, doGetSupportedGames());
+        RETRY_REQUEST(optional<GameList>, doGetSupportedGames());
     }
 
     static bool doTrickleCandidates(

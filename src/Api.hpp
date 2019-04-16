@@ -7,6 +7,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include <chrono>
@@ -65,6 +66,18 @@ namespace caff {
         std::string stageId;
         bool canBroadcast;
     };
+
+    /* TODO: is there a way to encapsulate game process detection without touching on privacy issues? */
+    /* Supported game detection info */
+    struct GameInfo {
+        std::string id;
+        std::string name;
+        std::vector<std::string> processNames;
+    };
+
+    // Map of processName -> gameInfo
+    // Note: inherits from map to disambiguate constructor for Json conversion
+    struct GameList : public std::map<std::string, std::shared_ptr<GameInfo>> {};
 
     struct IceInfo {
         std::string sdp;
@@ -168,8 +181,7 @@ namespace caff {
         ScreenshotData const & screenshotData,
         SharedCredentials & sharedCreds);
 
-    // TODO: not pointers
-    caff_GameList * getSupportedGames();
+    optional<GameList> getSupportedGames();
     bool isSupportedVersion();
     AuthResponse signIn(char const * username, char const * password, char const * otp);
     AuthResponse refreshAuth(char const * refreshToken);

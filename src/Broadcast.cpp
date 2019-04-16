@@ -194,7 +194,7 @@ namespace caff {
 
     // Falls back to obs_id if no foreground game detected
     static char const * get_running_game_id(
-        caff_GameList * games, const char * fallback_id)
+        GameList * games, const char * fallback_id)
     {
         char * foreground_process = get_foreground_process_name();
         char const * id = get_game_id(games, foreground_process);
@@ -388,11 +388,11 @@ namespace caff {
     }
 
     /*
-    static char const * getGameId(caff_GameList * games, char const * const processName)
+    static char const * getGameId(GameList * games, char const * const processName)
     {
         if (games && processName) {
             for (size_t gameIndex = 0; gameIndex < games->numGames; ++gameIndex) {
-                caff_GameInfo * info = games->gameInfos[gameIndex];
+                GameInfo * info = games->gameInfos[gameIndex];
                 if (!info) {
                     continue;
                 }
@@ -424,7 +424,7 @@ namespace caff {
             std::swap(request, nextRequest);
         }
 
-        //caff_GameList * games = caff_getGameList();
+        //GameList * games = caff_getGameList();
         //std::string obsGameId = getGameId(games, "obs");
         //caff_freeGameList(&games);
 

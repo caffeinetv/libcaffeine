@@ -39,6 +39,8 @@ namespace caff {
         char const * getStageId() const;
         bool canBroadcast() const;
 
+        caff_Result enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator);
+
         caff_Result startBroadcast(
             std::string title,
             caff_Rating rating,
@@ -66,6 +68,7 @@ namespace caff {
         // copies for sharing with C
         optional<std::string> refreshToken;
         optional<UserInfo> userInfo;
+        optional<GameList> gameList;
     };
 
 }  // namespace caff

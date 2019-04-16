@@ -209,42 +209,21 @@ try {
 CATCHALL_RETURN(false)
 
 
-CAFFEINE_API caff_GameList * caff_getGameList()
+CAFFEINE_API caff_Result caff_enumerateGames(
+    caff_InstanceHandle instanceHandle,
+    void * userData,
+    caff_GameEnumerator enumerator)
 try {
-    return getSupportedGames();
+    CHECK_PTR(instanceHandle);
+    CHECK_PTR(enumerator);
+
+    auto enumeratorWrapper = [=](char const * processName, char const * gameId, char const * gameName) {
+        enumerator(userData, processName, gameId, gameName);
+    };
+    auto instance = reinterpret_cast<Instance *>(instanceHandle);
+    return instance->enumerateGames(enumeratorWrapper);
 }
-CATCHALL_RETURN(nullptr)
-
-
-CAFFEINE_API void caff_freeGameInfo(caff_GameInfo ** info)
-try {
-    if (info && *info) {
-        for (size_t i = 0; i < (*info)->numProcessNames; ++i) {
-            delete[](*info)->processNames[i];
-            (*info)->processNames[i] = nullptr;
-        }
-        delete[](*info)->id;
-        delete[](*info)->name;
-        delete[](*info)->processNames;
-        delete *info;
-        *info = nullptr;
-    }
-}
-CATCHALL
-
-
-CAFFEINE_API void caff_freeGameList(caff_GameList ** games)
-try {
-    if (games && *games) {
-        for (size_t i = 0; i < (*games)->numGames; ++i) {
-            caff_freeGameInfo(&(*games)->gameInfos[i]);
-        }
-        delete[](*games)->gameInfos;
-        delete *games;
-        *games = nullptr;
-    }
-}
-CATCHALL
+CATCHALL_RETURN(caff_ResultFailure)
 
 
 CAFFEINE_API caff_Result caff_startBroadcast(

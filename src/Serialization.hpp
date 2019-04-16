@@ -12,9 +12,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(caff_ConnectionQuality, {
     {caff_ConnectionQualityUnknown, nullptr},
     })
 
-void from_json(nlohmann::json const & json, caff_GameInfo & gameInfo);
-void from_json(nlohmann::json const & json, caff_GameList & games);
-
 namespace nlohmann {
     template <typename T>
     struct adl_serializer<caff::optional<T>> {
@@ -59,28 +56,6 @@ namespace caff {
         }
     }
 
-    // TODO don't pass string ownership to C-side
-    char * cstrdup(char const * str);
-    char * cstrdup(std::string const & str);
-
-    template <>
-    inline void get_value_to(Json const & json, size_t key, char * & target)
-    {
-        target = cstrdup(json.at(key).get<std::string>());
-    }
-
-    template <>
-    inline void get_value_to(Json const & json, char const * key, char * & target)
-    {
-        auto it = json.find(key);
-        if (it != json.end()) {
-            target = cstrdup(it->get<std::string>());
-        }
-        else {
-            target = nullptr;
-        }
-    }
-
     template <typename T>
     inline void set_value_from(Json & json, char const * key, T const & source)
     {
@@ -108,6 +83,10 @@ namespace caff {
     void from_json(Json const & json, Credentials & credentials);
 
     void from_json(Json const & json, UserInfo & userInfo);
+
+    void from_json(Json const & json, GameInfo & gameInfo);
+
+    void from_json(Json const & json, GameList & games);
 
     void to_json(Json & json, IceInfo const & iceInfo);
 
