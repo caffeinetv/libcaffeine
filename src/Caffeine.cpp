@@ -40,7 +40,7 @@ try {
     case caff_ResultSuccess:
         return "Success";
     case caff_ResultFailure:
-        return "Request failed";
+        return "Failure";
 
     case caff_ResultOldVersion:
         return "Old version";
@@ -62,7 +62,7 @@ try {
     case caff_ResultTakeover:
         return "Broadcast takeover";
     case caff_ResultAlreadyBroadcasting:
-        return "Invalid state";
+        return "Already broadcasting";
     case caff_ResultDisconnected:
         return "Disconnected from server";
     case caff_ResultBroadcastFailed:
@@ -260,9 +260,9 @@ try {
     CHECK_PTR(broadcastStartedCallback);
     CHECK_PTR(broadcastFailedCallback);
 
-    if (title == nullptr || title[0] == '\0') {
-        // TODO: find a place for strings like this
-        title = "LIVE on Caffeine!";
+    std::string titleStr;
+    if (title) {
+        titleStr = title;
     }
 
     // Encapsulate void * inside lambdas, and other C++ -> C translations
@@ -272,7 +272,7 @@ try {
     };
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    return instance->startBroadcast(title, rating, startedCallback, failedCallback);
+    return instance->startBroadcast(std::move(titleStr), rating, startedCallback, failedCallback);
 }
 CATCHALL_RETURN(caff_ResultBroadcastFailed)
 

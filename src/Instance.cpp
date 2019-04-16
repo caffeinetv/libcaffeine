@@ -168,7 +168,7 @@ namespace caff {
         broadcast = std::make_shared<Broadcast>(
             *sharedCredentials,
             userInfo->username,
-            title,
+            std::move(title),
             rating,
             audioDevice,
             factory);
