@@ -1,5 +1,7 @@
 #include "Serialization.hpp"
 
+#include "ErrorLogging.hpp"
+
 #include <curl/curl.h>
 #include <mutex>
 #include <sstream>
@@ -39,13 +41,6 @@
 #define CONTENT_TYPE_JSON  "Content-Type: application/json"
 #define CONTENT_TYPE_FORM  "Content-Type: multipart/form-data"
 
-
-// TODO make these into something else?
-#define LOG_ERROR(...) ((void)0)
-#define LOG_WARN(...) ((void)0)
-#define LOG_DEBUG(...) ((void)0)
-#define LOG_INFO(...) ((void)0)
-#define TRACE() ((void)0)
 
 /* Notes for refactoring
  *
@@ -170,8 +165,6 @@ namespace caff {
 
     static bool doIsSupportedVersion()
     {
-        TRACE();
-
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, VERSION_CHECK_URL);
@@ -218,7 +211,6 @@ namespace caff {
      */
     static AuthResponse doSignin(char const * username, char const * password, char const * otp)
     {
-        TRACE();
         Json requestJson;
 
         try {
@@ -323,8 +315,6 @@ namespace caff {
 
     static AuthResponse doRefreshAuth(char const * refreshToken)
     {
-        TRACE();
-
         Json requestJson = { {"refresh_token", refreshToken} };
 
         auto requestBody = requestJson.dump();
@@ -385,7 +375,6 @@ namespace caff {
 
     static bool doRefreshCredentials(SharedCredentials & creds)
     {
-        TRACE();
         auto refreshToken = creds.lock().credentials.refreshToken;
         auto response = doRefreshAuth(refreshToken.c_str());
         if (response.credentials) {
@@ -404,7 +393,6 @@ namespace caff {
 
     static optional<UserInfo> doGetUserInfo(SharedCredentials & creds)
     {
-        TRACE();
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
         auto urlStr = GETUSER_URL(creds.lock().credentials.caid);
@@ -502,7 +490,6 @@ namespace caff {
         std::string const & streamUrl,
         SharedCredentials & creds)
     {
-        TRACE();
         Json requestJson = { {"ice_candidates", candidates} };
 
         std::string requestBody = requestJson.dump();
@@ -532,7 +519,7 @@ namespace caff {
             response = true;
             break;
         case 401:
-            LOG_INFO("Unauthorized - refreshing credentials");
+            LOG_DEBUG("Unauthorized - refreshing credentials");
             if (refreshCredentials(creds)) {
                 response = doTrickleCandidates(candidates, streamUrl, creds);
             }
@@ -561,8 +548,6 @@ namespace caff {
 
     static optional<HeartbeatResponse> doHeartbeatStream(std::string const & streamUrl, SharedCredentials & sharedCreds)
     {
-        TRACE();
-
         ScopedCurl curl(CONTENT_TYPE_JSON, sharedCreds);
 
         auto url = STREAM_HEARTBEAT_URL(streamUrl);
@@ -589,7 +574,7 @@ namespace caff {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
 
         if (responseCode == 401) {
-            LOG_INFO("Unauthorized - refreshing credentials");
+            LOG_DEBUG("Unauthorized - refreshing credentials");
             if (refreshCredentials(sharedCreds)) {
                 return doHeartbeatStream(streamUrl, sharedCreds);
             }
@@ -624,7 +609,6 @@ namespace caff {
         ScreenshotData const & screenshotData,
         SharedCredentials & sharedCreds)
     {
-        TRACE();
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
         ScopedPost post;
@@ -685,8 +669,6 @@ namespace caff {
         StageRequest const & request,
         SharedCredentials & creds)
     {
-        TRACE();
-
         if (!request.stage ||
             !request.stage->username ||
             request.stage->username->empty()) {
@@ -724,7 +706,7 @@ namespace caff {
         LOG_DEBUG("Http response [%ld]", responseCode);
 
         if (responseCode == 401) {
-            LOG_INFO("Unauthorized - refreshing credentials");
+            LOG_DEBUG("Unauthorized - refreshing credentials");
             if (refreshCredentials(creds)) {
                 return doStageUpdate(request, creds);
             }
@@ -736,7 +718,7 @@ namespace caff {
             responseJson = Json::parse(responseStr);
         }
         catch (...) {
-            LOG_ERROR("Failed to deserialized stage update response to JSON: %s", json_error.text);
+            LOG_ERROR("Failed to deserialize stage update response to JSON");
             return {};
         }
 
