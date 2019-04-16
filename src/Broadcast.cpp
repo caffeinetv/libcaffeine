@@ -16,9 +16,10 @@
 
 #include "libyuv.h"
 
-//#define WRITE_SCREENSHOT
+// Uncomment this to save png & jpg copies of the screenshot to the working directory
+//#define SAVE_SCREENSHOT
 
-#ifndef WRITE_SCREENSHOT
+#ifndef SAVE_SCREENSHOT
 #define STBI_WRITE_NO_STDIO
 #endif
 
@@ -705,7 +706,7 @@ namespace caff {
         }
     }
 
-    static void writeFunc(void * context, void * data, int size)
+    static void writeScreenshot(void * context, void * data, int size)
     {
         auto screenshot = reinterpret_cast<ScreenshotData *>(context);
         auto pixels = reinterpret_cast<uint8_t *>(data);
@@ -736,12 +737,12 @@ namespace caff {
         if (ret != 0) {
             throw std::exception("Failed to convert I420 to RAW");
         }
-#ifdef WRITE_SCREENSHOT
-        ret = stbi_write_png(R"(screenshot.png)", width, height, channels, &raw[0], destStride);
-        ret = stbi_write_jpg(R"(screenshot.jpg)", width, height, channels, &raw[0], 95);
+#ifdef SAVE_SCREENSHOT
+        ret = stbi_write_png("screenshot.png", width, height, channels, &raw[0], destStride);
+        ret = stbi_write_jpg("screenshot.jpg", width, height, channels, &raw[0], 95);
 #endif
         ScreenshotData screenshot;
-        ret = stbi_write_jpg_to_func( writeFunc, &screenshot, width, height, channels, &raw[0], 95);
+        ret = stbi_write_jpg_to_func(writeScreenshot, &screenshot, width, height, channels, &raw[0], 95);
         if (ret == 0) {
             throw std::exception("Failed to convert RAW to JPEG");
         }
