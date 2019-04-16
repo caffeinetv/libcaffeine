@@ -193,14 +193,12 @@ CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle);
  *
  * This destroys the internal factory objects, shuts down worker threads, etc.
  *
- * instanceHandle: the instance handle received from caff_initialize. This
+ * instanceHandle: the instance handle received from caff_createInstance. This
  *     handle will no longer be valid after the function returns.
  */
 CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle);
 
 /* TODO: sort these into above, and document */
-/* TODO: have the Instance own more of these to reduce API footprint */
-
 CAFFEINE_API caff_Result caff_signIn(
     caff_InstanceHandle instanceHandle,
     char const * username,

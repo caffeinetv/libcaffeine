@@ -14,11 +14,7 @@
     std::snprintf(errorBuffer, bufferSize, format, ##__VA_ARGS__); \
     RTC_LOG(severity) << errorBuffer
 
-#ifdef NDEBUG
-#   define LOG_DEBUG(...)
-#else
-#   define LOG_DEBUG(format, ...) do { LOG_IMPL(LS_INFO, format, ##__VA_ARGS__); } while (false)
-#endif
+#define LOG_DEBUG(format, ...) do { LOG_IMPL(LS_INFO, format, ##__VA_ARGS__); } while (false)
 #define LOG_WARNING(format, ...) do { LOG_IMPL(LS_WARNING, format, ##__VA_ARGS__); } while (false)
 #define LOG_ERROR(format, ...) do { LOG_IMPL(LS_ERROR, format, ##__VA_ARGS__); } while (false)
 
