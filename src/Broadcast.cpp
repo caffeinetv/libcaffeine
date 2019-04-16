@@ -190,64 +190,33 @@ namespace caff {
         return *responseStream->sdpAnswer;
     }
 
-    /*
-
-    // Falls back to obs_id if no foreground game detected
-    static char const * get_running_game_id(
-        GameList * games, const char * fallback_id)
-    {
-        char * foreground_process = get_foreground_process_name();
-        char const * id = get_game_id(games, foreground_process);
-        bfree(foreground_process);
-        return id ? id : fallback_id;
-    }
-
     // Returns `true` if the feed's game id changed
-    static bool caffeine_update_game_id(char const * game_id, Feed * feed)
+    bool Broadcast::updateGameId(Feed & feed)
     {
-        if (!feed) {
-            return false;
+        std::lock_guard<std::mutex> lock(mutex);
+
+        if (!gameId.empty()) {
+            if (!feed.content) {
+                feed.content = FeedContent{};
+            }
+
+            if (feed.content->id != gameId) {
+                feed.content->id = gameId;
+                feed.content->type = ContentType::Game;
+                return true;
+            }
+            else {
+                return false;
+            }
         }
-
-        bool did_change = false;
-
-        if (game_id) {
-            if (!feed->content.id || strcmp(feed->content.id, game_id) != 0) {
-                caff_set_string(&feed->content.id, game_id);
-                did_change = true;
-            }
-
-            if (!feed->content.type) {
-                caff_set_string(&feed->content.type, "game");
-                did_change = true;
-            }
-        } else if (feed->content.id || feed->content.type) {
-            caff_set_string(&feed->content.id, NULL);
-            caff_set_string(&feed->content.type, NULL);
-            did_change = true;
-            }
-
-        return did_change;
-    }
-
-    // Returns `true` if the feed's connection quality changed
-    static bool caffeine_update_connection_quality(
-        char const * quality, Feed * feed)
-    {
-        if (!quality) {
-            return false;
-        }
-
-        if (!feed->sourceConnectionQuality
-            || strcmp(quality, feed->sourceConnectionQuality) != 0)
-        {
-            caff_set_string(&feed->sourceConnectionQuality, quality);
+        else if (feed.content) {
+            feed.content = {};
             return true;
         }
-
-        return false;
+        else {
+            return false;
+        }
     }
-    */
 
     void Broadcast::start(
         std::function<void()> startedCallback,
@@ -387,30 +356,11 @@ namespace caff {
         });
     }
 
-    /*
-    static char const * getGameId(GameList * games, char const * const processName)
+    void Broadcast::setGameId(std::string id)
     {
-        if (games && processName) {
-            for (size_t gameIndex = 0; gameIndex < games->numGames; ++gameIndex) {
-                GameInfo * info = games->gameInfos[gameIndex];
-                if (!info) {
-                    continue;
-                }
-                for (size_t processNameIndex = 0; processNameIndex < info->numProcessNames; ++processNameIndex) {
-                    char const * currentName = info->processNames[processNameIndex];
-                    if (!currentName) {
-                        continue;
-                    }
-                    if (strcmp(processName, currentName) == 0) {
-                        return info->id;
-                    }
-                }
-            }
-        }
-
-        return NULL;
+        std::lock_guard<std::mutex> lock(mutex);
+        gameId = id;
     }
-    */
 
     void Broadcast::startHeartbeat()
     {
@@ -423,10 +373,6 @@ namespace caff {
             std::lock_guard<std::mutex> lock(mutex);
             std::swap(request, nextRequest);
         }
-
-        //GameList * games = caff_getGameList();
-        //std::string obsGameId = getGameId(games, "obs");
-        //caff_freeGameList(&games);
 
         // Obtain broadcast id
 
@@ -467,9 +413,11 @@ namespace caff {
 
         // Set stage live with current game content
 
-        //caffeine_update_game_id(
-        //    get_running_game_id(games, obs_game_id),
-        //    caff_get_stage_feed(request->stage, feedId));
+        auto feedIt = request->stage->feeds->find(feedId);
+        if (feedIt != request->stage->feeds->end()) {
+            updateGameId(feedIt->second);
+        }
+
         request->stage->live = true;
 
         if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL)
@@ -547,10 +495,7 @@ namespace caff {
                 }
             }
 
-            //shouldMutateFeed =
-            //    caffeine_update_game_id(
-            //        get_running_game_id(games, obs_game_id), feed)
-            //    || shouldMutateFeed;
+            shouldMutateFeed = updateGameId(feed) || shouldMutateFeed;
 
             if (!shouldMutateFeed) {
                 continue;

@@ -63,6 +63,7 @@ namespace caff {
             std::function<void(caff_Result)> failedCallback);
         void stop();
 
+        void setGameId(std::string id);
         void sendAudio(uint8_t const* samples, size_t samplesPerChannel);
         void sendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format);
 
@@ -89,6 +90,7 @@ namespace caff {
         std::string username;
         std::string title;
         caff_Rating rating;
+        std::string gameId;
 
         AudioDevice* audioDevice;
         VideoCapturer* videoCapturer;
@@ -105,6 +107,7 @@ namespace caff {
 
         variant<std::string, caff_Result> createFeed(std::string const & offer);
         void startHeartbeat();
+        bool updateGameId(Feed & feed);
         void startLongpollThread();
         ScreenshotData createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer);
     };

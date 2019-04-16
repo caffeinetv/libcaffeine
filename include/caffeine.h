@@ -181,6 +181,8 @@ CAFFEINE_API void caff_sendVideo(
     int32_t height,
     caff_VideoFormat format);
 
+CAFFEINE_API void caff_setGameId(caff_InstanceHandle, char const * gameId);
+
 CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle);
 
 /* End a Caffeine broadcast

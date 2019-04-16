@@ -256,6 +256,23 @@ try {
 CATCHALL_RETURN(caff_ResultBroadcastFailed)
 
 
+CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const * id)
+try {
+    CHECK_PTR(instanceHandle);
+    std::string idStr;
+    if (id) {
+        idStr = id;
+    }
+
+    auto instance = reinterpret_cast<Instance *>(instanceHandle);
+    auto broadcast = instance->getBroadcast();
+    if (broadcast) {
+        broadcast->setGameId(std::move(idStr));
+    }
+}
+CATCHALL
+
+
 CAFFEINE_API void caff_sendAudio(
     caff_InstanceHandle instanceHandle,
     uint8_t * samples,
