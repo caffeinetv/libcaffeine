@@ -28,7 +28,6 @@
 
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"
-#include "rtc_base/logging.h"
 
 using namespace std::chrono_literals;
 
@@ -90,8 +89,7 @@ namespace caff {
     {
         State currentState = state;
         if (currentState != expectedState) {
-            RTC_LOG(LS_ERROR) << "In state " << stateString(currentState)
-                << " when expecting " << stateString(expectedState);
+            LOG_ERROR("In state %s when expecting %s", stateString(currentState), stateString(expectedState));
             return false;
         }
         return true;
@@ -101,8 +99,7 @@ namespace caff {
     {
         bool result = state.compare_exchange_strong(oldState, newState);
         if (!result)
-            RTC_LOG(LS_ERROR) << "Transitioning to state " << stateString(newState)
-                << " expects state " << stateString(oldState);
+            LOG_ERROR("Transitioning to state %s expects state %s", stateString(newState), stateString(oldState));
         return result;
     }
 
@@ -312,16 +309,14 @@ namespace caff {
             }
 
             if (offer->type() != webrtc::SessionDescriptionInterface::kOffer) {
-                RTC_LOG(LS_ERROR)
-                    << "Expected " << webrtc::SessionDescriptionInterface::kOffer
-                    << " but got " << offer->type();
+                LOG_ERROR("Expected %s but got %s", webrtc::SessionDescriptionInterface::kOffer, offer->type().c_str());
                 failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
             std::string offerSdp;
             if (!offer->ToString(&offerSdp)) {
-                RTC_LOG(LS_ERROR) << "Error serializing SDP offer";
+                LOG_ERROR("Error serializing SDP offer");
                 failedCallback(caff_ResultRequestFailed);
                 return;
             }
@@ -329,7 +324,7 @@ namespace caff {
             webrtc::SdpParseError offerError;
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
-                RTC_LOG(LS_ERROR) << "Error parsing SDP offer: " << offerError.description;
+                LOG_ERROR("Error parsing SDP offer: %s", offerError.description.c_str());
                 failedCallback(caff_ResultRequestFailed);
                 return;
             }
@@ -347,7 +342,7 @@ namespace caff {
             auto result = createFeed(offerSdp);
             auto error = get_if<caff_Result>(&result);
             if (error) {
-                RTC_LOG(LS_ERROR) << "Failed to create feed";
+                LOG_ERROR("Failed to create feed");
                 failedCallback(*error);
                 return;
             }
@@ -358,14 +353,14 @@ namespace caff {
                 get<std::string>(result),
                 &answerError);
             if (!remoteDesc) {
-                RTC_LOG(LS_ERROR) << "Error parsing SDP answer: " << answerError.description;
+                LOG_ERROR("Error parsing SDP answer: %s", answerError.description.c_str());
                 failedCallback(caff_ResultRequestFailed);
                 return;
             }
 
             auto & candidates = observer->getFuture().get();
             if (!trickleCandidates(candidates, streamUrl, sharedCredentials)) {
-                RTC_LOG(LS_ERROR) << "Failed to negotiate ICE";
+                LOG_ERROR("Failed to negotiate ICE");
                 failedCallback(caff_ResultRequestFailed);
                 return;
             }
@@ -459,7 +454,7 @@ namespace caff {
         try {
             auto screenshotData = screenshotFuture.get();
             if (!updateScreenshot(*broadcastId, screenshotData, sharedCredentials)) {
-                RTC_LOG(LS_ERROR) << "Failed to send screenshot";
+                LOG_ERROR("Failed to send screenshot");
                 failedCallback(caff_ResultBroadcastFailed);
                 return;
             }
@@ -543,10 +538,10 @@ namespace caff {
                 failures = 0;
             }
             else {
-                RTC_LOG(LS_ERROR) << "Heartbeat failed";
+                LOG_ERROR("Heartbeat failed");
                 ++failures;
                 if (failures > max_failures) {
-                    RTC_LOG(LS_ERROR) << "Heartbeat failed " << failures << "times; ending broadcast.";
+                    LOG_ERROR("Heartbeat failed %d times; ending broadcast.", failures);
                     failedCallback(caff_ResultDisconnected);
                     break;
                 }
@@ -695,11 +690,11 @@ namespace caff {
                     screenshotPromise.set_value(createScreenshot(i420frame));
                 }
                 catch (std::exception ex) {
-                    RTC_LOG(LS_ERROR) << "Failed to create screenshot: " << ex.what();
+                    LOG_ERROR("Failed to create screenshot: %s", ex.what());
                     screenshotPromise.set_exception(std::current_exception());
                 }
                 catch (...) {
-                    RTC_LOG(LS_ERROR) << "Failed to create screenshot: (unknown exception)";
+                    LOG_ERROR("Failed to create screenshot");
                     screenshotPromise.set_exception(std::current_exception());
                 }
             }
@@ -735,7 +730,7 @@ namespace caff {
             width,
             height);
         if (ret != 0) {
-            throw std::exception("Failed to convert I420 to RAW");
+            throw std::runtime_error("Failed to convert I420 to RAW");
         }
 #ifdef SAVE_SCREENSHOT
         ret = stbi_write_png("screenshot.png", width, height, channels, &raw[0], destStride);
@@ -744,7 +739,7 @@ namespace caff {
         ScreenshotData screenshot;
         ret = stbi_write_jpg_to_func(writeScreenshot, &screenshot, width, height, channels, &raw[0], 95);
         if (ret == 0) {
-            throw std::exception("Failed to convert RAW to JPEG");
+            throw std::runtime_error("Failed to convert RAW to JPEG");
         }
         return screenshot;
     }

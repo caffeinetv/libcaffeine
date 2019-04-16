@@ -3,7 +3,6 @@
 #pragma once
 
 #include "caffeine.h"
-#include "CaffeineHelpers.hpp"
 
 #include "rtc_base/logging.h"
 

@@ -10,10 +10,10 @@
 namespace caff {
 
     class VideoCapturer : public cricket::VideoCapturer {
-        RTC_DISALLOW_COPY_AND_ASSIGN(VideoCapturer);
-
     public:
         VideoCapturer() {}
+        VideoCapturer(VideoCapturer const &) = delete;
+        VideoCapturer & operator=(VideoCapturer const &) = delete;
         virtual ~VideoCapturer() {}
 
         rtc::scoped_refptr<webrtc::I420Buffer> sendVideo(

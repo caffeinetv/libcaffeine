@@ -2,6 +2,8 @@
 
 #include "SessionDescriptionObserver.hpp"
 
+#include "Helpers.hpp"
+
 namespace caff {
 
     std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> CreateSessionDescriptionObserver::getFuture() {
@@ -13,7 +15,7 @@ namespace caff {
     }
 
     void CreateSessionDescriptionObserver::OnFailure(std::string const& error) {
-        RTC_LOG(LS_ERROR) << "Failed to create session description: " << error;
+        LOG_ERROR("Failed to create session description: %s", error.c_str());
         promise.set_value(nullptr);
     }
 
@@ -26,7 +28,7 @@ namespace caff {
     }
 
     void SetSessionDescriptionObserver::OnFailure(std::string const& error) {
-        RTC_LOG(LS_ERROR) << "Failed to create session description: " << error;
+        LOG_ERROR("Failed to set session description: %s", error.c_str());
         promise.set_value(false);
     }
 

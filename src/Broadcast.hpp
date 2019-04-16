@@ -9,7 +9,7 @@
 
 #include "caffeine.h"
 #include "Api.hpp"
-#include "CaffeineHelpers.hpp"
+#include "Helpers.hpp"
 
 #include "absl/types/optional.h"
 #include "common_types.h"

@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "CaffeineHelpers.hpp"
+#include "Helpers.hpp"
 #include "Instance.hpp"
 #include "LogSink.hpp"
 #include "Broadcast.hpp"
@@ -20,8 +20,12 @@
 using namespace caff;
 
 #define CATCHALL_RETURN(ret) \
+    catch (std::logic_error ex) { \
+        LOG_ERROR("Logic error. See logs."); \
+        return ret; \
+    } \
     catch (...) { \
-        RTC_LOG(LS_ERROR) << "Unhandled exception"; \
+        LOG_ERROR("Unhandled exception. See logs."); \
         return ret; \
     }
 
@@ -30,7 +34,7 @@ using namespace caff;
 
 CAFFEINE_API char const* caff_resultString(caff_Result error)
 try {
-    INVALID_ENUM_RETURN(nullptr, caff_Result, error);
+    CHECK_ENUM(caff_Result, error);
 
     switch (error) {
     case caff_ResultSuccess:
@@ -72,7 +76,7 @@ CATCHALL_RETURN(nullptr)
 
 CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback)
 try {
-    INVALID_ENUM_RETURN(caff_ResultInvalidArgument, caff_Severity, minSeverity);
+    CHECK_ENUM(caff_Severity, minSeverity);
 
     // Thread-safe single-init
     static caff_Result result = ([=]{
@@ -99,11 +103,11 @@ try {
         rtc::EnsureWinsockInit();
 #endif
         if (!rtc::InitializeSSL()) {
-            RTC_LOG(LS_ERROR) << "Caffeine RTC failed to initialize SSL";
+            LOG_ERROR("Libcaffeine failed to initialize SSL");
             return caff_ResultRequestFailed;
         }
 
-        RTC_LOG(LS_INFO) << "Caffeine RTC initialized";
+        LOG_ERROR("Libcaffeine initialized");
         return caff_ResultSuccess;
     })();
 
@@ -126,9 +130,9 @@ CAFFEINE_API caff_Result caff_signIn(
     char const * password,
     char const * otp)
 try {
-    RTC_DCHECK(instanceHandle);
-    RTC_DCHECK(username);
-    RTC_DCHECK(password);
+    CHECK_PTR(instanceHandle);
+    CHECK_CSTR(username);
+    CHECK_CSTR(password);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->signIn(username, password, otp);
@@ -138,9 +142,8 @@ CATCHALL_RETURN(caff_ResultRequestFailed)
 
 CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken)
 try {
-    RTC_DCHECK(instanceHandle);
-    RTC_DCHECK(refreshToken);
-    RTC_DCHECK(refreshToken[0]);
+    CHECK_PTR(instanceHandle);
+    CHECK_CSTR(refreshToken);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->refreshAuth(refreshToken);
@@ -150,7 +153,7 @@ CATCHALL_RETURN(caff_ResultRequestFailed)
 
 CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     instance->signOut();
@@ -160,7 +163,7 @@ CATCHALL
 
 CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->isSignedIn();
@@ -170,7 +173,7 @@ CATCHALL_RETURN(false)
 
 CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->getRefreshToken();
@@ -180,7 +183,7 @@ CATCHALL_RETURN(nullptr)
 
 CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->getUsername();
@@ -190,7 +193,7 @@ CATCHALL_RETURN(nullptr)
 
 CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->getStageId();
@@ -200,7 +203,7 @@ CATCHALL_RETURN(nullptr)
 
 CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->canBroadcast();
@@ -254,11 +257,15 @@ CAFFEINE_API caff_Result caff_startBroadcast(
     caff_BroadcastStartedCallback broadcastStartedCallback,
     caff_BroadcastFailedCallback broadcastFailedCallback)
 try {
-    RTC_DCHECK(instanceHandle);
-    RTC_DCHECK(title);
-    INVALID_ENUM_RETURN(caff_ResultInvalidArgument, caff_Rating, rating);
-    RTC_DCHECK(broadcastStartedCallback);
-    RTC_DCHECK(broadcastFailedCallback);
+    CHECK_PTR(instanceHandle);
+    CHECK_ENUM(caff_Rating, rating);
+    CHECK_PTR(broadcastStartedCallback);
+    CHECK_PTR(broadcastFailedCallback);
+
+    if (title == nullptr || title[0] == '\0') {
+        // TODO: find a place for strings like this
+        title = "LIVE on Caffeine!";
+    }
 
     // Encapsulate void * inside lambdas, and other C++ -> C translations
     auto startedCallback = [=] { broadcastStartedCallback(user_data); };
@@ -277,9 +284,9 @@ CAFFEINE_API void caff_sendAudio(
     uint8_t * samples,
     size_t samplesPerChannel)
 try {
-    RTC_DCHECK(instanceHandle);
-    RTC_DCHECK(samples);
-    RTC_DCHECK(samplesPerChannel);
+    CHECK_PTR(instanceHandle);
+    CHECK_PTR(samples);
+    CHECK_POSITIVE(samplesPerChannel);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
@@ -298,11 +305,11 @@ CAFFEINE_API void caff_sendVideo(
     int32_t height,
     caff_VideoFormat format)
 try {
-    RTC_DCHECK(frameData);
-    RTC_DCHECK(frameBytes);
-    RTC_DCHECK(width);
-    RTC_DCHECK(height);
-    INVALID_ENUM_CHECK(caff_VideoFormat, format);
+    CHECK_PTR(frameData);
+    CHECK_POSITIVE(frameBytes);
+    CHECK_POSITIVE(width);
+    CHECK_POSITIVE(height);
+    CHECK_ENUM(caff_VideoFormat, format);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
@@ -315,7 +322,7 @@ CATCHALL
 
 CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
@@ -331,21 +338,21 @@ CATCHALL_RETURN(caff_ConnectionQualityUnknown)
 
 CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
+    CHECK_PTR(instanceHandle);
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     instance->endBroadcast();
-    RTC_LOG(LS_INFO) << "Caffeine broadcast ended";
+    LOG_DEBUG("Caffeine broadcast ended");
 }
 CATCHALL
 
 
 CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle)
 try {
-    RTC_DCHECK(instanceHandle);
-    RTC_DCHECK(*instanceHandle);
+    CHECK_PTR(instanceHandle);
+    CHECK_PTR(*instanceHandle);
     auto instance = reinterpret_cast<Instance *>(*instanceHandle);
     delete instance;
     *instanceHandle = nullptr;
-    RTC_LOG(LS_INFO) << "Caffeine RTC deinitialized";
+    LOG_DEBUG("Caffeine instance freed");
 }
 CATCHALL

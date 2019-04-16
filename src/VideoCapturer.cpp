@@ -2,8 +2,9 @@
 
 #include "VideoCapturer.hpp"
 
+#include "Helpers.hpp"
+
 #include "common_video/libyuv/include/webrtc_libyuv.h"
-#include "rtc_base/logging.h"
 #include "libyuv.h"
 
 namespace caff {
@@ -20,8 +21,6 @@ namespace caff {
         case webrtc::kVideoRotation_270:
             return libyuv::kRotate270;
         }
-        RTC_NOTREACHED();
-        return libyuv::kRotate0;
     }
 
     // Copied from old version of libwebrtc
@@ -78,7 +77,7 @@ namespace caff {
         auto const now = rtc::TimeMicros();
         auto span = now - lastFrameMicros;
         if (span < minFrameMicros) {
-            RTC_LOG(LS_INFO) << "Dropping frame";
+            LOG_DEBUG("Dropping frame");
             return nullptr;
         }
         lastFrameMicros = now;
@@ -94,7 +93,7 @@ namespace caff {
         if (!AdaptFrame(width, height, now, now,
             &adaptedWidth, &adaptedHeight, &cropWidth, &cropHeight,
             &cropX, &cropY, &translatedCameraTime)) {
-            RTC_LOG(LS_INFO) << "Adapter dropped the frame.";
+            LOG_DEBUG("Adapter dropped the frame.");
             return nullptr;
         }
 

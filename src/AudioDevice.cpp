@@ -2,6 +2,8 @@
 
 #include "AudioDevice.hpp"
 
+#include "Helpers.hpp"
+
 namespace caff {
 
     // TODO: make these dynamic and transcode
@@ -14,9 +16,6 @@ namespace caff {
     AudioDevice::AudioDevice() : buffer(chunkSize) {}
 
     void AudioDevice::sendAudio(uint8_t const* data, size_t samplesPerChannel) {
-        RTC_DCHECK(data);
-        RTC_DCHECK(samplesPerChannel);
-
         size_t remainingData = samplesPerChannel * channels * sampleSize;
         size_t remainingBuffer = buffer.size() - bufferIndex;
         size_t toCopy = std::min(remainingData, remainingBuffer);

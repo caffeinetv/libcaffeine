@@ -2,8 +2,9 @@
 
 #include "X264Encoder.hpp"
 
+#include "Helpers.hpp"
+
 #include "common_video/libyuv/include/webrtc_libyuv.h"
-#include "rtc_base/logging.h"
 #include "system_wrappers/include/metrics.h"
 
 namespace caff {

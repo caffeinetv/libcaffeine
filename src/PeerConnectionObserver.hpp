@@ -11,10 +11,10 @@
 namespace caff {
 
     class PeerConnectionObserver : public webrtc::PeerConnectionObserver {
-        RTC_DISALLOW_COPY_AND_ASSIGN(PeerConnectionObserver);
-
     public:
         PeerConnectionObserver();
+        PeerConnectionObserver(PeerConnectionObserver const &) = delete;
+        PeerConnectionObserver & operator=(PeerConnectionObserver const &) = delete;
 
         using Candidates = std::vector<IceInfo>;
         std::future<Candidates const&> getFuture();
