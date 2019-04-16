@@ -38,7 +38,7 @@ set(libcaffeine_SOURCES
     src/Broadcast.cpp
     src/Broadcast.hpp
     src/Caffeine.cpp
-    src/Helpers.hpp
+    src/ErrorLogging.hpp
     src/Instance.cpp
     src/Instance.hpp
     src/LogSink.cpp

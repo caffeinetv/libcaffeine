@@ -105,7 +105,7 @@ namespace caff {
         if (!userInfo) {
             sharedCredentials.reset();
             this->refreshToken.reset();
-            return caff_ResultRequestFailed;
+            return caff_ResultFailure;
         }
         return response.result;
     }
@@ -155,7 +155,7 @@ namespace caff {
         std::lock_guard<std::mutex> lock(broadcastMutex);
 
         if (broadcast) {
-            return caff_ResultInvalidState;
+            return caff_ResultAlreadyBroadcasting;
         }
 
         auto dispatchFailure = [=](caff_Result error) {

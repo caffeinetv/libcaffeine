@@ -60,9 +60,7 @@ typedef enum caff_VideoFormat {
 typedef enum caff_Result {
     // General
     caff_ResultSuccess = 0,
-    caff_ResultRequestFailed,
-    caff_ResultInvalidArgument,
-    caff_ResultInvalidState,
+    caff_ResultFailure,
 
     // Auth
     caff_ResultOldVersion,
@@ -76,6 +74,7 @@ typedef enum caff_Result {
     caff_ResultNotSignedIn,
     caff_ResultOutOfCapacity,
     caff_ResultTakeover,
+    caff_ResultAlreadyBroadcasting,
     caff_ResultDisconnected,
     caff_ResultBroadcastFailed,
 

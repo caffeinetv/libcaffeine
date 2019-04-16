@@ -10,35 +10,34 @@
 // Format strings are easier on the eyes than c++ << streaming << operations
 #define LOG_IMPL(severity, format, ...) \
     constexpr size_t bufferSize = 4096; \
-    std::string errorBuffer; \
-    errorBuffer.resize(bufferSize); \
-    std::snprintf(&errorBuffer[0], bufferSize, format, ##__VA_ARGS__); \
+    char errorBuffer[bufferSize]; \
+    std::snprintf(errorBuffer, bufferSize, format, ##__VA_ARGS__); \
     RTC_LOG(severity) << errorBuffer
 
 #ifdef NDEBUG
-#   define LOG_DEBUG(format, ...)
+#   define LOG_DEBUG(...)
 #else
 #   define LOG_DEBUG(format, ...) do { LOG_IMPL(LS_INFO, format, ##__VA_ARGS__); } while (false)
 #endif
 #define LOG_WARNING(format, ...) do { LOG_IMPL(LS_WARNING, format, ##__VA_ARGS__); } while (false)
 #define LOG_ERROR(format, ...) do { LOG_IMPL(LS_ERROR, format, ##__VA_ARGS__); } while (false)
 
-#define CHECK(condition, format, ...) \
+#define CHECK(condition) \
     do { \
         if (!(condition)) { \
-            LOG_IMPL(LS_ERROR, "Check failed [%s]: " #format, #condition, ##__VA_ARGS__); \
+            LOG_IMPL(LS_ERROR, "Check failed [%s]: ", #condition); \
             throw std::logic_error(errorBuffer); \
         } \
     } while (false)
 
 #define CHECK_PTR(ptr) \
-    CHECK(ptr != nullptr, #ptr " is required")
+    CHECK(ptr != nullptr)
 
 #define CHECK_CSTR(cstr) \
-    CHECK(cstr != nullptr && cstr[0] != '\0', #cstr " is required")
+    CHECK(cstr != nullptr && cstr[0] != '\0')
 
 #define CHECK_POSITIVE(num) \
-    CHECK(num > 0, #num " must be greater than 0")
+    CHECK(num > 0)
 
 // Used to protect against changes in the underlying enums
 #define ASSERT_MATCH(left, right) static_assert( \
@@ -49,4 +48,4 @@
     ((value) >= 0 && (value) <= (prefix ## Last))
 
 #define CHECK_ENUM(prefix, value) \
-    CHECK(IS_VALID_ENUM_VALUE(prefix, value), "Invalid enum value provided")
+    CHECK(IS_VALID_ENUM_VALUE(prefix, value))

@@ -181,7 +181,7 @@ namespace caff {
             || responseStream->sdpAnswer->empty()
             || !responseStream->url
             || responseStream->url->empty()) {
-            return caff_ResultRequestFailed;
+            return caff_ResultFailure;
         }
 
         streamUrl = *responseStream->url;
@@ -303,21 +303,21 @@ namespace caff {
             auto offer = creationObserver->getFuture().get();
             if (!offer) {
                 // Logged by the observer
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 state.store(State::Offline);
                 return;
             }
 
             if (offer->type() != webrtc::SessionDescriptionInterface::kOffer) {
                 LOG_ERROR("Expected %s but got %s", webrtc::SessionDescriptionInterface::kOffer, offer->type().c_str());
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 return;
             }
 
             std::string offerSdp;
             if (!offer->ToString(&offerSdp)) {
                 LOG_ERROR("Error serializing SDP offer");
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 return;
             }
 
@@ -325,7 +325,7 @@ namespace caff {
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
                 LOG_ERROR("Error parsing SDP offer: %s", offerError.description.c_str());
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 return;
             }
 
@@ -335,7 +335,7 @@ namespace caff {
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
             auto setLocalSuccess = setLocalObserver->getFuture().get();
             if (!setLocalSuccess) {
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 return;
             }
 
@@ -354,14 +354,14 @@ namespace caff {
                 &answerError);
             if (!remoteDesc) {
                 LOG_ERROR("Error parsing SDP answer: %s", answerError.description.c_str());
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 return;
             }
 
             auto & candidates = observer->getFuture().get();
             if (!trickleCandidates(candidates, streamUrl, sharedCredentials)) {
                 LOG_ERROR("Failed to negotiate ICE");
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 return;
             }
 
@@ -372,7 +372,7 @@ namespace caff {
             auto setRemoteSuccess = setRemoteObserver->getFuture().get();
             if (!setRemoteSuccess) {
                 // Logged by the observer
-                failedCallback(caff_ResultRequestFailed);
+                failedCallback(caff_ResultFailure);
                 return;
             }
 

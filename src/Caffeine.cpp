@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "Helpers.hpp"
+#include "ErrorLogging.hpp"
 #include "Instance.hpp"
 #include "LogSink.hpp"
 #include "Broadcast.hpp"
@@ -39,12 +39,8 @@ try {
     switch (error) {
     case caff_ResultSuccess:
         return "Success";
-    case caff_ResultRequestFailed:
+    case caff_ResultFailure:
         return "Request failed";
-    case caff_ResultInvalidArgument:
-        return "Invalid argument";
-    case caff_ResultInvalidState:
-        return "Invalid state";
 
     case caff_ResultOldVersion:
         return "Old version";
@@ -65,6 +61,8 @@ try {
         return "Out of capacity";
     case caff_ResultTakeover:
         return "Broadcast takeover";
+    case caff_ResultAlreadyBroadcasting:
+        return "Invalid state";
     case caff_ResultDisconnected:
         return "Disconnected from server";
     case caff_ResultBroadcastFailed:
@@ -104,7 +102,7 @@ try {
 #endif
         if (!rtc::InitializeSSL()) {
             LOG_ERROR("Libcaffeine failed to initialize SSL");
-            return caff_ResultRequestFailed;
+            return caff_ResultFailure;
         }
 
         LOG_ERROR("Libcaffeine initialized");
@@ -113,7 +111,7 @@ try {
 
     return result;
 }
-CATCHALL_RETURN(caff_ResultRequestFailed)
+CATCHALL_RETURN(caff_ResultFailure)
 
 
 CAFFEINE_API caff_InstanceHandle caff_createInstance()
@@ -137,7 +135,7 @@ try {
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->signIn(username, password, otp);
 }
-CATCHALL_RETURN(caff_ResultRequestFailed)
+CATCHALL_RETURN(caff_ResultFailure)
 
 
 CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken)
@@ -148,7 +146,7 @@ try {
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->refreshAuth(refreshToken);
 }
-CATCHALL_RETURN(caff_ResultRequestFailed)
+CATCHALL_RETURN(caff_ResultFailure)
 
 
 CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle)

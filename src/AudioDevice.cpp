@@ -2,7 +2,7 @@
 
 #include "AudioDevice.hpp"
 
-#include "Helpers.hpp"
+#include "ErrorLogging.hpp"
 
 namespace caff {
 

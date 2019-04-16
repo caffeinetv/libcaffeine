@@ -2,7 +2,7 @@
 
 #include "X264Encoder.hpp"
 
-#include "Helpers.hpp"
+#include "ErrorLogging.hpp"
 
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "system_wrappers/include/metrics.h"
@@ -40,10 +40,9 @@ namespace caff {
         case X264_TYPE_AUTO:
             return webrtc::kVideoFrameDelta;
         default:
-            break;
+            LOG_WARNING("Invalid frame type: %d", type);
+            return webrtc::kEmptyFrame;
         }
-        RTC_NOTREACHED() << "Invalid frame type: " << type;
-        return webrtc::kEmptyFrame;
     }
 
     // Helper method used by H264EncoderImpl::Encode.
@@ -63,9 +62,9 @@ namespace caff {
         size_t fragmentsCount = 0;
 
         for (uint32_t idx = 0; idx < numNals; ++idx, ++fragmentsCount) {
-            RTC_CHECK_GE(nal[idx].i_payload, 0);
+            CHECK_POSITIVE(nal[idx].i_payload);
             // Ensure |requiredSize| will not overflow.
-            RTC_CHECK_LE(nal[idx].i_payload, std::numeric_limits<size_t>::max() - requiredSize);
+            CHECK(nal[idx].i_payload <= std::numeric_limits<size_t>::max() - requiredSize);
             requiredSize += nal[idx].i_payload;
             // x264 uses 3 byte startcode instead, and uses 4 byte start codes only for
             // SPS and PPS. In the case of 3 byte start codes, we need to prepend an
@@ -86,9 +85,10 @@ namespace caff {
 
             if (encodedImage->_size < requiredSize) {
                 // Encoded data > unencoded data. Allocate required bytes.
-                RTC_LOG(LS_WARNING)
-                    << "Encoding produced more bytes than the original image data! Original bytes: "
-                    << encodedImage->_size << ", encoded bytes: " << requiredSize << ".";
+                LOG_WARNING(
+                    "Encoding produced more bytes than the original image data! Original: %zd, encoded: %zd",
+                    encodedImage->_size,
+                    requiredSize);
                 encodedImage->_size = requiredSize;
             }
             encodedImage->_buffer = new uint8_t[encodedImage->_size];
@@ -108,7 +108,7 @@ namespace caff {
         encodedImage->_length = 0;
 
         for (uint32_t idx = 0; idx < numNals; ++idx, ++frag) {
-            RTC_DCHECK_GE(nal[idx].i_payload, 4);
+            CHECK(nal[idx].i_payload >= 4);
 
             uint32_t offset = nal[idx].b_long_startcode ? kLongStartcodeSize : kShortStartcodeSize;
             uint32_t naluSize = nal[idx].i_payload - offset;
@@ -130,7 +130,7 @@ namespace caff {
     }
 
     X264Encoder::X264Encoder(const cricket::VideoCodec& codec) {
-        RTC_LOG(LS_INFO) << "Using x264 encoder";
+        LOG_DEBUG("Using x264 encoder");
         std::string packetizationModeString;
         if (codec.GetParam(cricket::kH264FmtpPacketizationMode, &packetizationModeString)
             && packetizationModeString == "1") {
@@ -169,7 +169,7 @@ namespace caff {
             reportError();
             return releaseRet;
         }
-        RTC_DCHECK(!encoder);
+        CHECK(!encoder);
 
         numberOfCores = numCores;
 
@@ -187,8 +187,8 @@ namespace caff {
         x264_param_t encoderParams;
         int32_t ret = x264_param_default_preset(&encoderParams, "veryfast", "zerolatency");
         if (0 != ret) {
-            RTC_LOG(LS_ERROR) << "Failed to create x264 param defaults";
-            RTC_DCHECK(!encoder);
+            LOG_ERROR("Failed to create x264 param defaults");
+            CHECK(!encoder);
             reportError();
             return WEBRTC_VIDEO_CODEC_ERROR;
         }
@@ -236,8 +236,8 @@ namespace caff {
 
         ret = x264_picture_alloc(&pictureIn, encoderParams.i_csp, encoderParams.i_width, encoderParams.i_height);
         if (0 != ret) {
-            RTC_LOG(LS_ERROR) << "Failed to allocate picture. errno: " << ret;
-            RTC_DCHECK(!encoder);
+            LOG_ERROR("Failed to allocate picture. errno: %d", ret);
+            CHECK(!encoder);
             reportError();
             return WEBRTC_VIDEO_CODEC_ERROR;
         }
@@ -248,7 +248,7 @@ namespace caff {
         // create encoder
         encoder = x264_encoder_open(&encoderParams);
         if (!encoder) {
-            RTC_LOG(LS_ERROR) << "Failed to open x264 encoder";
+            LOG_ERROR("Failed to open x264 encoder");
 
             x264_picture_clean(&pictureIn);
             encoder = nullptr;
@@ -309,9 +309,9 @@ namespace caff {
         }
 
         if (!encodedImageCallback) {
-            RTC_LOG(LS_WARNING)
-                << "InitEncode() has been called, but a callback function "
-                << "has not been set with RegisterEncodeCompleteCallback()";
+            LOG_WARNING(
+                "InitEncode() has been called, but a callback function "
+                "has not been set with RegisterEncodeCompleteCallback()");
             reportError();
             return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
         }
@@ -329,7 +329,7 @@ namespace caff {
 
                 int ret = x264_encoder_reconfig(encoder, encoderParams);
                 if (ret < 0) {
-                    RTC_LOG(LS_ERROR) << "Failed to reconfig encoder; error code: " << ret;
+                    LOG_ERROR("Failed to reconfig encoder; error code: %d", ret);
                 }
             }
             height = inputFrame.height();
@@ -338,7 +338,7 @@ namespace caff {
         bool forceKeyFrame = false;
         if (frameTypes != nullptr) {
             // We only support a single stream.
-            RTC_DCHECK_EQ(frameTypes->size(), 1);
+            CHECK(frameTypes->size() == 1);
             // Skip frame?
             if ((*frameTypes)[0] == webrtc::kEmptyFrame) {
                 return WEBRTC_VIDEO_CODEC_OK;
@@ -363,7 +363,7 @@ namespace caff {
         int32_t encodedFrameSize = x264_encoder_encode(encoder, &nal, &numNals, &pictureIn, &pictureOut);
 
         if (encodedFrameSize < 0) {
-            RTC_LOG(LS_ERROR) << "x264 frame encoding failed. x264_encoder_encode returned: " << encodedFrameSize;
+            LOG_ERROR("x264 frame encoding failed. x264_encoder_encode returned: %d", encodedFrameSize);
             reportError();
             x264_encoder_close(encoder);
             encoder = nullptr;

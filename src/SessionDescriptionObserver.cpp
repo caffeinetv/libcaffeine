@@ -2,7 +2,7 @@
 
 #include "SessionDescriptionObserver.hpp"
 
-#include "Helpers.hpp"
+#include "ErrorLogging.hpp"
 
 namespace caff {
 

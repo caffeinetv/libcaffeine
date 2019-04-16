@@ -2,7 +2,7 @@
 
 #include "VideoCapturer.hpp"
 
-#include "Helpers.hpp"
+#include "ErrorLogging.hpp"
 
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "libyuv.h"
