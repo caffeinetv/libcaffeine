@@ -269,6 +269,9 @@ try {
     if (broadcast) {
         broadcast->setGameId(std::move(idStr));
     }
+    else {
+        LOG_DEBUG("Setting game ID without an active broadcast. (This is probably OK if the stream just ended)");
+    }
 }
 CATCHALL
 
@@ -286,6 +289,9 @@ try {
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
         broadcast->sendAudio(samples, samplesPerChannel);
+    }
+    else {
+        LOG_DEBUG("Sending audio without an active broadcast. (This is probably OK if the stream just ended)");
     }
 }
 CATCHALL
@@ -309,6 +315,9 @@ try {
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
         broadcast->sendVideo(frameData, frameBytes, width, height, format);
+    }
+    else {
+        LOG_DEBUG("Sending video without an active broadcast. (This is probably OK if the stream just ended)");
     }
 }
 CATCHALL
