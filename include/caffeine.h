@@ -25,7 +25,7 @@
 #   define CAFFEINE_API CAFFEINE_LINKAGE
 #endif
 
-/* Log severities */
+// Log severities
 typedef enum caff_Severity {
     caff_SeverityAll,
     caff_SeverityDebug,
@@ -35,7 +35,7 @@ typedef enum caff_Severity {
     caff_SeverityLast = caff_SeverityNone
 } caff_Severity;
 
-/* Raw video formats supported by WebRTC */
+// Raw video formats supported by WebRTC
 typedef enum caff_VideoFormat {
     caff_VideoFormatUnknown,
     caff_VideoFormatI420,
@@ -56,7 +56,7 @@ typedef enum caff_VideoFormat {
     caff_VideoFormatLast = caff_VideoFormatBgra
 } caff_VideoFormat;
 
-/* Status results and errors */
+// Status results and errors
 typedef enum caff_Result {
     // General
     caff_ResultSuccess = 0,
@@ -81,34 +81,34 @@ typedef enum caff_Result {
     caff_ResultLast = caff_ResultBroadcastFailed
 } caff_Result;
 
-/* Content rating for broadcasts */
+// Content rating for broadcasts
 typedef enum caff_Rating {
     caff_RatingNone,
     caff_RatingSeventeenPlus,
     caff_RatingLast = caff_RatingSeventeenPlus
 } caff_Rating;
 
-/* Rough measure of connection quality, reported by Caffeine's back-end */
+// Rough measure of connection quality, reported by Caffeine's back-end
 typedef enum caff_ConnectionQuality {
     caff_ConnectionQualityGood,
     caff_ConnectionQualityPoor,
     caff_ConnectionQualityUnknown
 } caff_ConnectionQuality;
 
-/* Opaque handle to Caffeine instance */
+// Opaque handle to Caffeine instance
 typedef struct caff_Instance * caff_InstanceHandle;
 
-/* Callback type for WebRTC log messages */
+// Callback type for WebRTC log messages
 typedef void(*caff_LogCallback)(caff_Severity severity, char const * message);
 
-/* Game enumeration callback */
+// Game enumeration callback
 typedef void(*caff_GameEnumerator)(
     void * userData,
     char const * processName,
     char const * gameId,
     char const * gameName);
 
-/* Callback types for starting broadcast */
+// Callback types for starting broadcast
 typedef void(*caff_BroadcastStartedCallback)(void * userData);
 typedef void(*caff_BroadcastFailedCallback)(void * userData, caff_Result error);
 
@@ -136,11 +136,10 @@ CAFFEINE_API char const * caff_resultString(caff_Result error);
  */
 CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback);
 
-/* Create a caffeine instance */
+// Create a caffeine instance
 CAFFEINE_API caff_InstanceHandle caff_createInstance();
 
-/* Enumerate the supported games list
- */
+// Enumerate the supported games list
 CAFFEINE_API caff_Result caff_enumerateGames(
     caff_InstanceHandle instanceHandle,
     void * userData,
@@ -169,10 +168,9 @@ CAFFEINE_API caff_Result caff_startBroadcast(
     caff_BroadcastStartedCallback broadcastStartedCallback,
     caff_BroadcastFailedCallback broadcastFailedCallback);
 
-/* TODO pass format, channels, etc */
+// TODO pass format, channels, etc
 CAFFEINE_API void caff_sendAudio(caff_InstanceHandle instanceHandle, uint8_t * samples, size_t samplesPerChannel);
 
-/* todo pass pixel format */
 CAFFEINE_API void caff_sendVideo(
     caff_InstanceHandle streamHandle,
     uint8_t const * frameData,
@@ -200,7 +198,7 @@ CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle);
  */
 CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle);
 
-/* TODO: sort these into above, and document */
+// TODO: sort these into above, and document
 CAFFEINE_API caff_Result caff_signIn(
     caff_InstanceHandle instanceHandle,
     char const * username,

@@ -1,6 +1,6 @@
-#pragma once
-
 // Copyright 2019 Caffeine Inc. All rights reserved.
+
+#pragma once
 
 #include "caffeine.h"
 
@@ -67,8 +67,7 @@ namespace caff {
         bool canBroadcast;
     };
 
-    /* TODO: is there a way to encapsulate game process detection without touching on privacy issues? */
-    /* Supported game detection info */
+    // Supported game detection info
     struct GameInfo {
         std::string id;
         std::string name;
@@ -182,9 +181,13 @@ namespace caff {
         SharedCredentials & sharedCreds);
 
     optional<GameList> getSupportedGames();
+
     bool isSupportedVersion();
+
     AuthResponse signIn(char const * username, char const * password, char const * otp);
+
     AuthResponse refreshAuth(char const * refreshToken);
+
     optional<UserInfo> getUserInfo(SharedCredentials & creds);
 
     bool trickleCandidates(

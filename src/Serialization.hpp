@@ -1,10 +1,11 @@
+// Copyright 2019 Caffeine Inc. All rights reserved.
+
 #pragma once
 
 #include "Api.hpp"
 #include "nlohmann/json.hpp"
 
-//// C datatype serialization has to be outside of caff namespace
-//// TODO: don't pass ownership of these to C-side
+// C datatype serialization has to be outside of caff namespace
 
 NLOHMANN_JSON_SERIALIZE_ENUM(caff_ConnectionQuality, {
     {caff_ConnectionQualityGood, "GOOD"},
@@ -38,14 +39,14 @@ namespace nlohmann {
 namespace caff {
     using Json = nlohmann::json;
 
-    template <typename ValueT, typename KeyT>
-    inline void get_value_to(Json const & json, KeyT key, ValueT & target)
+    template <typename T>
+    inline void get_value_to(Json const & json, char const * key, T & target)
     {
         json.at(key).get_to(target);
     }
 
-    template <typename ValueT>
-    inline void get_value_to(Json const & json, char const * key, optional<ValueT> & target)
+    template <typename T>
+    inline void get_value_to(Json const & json, char const * key, optional<T> & target)
     {
         auto it = json.find(key);
         if (it != json.end()) {

@@ -37,7 +37,7 @@ namespace webrtc {
     class PeerConnectionFactoryInterface;
     class MediaStreamInterface;
     class PeerConnectionInterface;
-}  // namespace webrtc
+}
 
 namespace caff {
     class AudioDevice;
@@ -63,14 +63,15 @@ namespace caff {
             std::function<void(caff_Result)> failedCallback);
         void stop();
 
+        // TODO
+        //void setTitle(std::string title);
+        //void setRating(std::string rating);
         void setGameId(std::string id);
+
         void sendAudio(uint8_t const* samples, size_t samplesPerChannel);
         void sendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format);
 
         caff_ConnectionQuality getConnectionQuality() const;
-
-        //void SetTitle(std::string title);
-        //void SetRating(std::string rating);
 
     private:
         enum class State { Offline, Starting, Online, Stopping };

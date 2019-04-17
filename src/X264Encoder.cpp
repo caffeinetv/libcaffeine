@@ -15,12 +15,10 @@ namespace caff {
     const float kHighQualityCrf = 18.0f;
     const float kNormalQualityCrf = 21.5f;
 
-    // maximum height for high quality crf. above and equal to 720p will use normal
-    // quality
+    // maximum height for high quality crf. above and equal to 720p will use normal quality
     const int kMaxFrameHeightHighQualityCrf = 720;
 
-    // minimum bitrate for high quality crf. above 1000 kbps will use high quality
-    // crf if before 720p.
+    // minimum bitrate for high quality crf. above 1000 kbps will use high quality crf if before 720p.
     const int kMinBitrateKbpsHighQualityCrf = 1000;
 
     // Used by histograms. Values of entries should not be changed.
@@ -139,7 +137,6 @@ namespace caff {
     }
 
     X264Encoder::~X264Encoder() {
-        // Release x264_encoder
         Release();
     }
 

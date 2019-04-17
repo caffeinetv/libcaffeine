@@ -10,14 +10,12 @@
 #include <algorithm>
 
 
-/* TODO: C++ify (namespace, raii, not libcurl, etc) */
-
 // TODO: should backend differentiate client from libcaffeine version?
 #define API_VERSION "0.1"
 
 #define UNUSED_PARAMETER(p) ((void) p)
 
-/* TODO: load these from config? environment? */
+// TODO: load these from config? environment?
 #if CAFFEINE_STAGING
 #define CAFFEINE_DOMAIN "staging.caffeine.tv/"
 #else
@@ -27,7 +25,7 @@
 #define API_ENDPOINT       "https://api." CAFFEINE_DOMAIN
 #define REALTIME_ENDPOINT  "https://realtime." CAFFEINE_DOMAIN
 
-/* TODO: some of these are deprecated */
+// TODO: some of these are deprecated
 #define VERSION_CHECK_URL  API_ENDPOINT "v1/version-check"
 #define SIGNIN_URL         API_ENDPOINT "v1/account/signin"
 #define REFRESH_TOKEN_URL  API_ENDPOINT "v1/account/token"
@@ -60,8 +58,6 @@
  */
 
 namespace caff {
-    // RAII helper to get rid of gotos
-    // TODO use a C++ HTTP library
     class ScopedCurl final {
     public:
         explicit ScopedCurl(char const * contentType) : curl(curl_easy_init()), headers(basicHeaders(contentType))
@@ -137,7 +133,7 @@ namespace caff {
 
 #define RETRY_MAX 3
 
-    /* TODO: this is not very robust or intelligent. Some kinds of failure willarray
+    /* TODO: this is not very robust or intelligent. Some kinds of failure will
      * never be recoverable and should not be retried
      */
 #define RETRY_REQUEST(ResultT, request) \
