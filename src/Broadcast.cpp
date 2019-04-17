@@ -38,6 +38,7 @@ namespace caff {
         std::string username,
         std::string title,
         caff_Rating rating,
+        std::string gameId,
         AudioDevice* audioDevice,
         webrtc::PeerConnectionFactoryInterface* factory)
         : isScreenshotNeeded(true)
@@ -45,6 +46,7 @@ namespace caff {
         , username(std::move(username))
         , title(std::move(title))
         , rating(rating)
+        , gameId(gameId)
         , audioDevice(audioDevice)
         , factory(factory)
     {}

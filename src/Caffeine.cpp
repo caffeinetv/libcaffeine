@@ -231,6 +231,7 @@ CAFFEINE_API caff_Result caff_startBroadcast(
     void * user_data,
     char const * title,
     caff_Rating rating,
+    char const * gameId,
     caff_BroadcastStartedCallback broadcastStartedCallback,
     caff_BroadcastFailedCallback broadcastFailedCallback)
 try {
@@ -244,6 +245,11 @@ try {
         titleStr = title;
     }
 
+    std::string gameIdStr;
+    if (gameId) {
+        gameIdStr = gameId;
+    }
+
     // Encapsulate void * inside lambdas, and other C++ -> C translations
     auto startedCallback = [=] { broadcastStartedCallback(user_data); };
     auto failedCallback = [=](caff_Result error) {
@@ -251,7 +257,7 @@ try {
     };
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    return instance->startBroadcast(std::move(titleStr), rating, startedCallback, failedCallback);
+    return instance->startBroadcast(std::move(titleStr), rating, std::move(gameIdStr), startedCallback, failedCallback);
 }
 CATCHALL_RETURN(caff_ResultBroadcastFailed)
 

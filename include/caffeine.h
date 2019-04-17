@@ -157,6 +157,7 @@ CAFFEINE_API caff_Result caff_enumerateGames(
  * username: the username of the broadcaster
  * title: the raw (untagged) broadcast title
  * rating: the content rating (17+ or none)
+ * gameId (optional): currently active game, for showing icons and categorizing on the Caffeine website
  * broadcastStartedCallback: called when broadcast successfully starts
  * broadcastFailedCallback: called when broadcast fails to start
  */
@@ -165,6 +166,7 @@ CAFFEINE_API caff_Result caff_startBroadcast(
     void * userData,
     char const * title,
     caff_Rating rating,
+    char const * gameId,
     caff_BroadcastStartedCallback broadcastStartedCallback,
     caff_BroadcastFailedCallback broadcastFailedCallback);
 

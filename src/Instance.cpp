@@ -163,6 +163,7 @@ namespace caff {
     caff_Result Instance::startBroadcast(
         std::string title,
         caff_Rating rating,
+        std::string gameId,
         std::function<void()> startedCallback,
         std::function<void(caff_Result)> failedCallback)
     {
@@ -188,6 +189,7 @@ namespace caff {
             userInfo->username,
             std::move(title),
             rating,
+            std::move(gameId),
             audioDevice,
             factory);
         broadcast->start(startedCallback, dispatchFailure);

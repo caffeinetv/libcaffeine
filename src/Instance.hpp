@@ -44,6 +44,7 @@ namespace caff {
         caff_Result startBroadcast(
             std::string title,
             caff_Rating rating,
+            std::string gameId,
             std::function<void()> startedCallback,
             std::function<void(caff_Result)> failedCallback);
 

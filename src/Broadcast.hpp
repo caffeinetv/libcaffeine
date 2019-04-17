@@ -53,6 +53,7 @@ namespace caff {
             std::string username,
             std::string title,
             caff_Rating rating,
+            std::string gameId,
             AudioDevice* audioDevice,
             webrtc::PeerConnectionFactoryInterface* factory);
 
