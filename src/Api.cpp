@@ -473,7 +473,8 @@ namespace caff {
             return {};
         }
 
-        return GameList(responseJson);
+        GameList games = responseJson;
+        return games;
     }
 
     optional<GameList> getSupportedGames()

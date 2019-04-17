@@ -3,6 +3,9 @@
 #pragma once
 
 #include "Api.hpp"
+
+#include "ErrorLogging.hpp"
+
 #include "nlohmann/json.hpp"
 
 // C datatype serialization has to be outside of caff namespace
@@ -16,7 +19,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(caff_ConnectionQuality, {
 namespace nlohmann {
     template <typename T>
     struct adl_serializer<caff::optional<T>> {
-        static void to_json(json& json, const caff::optional<T>& opt) {
+        static void to_json(json& json, const caff::optional<T>& opt)
+        {
             if (opt.has_value()) {
                 json = *opt;
             }
@@ -25,13 +29,34 @@ namespace nlohmann {
             }
         }
 
-        static void from_json(const json& json, caff::optional<T>& opt) {
+        static void from_json(const json& json, caff::optional<T>& opt)
+        {
             if (json.is_null()) {
                 opt.reset();
             }
             else {
                 opt = json.get<T>();
             }
+        }
+    };
+
+    template <>
+    struct adl_serializer<caff::GameList> {
+        static void from_json(const json & json, caff::GameList & gameList)
+        {
+            for (auto & entry : json) {
+                try {
+                    gameList.emplace_back(entry);
+                }
+                catch (...) {
+                    LOG_DEBUG("Skipping unreadable game info");
+                }
+            }
+        }
+
+        static void to_json(json & json, caff::GameList const & gameList)
+        {
+
         }
     };
 }
@@ -86,8 +111,6 @@ namespace caff {
     void from_json(Json const & json, UserInfo & userInfo);
 
     void from_json(Json const & json, GameInfo & gameInfo);
-
-    void from_json(Json const & json, GameList & games);
 
     void to_json(Json & json, IceInfo const & iceInfo);
 

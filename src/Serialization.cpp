@@ -44,21 +44,6 @@ namespace caff {
         }
     }
 
-    void from_json(Json const & json, GameList & games)
-    {
-        for (auto & entry : json) {
-            try {
-                auto info = std::make_shared<GameInfo>(entry);
-                for (auto & processName : info->processNames) {
-                    games[processName] = info;
-                }
-            }
-            catch (...) {
-                LOG_DEBUG("Skipping unreadable game info");
-            }
-        }
-    }
-
     void to_json(Json & json, IceInfo const & iceInfo)
     {
         set_value_from(json, "candidate", iceInfo.sdp);

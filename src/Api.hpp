@@ -74,9 +74,7 @@ namespace caff {
         std::vector<std::string> processNames;
     };
 
-    // Map of processName -> gameInfo
-    // Note: inherits from map to disambiguate constructor for Json conversion
-    struct GameList : public std::map<std::string, std::shared_ptr<GameInfo>> {};
+    using GameList = std::vector<GameInfo>;
 
     struct IceInfo {
         std::string sdp;

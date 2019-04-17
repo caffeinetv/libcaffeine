@@ -90,8 +90,10 @@ namespace caff {
             LOG_ERROR("Failed to load supported game list");
             return caff_ResultFailure;
         }
-        for (auto const & entry : *gameList) {
-            enumerator(entry.first.c_str(), entry.second->id.c_str(), entry.second->name.c_str());
+        for (auto const & game : *gameList) {
+            for (auto const & processName : game.processNames) {
+                enumerator(processName.c_str(), game.id.c_str(), game.name.c_str());
+            }
         }
         return caff_ResultSuccess;
     }
