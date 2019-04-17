@@ -53,11 +53,6 @@ namespace nlohmann {
                 }
             }
         }
-
-        static void to_json(json & json, caff::GameList const & gameList)
-        {
-
-        }
     };
 }
 
