@@ -10,7 +10,7 @@ TODO: Documentation
 
 Prereqs:
 
-* Visual Studio 2017
+* Visual Studio 2017 (and [LLVM Compiler Toolchain Extension](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain))
 * LLVM toolchain
 * Google depot tools
 
