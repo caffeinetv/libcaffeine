@@ -6,18 +6,15 @@
 
 namespace caff {
 
-    std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> CreateSessionDescriptionObserver::getFuture()
-    {
+    std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> CreateSessionDescriptionObserver::getFuture() {
         return promise.get_future();
     }
 
-    void CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface * desc)
-    {
+    void CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface * desc) {
         promise.set_value(std::unique_ptr<webrtc::SessionDescriptionInterface>(desc));
     }
 
-    void CreateSessionDescriptionObserver::OnFailure(std::string const & error)
-    {
+    void CreateSessionDescriptionObserver::OnFailure(std::string const & error) {
         LOG_ERROR("Failed to create session description: %s", error.c_str());
         promise.set_value(nullptr);
     }
@@ -26,8 +23,7 @@ namespace caff {
 
     void SetSessionDescriptionObserver::OnSuccess() { promise.set_value(true); }
 
-    void SetSessionDescriptionObserver::OnFailure(std::string const & error)
-    {
+    void SetSessionDescriptionObserver::OnFailure(std::string const & error) {
         LOG_ERROR("Failed to set session description: %s", error.c_str());
         promise.set_value(false);
     }

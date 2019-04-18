@@ -8,8 +8,7 @@
 #include <sstream>
 
 namespace caff {
-    caff_Severity rtcToCaffSeverity(rtc::LoggingSeverity rtcSeverity)
-    {
+    caff_Severity rtcToCaffSeverity(rtc::LoggingSeverity rtcSeverity) {
         switch (rtcSeverity) {
         case rtc::LS_SENSITIVE:
         case rtc::LS_VERBOSE:
@@ -25,8 +24,7 @@ namespace caff {
         }
     }
 
-    rtc::LoggingSeverity caffToRtcSeverity(caff_Severity caffSeverity)
-    {
+    rtc::LoggingSeverity caffToRtcSeverity(caff_Severity caffSeverity) {
         switch (caffSeverity) {
         case caff_SeverityAll:
             return rtc::LS_SENSITIVE;
@@ -41,8 +39,7 @@ namespace caff {
         }
     }
 
-    void LogSink::OnLogMessage(const std::string & messageIn, rtc::LoggingSeverity severity, const char * tag)
-    {
+    void LogSink::OnLogMessage(const std::string & messageIn, rtc::LoggingSeverity severity, const char * tag) {
         if (!callback) return;
 
         std::ostringstream outstr;
@@ -54,8 +51,8 @@ namespace caff {
 
         // Remove trailing newline
         messageOut.erase(
-            std::find_if(messageOut.rbegin(), messageOut.rend(), [](int ch) { return !std::isspace(ch); }).base(),
-            messageOut.end());
+                std::find_if(messageOut.rbegin(), messageOut.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+                messageOut.end());
 
         callback(rtcToCaffSeverity(severity), messageOut.c_str());
     }

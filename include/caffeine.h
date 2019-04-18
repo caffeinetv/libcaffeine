@@ -103,7 +103,7 @@ typedef void (*caff_LogCallback)(caff_Severity severity, char const * message);
 
 // Game enumeration callback
 typedef void (*caff_GameEnumerator)(
-    void * userData, char const * processName, char const * gameId, char const * gameName);
+        void * userData, char const * processName, char const * gameId, char const * gameName);
 
 // Callback types for starting broadcast
 typedef void (*caff_BroadcastStartedCallback)(void * userData);
@@ -157,24 +157,24 @@ caff_enumerateGames(caff_InstanceHandle instanceHandle, void * userData, caff_Ga
  * broadcastFailedCallback: called when broadcast fails to start
  */
 CAFFEINE_API caff_Result caff_startBroadcast(
-    caff_InstanceHandle instanceHandle,
-    void * userData,
-    char const * title,
-    caff_Rating rating,
-    char const * gameId,
-    caff_BroadcastStartedCallback broadcastStartedCallback,
-    caff_BroadcastFailedCallback broadcastFailedCallback);
+        caff_InstanceHandle instanceHandle,
+        void * userData,
+        char const * title,
+        caff_Rating rating,
+        char const * gameId,
+        caff_BroadcastStartedCallback broadcastStartedCallback,
+        caff_BroadcastFailedCallback broadcastFailedCallback);
 
 // TODO pass format, channels, etc
 CAFFEINE_API void caff_sendAudio(caff_InstanceHandle instanceHandle, uint8_t * samples, size_t samplesPerChannel);
 
 CAFFEINE_API void caff_sendVideo(
-    caff_InstanceHandle streamHandle,
-    uint8_t const * frameData,
-    size_t frameBytes,
-    int32_t width,
-    int32_t height,
-    caff_VideoFormat format);
+        caff_InstanceHandle streamHandle,
+        uint8_t const * frameData,
+        size_t frameBytes,
+        int32_t width,
+        int32_t height,
+        caff_VideoFormat format);
 
 CAFFEINE_API void caff_setGameId(caff_InstanceHandle, char const * gameId);
 

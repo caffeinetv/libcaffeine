@@ -24,10 +24,9 @@ namespace caff {
     public:
         virtual ~EncoderFactory() {}
 
-        virtual std::vector<webrtc::SdpVideoFormat> GetSupportedFormats() const override
-        {
+        virtual std::vector<webrtc::SdpVideoFormat> GetSupportedFormats() const override {
             auto profileId =
-                webrtc::H264::ProfileLevelId(webrtc::H264::kProfileConstrainedBaseline, webrtc::H264::kLevel3_1);
+                    webrtc::H264::ProfileLevelId(webrtc::H264::kProfileConstrainedBaseline, webrtc::H264::kLevel3_1);
             auto name = cricket::kH264CodecName;
             auto profile_string = webrtc::H264::ProfileLevelIdToString(profileId);
             std::map<std::string, std::string> parameters = { { cricket::kH264FmtpProfileLevelId,
@@ -35,19 +34,17 @@ namespace caff {
             return { webrtc::SdpVideoFormat(name, parameters) };
         }
 
-        virtual CodecInfo QueryVideoEncoder(const webrtc::SdpVideoFormat & format) const override
-        {
+        virtual CodecInfo QueryVideoEncoder(const webrtc::SdpVideoFormat & format) const override {
             return { false, false };
         }
 
-        virtual std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(const webrtc::SdpVideoFormat & format) override
-        {
+        virtual std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
+                const webrtc::SdpVideoFormat & format) override {
             return std::make_unique<X264Encoder>(cricket::VideoCodec(format));
         }
     };
 
-    Instance::Instance() : taskQueue("caffeine-dispatcher")
-    {
+    Instance::Instance() : taskQueue("caffeine-dispatcher") {
         networkThread = rtc::Thread::CreateWithSocketServer();
         networkThread->SetName("caffeine-network", nullptr);
         networkThread->Start();
@@ -61,27 +58,26 @@ namespace caff {
         signalingThread->Start();
 
         audioDevice =
-            workerThread->Invoke<rtc::scoped_refptr<AudioDevice>>(RTC_FROM_HERE, [] { return new AudioDevice(); });
+                workerThread->Invoke<rtc::scoped_refptr<AudioDevice>>(RTC_FROM_HERE, [] { return new AudioDevice(); });
 
         factory = webrtc::CreatePeerConnectionFactory(
-            networkThread.get(),
-            workerThread.get(),
-            signalingThread.get(),
-            audioDevice,
-            webrtc::CreateBuiltinAudioEncoderFactory(),
-            webrtc::CreateBuiltinAudioDecoderFactory(),
-            std::make_unique<EncoderFactory>(),
-            webrtc::CreateBuiltinVideoDecoderFactory(),
-            nullptr,
-            nullptr);
+                networkThread.get(),
+                workerThread.get(),
+                signalingThread.get(),
+                audioDevice,
+                webrtc::CreateBuiltinAudioEncoderFactory(),
+                webrtc::CreateBuiltinAudioDecoderFactory(),
+                std::make_unique<EncoderFactory>(),
+                webrtc::CreateBuiltinVideoDecoderFactory(),
+                nullptr,
+                nullptr);
 
         gameList = getSupportedGames();
     }
 
     Instance::~Instance() { factory = nullptr; }
 
-    caff_Result Instance::enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator)
-    {
+    caff_Result Instance::enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator) {
         if (!gameList) {
             gameList = getSupportedGames();
         }
@@ -97,18 +93,15 @@ namespace caff {
         return caff_ResultSuccess;
     }
 
-    caff_Result Instance::signIn(char const * username, char const * password, char const * otp)
-    {
+    caff_Result Instance::signIn(char const * username, char const * password, char const * otp) {
         return authenticate([=] { return caff::signIn(username, password, otp); });
     }
 
-    caff_Result Instance::refreshAuth(char const * refreshToken)
-    {
+    caff_Result Instance::refreshAuth(char const * refreshToken) {
         return authenticate([=] { return caff::refreshAuth(refreshToken); });
     }
 
-    caff_Result Instance::authenticate(std::function<AuthResponse()> authFunc)
-    {
+    caff_Result Instance::authenticate(std::function<AuthResponse()> authFunc) {
         if (!isSupportedVersion()) {
             return caff_ResultOldVersion;
         }
@@ -127,8 +120,7 @@ namespace caff {
         return response.result;
     }
 
-    void Instance::signOut()
-    {
+    void Instance::signOut() {
         sharedCredentials.reset();
         refreshToken.reset();
         userInfo.reset();
@@ -145,12 +137,11 @@ namespace caff {
     bool Instance::canBroadcast() const { return userInfo ? userInfo->canBroadcast : false; }
 
     caff_Result Instance::startBroadcast(
-        std::string title,
-        caff_Rating rating,
-        std::string gameId,
-        std::function<void()> startedCallback,
-        std::function<void(caff_Result)> failedCallback)
-    {
+            std::string title,
+            caff_Rating rating,
+            std::string gameId,
+            std::function<void()> startedCallback,
+            std::function<void(caff_Result)> failedCallback) {
         if (!isSignedIn()) {
             return caff_ResultNotSignedIn;
         }
@@ -169,19 +160,23 @@ namespace caff {
         };
 
         broadcast = std::make_shared<Broadcast>(
-            *sharedCredentials, userInfo->username, std::move(title), rating, std::move(gameId), audioDevice, factory);
+                *sharedCredentials,
+                userInfo->username,
+                std::move(title),
+                rating,
+                std::move(gameId),
+                audioDevice,
+                factory);
         broadcast->start(startedCallback, dispatchFailure);
         return caff_ResultSuccess;
     }
 
-    std::shared_ptr<Broadcast> Instance::getBroadcast()
-    {
+    std::shared_ptr<Broadcast> Instance::getBroadcast() {
         std::lock_guard<std::mutex> lock(broadcastMutex);
         return broadcast;
     }
 
-    void Instance::endBroadcast()
-    {
+    void Instance::endBroadcast() {
         std::lock_guard<std::mutex> lock(broadcastMutex);
         if (broadcast) {
             broadcast->stop();

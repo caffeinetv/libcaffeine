@@ -27,13 +27,11 @@ namespace caff {
         virtual int16_t PlayoutDevices() override { return 0; }
         virtual int16_t RecordingDevices() override = 0;
         virtual int32_t PlayoutDeviceName(
-            uint16_t index, char name[webrtc::kAdmMaxDeviceNameSize], char guid[webrtc::kAdmMaxGuidSize]) override
-        {
+                uint16_t index, char name[webrtc::kAdmMaxDeviceNameSize], char guid[webrtc::kAdmMaxGuidSize]) override {
             return -1;
         }
         virtual int32_t RecordingDeviceName(
-            uint16_t index, char name[webrtc::kAdmMaxDeviceNameSize], char guid[webrtc::kAdmMaxGuidSize]) override
-        {
+                uint16_t index, char name[webrtc::kAdmMaxDeviceNameSize], char guid[webrtc::kAdmMaxGuidSize]) override {
             return -1;
         }
 
@@ -44,15 +42,13 @@ namespace caff {
         virtual int32_t SetRecordingDevice(WindowsDeviceType device) override { return -1; }
 
         // Audio transport initialization
-        virtual int32_t PlayoutIsAvailable(bool * available) override
-        {
+        virtual int32_t PlayoutIsAvailable(bool * available) override {
             *available = false;
             return 0;
         }
         virtual int32_t InitPlayout() override { return -1; }
         virtual bool PlayoutIsInitialized() const override { return false; }
-        virtual int32_t RecordingIsAvailable(bool * available) override
-        {
+        virtual int32_t RecordingIsAvailable(bool * available) override {
             *available = true;
             return 0;
         }
@@ -74,8 +70,7 @@ namespace caff {
         virtual bool MicrophoneIsInitialized() const override { return false; }
 
         // Speaker volume controls
-        virtual int32_t SpeakerVolumeIsAvailable(bool * available) override
-        {
+        virtual int32_t SpeakerVolumeIsAvailable(bool * available) override {
             *available = false;
             return 0;
         }
@@ -85,8 +80,7 @@ namespace caff {
         virtual int32_t MinSpeakerVolume(uint32_t * minVolume) const override { return -1; }
 
         // Microphone volume controls
-        virtual int32_t MicrophoneVolumeIsAvailable(bool * available) override
-        {
+        virtual int32_t MicrophoneVolumeIsAvailable(bool * available) override {
             *available = false;
             return 0;
         }
@@ -96,8 +90,7 @@ namespace caff {
         virtual int32_t MinMicrophoneVolume(uint32_t * minVolume) const override { return -1; }
 
         // Speaker mute control
-        virtual int32_t SpeakerMuteIsAvailable(bool * available) override
-        {
+        virtual int32_t SpeakerMuteIsAvailable(bool * available) override {
             *available = false;
             return 0;
         }
@@ -105,8 +98,7 @@ namespace caff {
         virtual int32_t SpeakerMute(bool * enabled) const override { return -1; }
 
         // Microphone mute control
-        virtual int32_t MicrophoneMuteIsAvailable(bool * available) override
-        {
+        virtual int32_t MicrophoneMuteIsAvailable(bool * available) override {
             *available = false;
             return 0;
         }
@@ -114,15 +106,13 @@ namespace caff {
         virtual int32_t MicrophoneMute(bool * enabled) const override { return -1; }
 
         // Stereo support
-        virtual int32_t StereoPlayoutIsAvailable(bool * available) const override
-        {
+        virtual int32_t StereoPlayoutIsAvailable(bool * available) const override {
             *available = false;
             return 0;
         }
         virtual int32_t SetStereoPlayout(bool enable) override { return -1; }
         virtual int32_t StereoPlayout(bool * enabled) const override { return -1; }
-        virtual int32_t StereoRecordingIsAvailable(bool * available) const override
-        {
+        virtual int32_t StereoRecordingIsAvailable(bool * available) const override {
             *available = true;
             return 0;
         }

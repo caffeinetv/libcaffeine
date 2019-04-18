@@ -42,11 +42,11 @@ namespace caff {
         caff_Result enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator);
 
         caff_Result startBroadcast(
-            std::string title,
-            caff_Rating rating,
-            std::string gameId,
-            std::function<void()> startedCallback,
-            std::function<void(caff_Result)> failedCallback);
+                std::string title,
+                caff_Rating rating,
+                std::string gameId,
+                std::function<void()> startedCallback,
+                std::function<void(caff_Result)> failedCallback);
 
         std::shared_ptr<Broadcast> getBroadcast();
 

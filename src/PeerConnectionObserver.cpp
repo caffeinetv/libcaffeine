@@ -8,8 +8,7 @@ namespace caff {
 
     PeerConnectionObserver::PeerConnectionObserver() {}
 
-    std::future<PeerConnectionObserver::Candidates const &> PeerConnectionObserver::getFuture()
-    {
+    std::future<PeerConnectionObserver::Candidates const &> PeerConnectionObserver::getFuture() {
         return promise.get_future();
     }
 
@@ -25,8 +24,7 @@ namespace caff {
 
     void PeerConnectionObserver::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> dataChannel) {}
 
-    void PeerConnectionObserver::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState newState)
-    {
+    void PeerConnectionObserver::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState newState) {
         using State = webrtc::PeerConnectionInterface::IceGatheringState;
         switch (newState) {
         case State::kIceGatheringNew:
@@ -45,8 +43,7 @@ namespace caff {
         }
     }
 
-    void PeerConnectionObserver::OnIceCandidate(webrtc::IceCandidateInterface const * candidate)
-    {
+    void PeerConnectionObserver::OnIceCandidate(webrtc::IceCandidateInterface const * candidate) {
         CHECK_PTR(candidate);
 
         std::string sdpString;
@@ -56,7 +53,7 @@ namespace caff {
         }
 
         gatheredCandidates.emplace_back(
-            IceInfo{ std::move(sdpString), candidate->sdp_mid(), candidate->sdp_mline_index() });
+                IceInfo{ std::move(sdpString), candidate->sdp_mid(), candidate->sdp_mline_index() });
         LOG_DEBUG("ICE candidate added");
     }
 

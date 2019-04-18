@@ -17,7 +17,7 @@ namespace caff {
         virtual ~VideoCapturer() {}
 
         rtc::scoped_refptr<webrtc::I420Buffer> sendVideo(
-            uint8_t const * frame, size_t frameBytes, int32_t width, int32_t height, webrtc::VideoType format);
+                uint8_t const * frame, size_t frameBytes, int32_t width, int32_t height, webrtc::VideoType format);
 
         virtual cricket::CaptureState Start(cricket::VideoFormat const & format) override;
         virtual void Stop() override;

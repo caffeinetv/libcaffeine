@@ -134,8 +134,7 @@ namespace caff {
         optional<std::string> cursor;
         optional<Stage> stage;
 
-        StageRequest(std::string username, std::string clientId)
-        {
+        StageRequest(std::string username, std::string clientId) {
             client.id = std::move(clientId);
             stage = Stage{};
             stage->username = std::move(username);
@@ -170,7 +169,7 @@ namespace caff {
     optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & creds);
 
     bool updateScreenshot(
-        std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds);
+            std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds);
 
     optional<GameList> getSupportedGames();
 
@@ -183,9 +182,14 @@ namespace caff {
     optional<UserInfo> getUserInfo(SharedCredentials & creds);
 
     bool trickleCandidates(
-        std::vector<caff::IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & credentials);
+            std::vector<caff::IceInfo> const & candidates,
+            std::string const & streamUrl,
+            SharedCredentials & credentials);
 
     bool requestStageUpdate(
-        StageRequest & request, SharedCredentials & creds, std::chrono::milliseconds * retryIn, bool * isOutOfCapacity);
+            StageRequest & request,
+            SharedCredentials & creds,
+            std::chrono::milliseconds * retryIn,
+            bool * isOutOfCapacity);
 
 }  // namespace caff

@@ -17,17 +17,17 @@ namespace caff {
         virtual ~X264Encoder();
 
         virtual int32_t InitEncode(
-            webrtc::VideoCodec const * codec_settings, int32_t number_of_cores, size_t max_payload_size) override;
+                webrtc::VideoCodec const * codec_settings, int32_t number_of_cores, size_t max_payload_size) override;
         virtual int32_t Release() override;
 
         virtual int32_t RegisterEncodeCompleteCallback(webrtc::EncodedImageCallback * callback) override;
         virtual int32_t SetRateAllocation(
-            const webrtc::BitrateAllocation & bitrate_allocation, uint32_t framerate) override;
+                const webrtc::BitrateAllocation & bitrate_allocation, uint32_t framerate) override;
 
         virtual int32_t Encode(
-            const webrtc::VideoFrame & frame,
-            const webrtc::CodecSpecificInfo * codec_specific_info,
-            const std::vector<webrtc::FrameType> * frame_types) override;
+                const webrtc::VideoFrame & frame,
+                const webrtc::CodecSpecificInfo * codec_specific_info,
+                const std::vector<webrtc::FrameType> * frame_types) override;
 
         virtual const char * ImplementationName() const override;
 

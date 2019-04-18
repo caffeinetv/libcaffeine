@@ -20,20 +20,16 @@
 using namespace caff;
 
 #define CATCHALL_RETURN(ret)                                                                                           \
-    catch (std::logic_error ex)                                                                                        \
-    {                                                                                                                  \
+    catch (std::logic_error ex) {                                                                                      \
         LOG_ERROR("Logic error. See logs.");                                                                           \
         return ret;                                                                                                    \
     }                                                                                                                  \
-    catch (...)                                                                                                        \
-    {                                                                                                                  \
+    catch (...) {                                                                                                      \
         LOG_ERROR("Unhandled exception. See logs.");                                                                   \
         return ret;                                                                                                    \
     }
 
 #define CATCHALL CATCHALL_RETURN()
-
-// TODO: Figure out why clang-format won't wrap before the `try` of a function-try-block
 
 CAFFEINE_API char const * caff_resultString(caff_Result error) try {
     CHECK_ENUM(caff_Result, error);
@@ -122,10 +118,10 @@ CATCHALL_RETURN(nullptr)
 
 
 CAFFEINE_API caff_Result caff_signIn(
-    caff_InstanceHandle instanceHandle,
-    char const * username,
-    char const * password,
-    char const * otp) try {  // TODO: why is formatter indenting this line?
+        caff_InstanceHandle instanceHandle,
+        char const * username,
+        char const * password,
+        char const * otp) try {
     CHECK_PTR(instanceHandle);
     CHECK_CSTR(username);
     CHECK_CSTR(password);
@@ -215,13 +211,13 @@ CATCHALL_RETURN(caff_ResultFailure)
 
 
 CAFFEINE_API caff_Result caff_startBroadcast(
-    caff_InstanceHandle instanceHandle,
-    void * user_data,
-    char const * title,
-    caff_Rating rating,
-    char const * gameId,
-    caff_BroadcastStartedCallback broadcastStartedCallback,
-    caff_BroadcastFailedCallback broadcastFailedCallback) try {
+        caff_InstanceHandle instanceHandle,
+        void * user_data,
+        char const * title,
+        caff_Rating rating,
+        char const * gameId,
+        caff_BroadcastStartedCallback broadcastStartedCallback,
+        caff_BroadcastFailedCallback broadcastFailedCallback) try {
     CHECK_PTR(instanceHandle);
     CHECK_ENUM(caff_Rating, rating);
     CHECK_PTR(broadcastStartedCallback);
@@ -282,12 +278,12 @@ CATCHALL
 
 
 CAFFEINE_API void caff_sendVideo(
-    caff_InstanceHandle instanceHandle,
-    uint8_t const * frameData,
-    size_t frameBytes,
-    int32_t width,
-    int32_t height,
-    caff_VideoFormat format) try {
+        caff_InstanceHandle instanceHandle,
+        uint8_t const * frameData,
+        size_t frameBytes,
+        int32_t width,
+        int32_t height,
+        caff_VideoFormat format) try {
     CHECK_PTR(frameData);
     CHECK_POSITIVE(frameBytes);
     CHECK_POSITIVE(width);

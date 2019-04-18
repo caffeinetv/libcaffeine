@@ -10,8 +10,7 @@
 namespace caff {
 
     // Copied from old version of libwebrtc
-    static libyuv::RotationMode convertRotationMode(webrtc::VideoRotation rotation)
-    {
+    static libyuv::RotationMode convertRotationMode(webrtc::VideoRotation rotation) {
         switch (rotation) {
         case webrtc::kVideoRotation_0:
             return libyuv::kRotate0;
@@ -26,16 +25,15 @@ namespace caff {
 
     // Copied from old version of libwebrtc
     static int convertToI420(
-        webrtc::VideoType srcVideoType,
-        const uint8_t * srcFrame,
-        int cropX,
-        int cropY,
-        int srcWidth,
-        int srcHeight,
-        size_t sampleSize,
-        webrtc::VideoRotation rotation,
-        webrtc::I420Buffer * dstBuffer)
-    {
+            webrtc::VideoType srcVideoType,
+            const uint8_t * srcFrame,
+            int cropX,
+            int cropY,
+            int srcWidth,
+            int srcHeight,
+            size_t sampleSize,
+            webrtc::VideoRotation rotation,
+            webrtc::I420Buffer * dstBuffer) {
         int dstWidth = dstBuffer->width();
         int dstHeight = dstBuffer->height();
         // LibYuv expects pre-rotation values for dst.
@@ -44,26 +42,25 @@ namespace caff {
             std::swap(dstWidth, dstHeight);
         }
         return libyuv::ConvertToI420(
-            srcFrame,
-            sampleSize,
-            dstBuffer->MutableDataY(),
-            dstBuffer->StrideY(),
-            dstBuffer->MutableDataU(),
-            dstBuffer->StrideU(),
-            dstBuffer->MutableDataV(),
-            dstBuffer->StrideV(),
-            cropX,
-            cropY,
-            srcWidth,
-            srcHeight,
-            dstWidth,
-            dstHeight,
-            convertRotationMode(rotation),
-            webrtc::ConvertVideoType(srcVideoType));
+                srcFrame,
+                sampleSize,
+                dstBuffer->MutableDataY(),
+                dstBuffer->StrideY(),
+                dstBuffer->MutableDataU(),
+                dstBuffer->StrideU(),
+                dstBuffer->MutableDataV(),
+                dstBuffer->StrideV(),
+                cropX,
+                cropY,
+                srcWidth,
+                srcHeight,
+                dstWidth,
+                dstHeight,
+                convertRotationMode(rotation),
+                webrtc::ConvertVideoType(srcVideoType));
     }
 
-    cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const & format)
-    {
+    cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const & format) {
         SetCaptureFormat(&format);
         SetCaptureState(cricket::CS_RUNNING);
         return cricket::CS_STARTING;
@@ -76,8 +73,7 @@ namespace caff {
     static int64_t const minFrameMicros = (1000000 / 32);
 
     rtc::scoped_refptr<webrtc::I420Buffer> VideoCapturer::sendVideo(
-        uint8_t const * frameData, size_t frameByteCount, int32_t width, int32_t height, webrtc::VideoType format)
-    {
+            uint8_t const * frameData, size_t frameByteCount, int32_t width, int32_t height, webrtc::VideoType format) {
         auto const now = rtc::TimeMicros();
         auto span = now - lastFrameMicros;
         if (span < minFrameMicros) {
@@ -95,17 +91,17 @@ namespace caff {
         int64_t translatedCameraTime;
 
         if (!AdaptFrame(
-                width,
-                height,
-                now,
-                now,
-                &adaptedWidth,
-                &adaptedHeight,
-                &cropWidth,
-                &cropHeight,
-                &cropX,
-                &cropY,
-                &translatedCameraTime)) {
+                    width,
+                    height,
+                    now,
+                    now,
+                    &adaptedWidth,
+                    &adaptedHeight,
+                    &cropWidth,
+                    &cropHeight,
+                    &cropX,
+                    &cropY,
+                    &translatedCameraTime)) {
             LOG_DEBUG("Adapter dropped the frame.");
             return nullptr;
         }
@@ -135,7 +131,7 @@ namespace caff {
         rtc::scoped_refptr<webrtc::I420Buffer> unscaledBuffer = webrtc::I420Buffer::Create(width, height);
 
         convertToI420(
-            format, frameData, 0, 0, width, height, frameByteCount, webrtc::kVideoRotation_0, unscaledBuffer.get());
+                format, frameData, 0, 0, width, height, frameByteCount, webrtc::kVideoRotation_0, unscaledBuffer.get());
 
         rtc::scoped_refptr<webrtc::I420Buffer> scaledBuffer = unscaledBuffer;
         if (adaptedHeight != height) {
@@ -156,8 +152,7 @@ namespace caff {
 
     bool VideoCapturer::IsScreencast() const { return false; }
 
-    bool VideoCapturer::GetPreferredFourccs(std::vector<uint32_t> * fourccs)
-    {
+    bool VideoCapturer::GetPreferredFourccs(std::vector<uint32_t> * fourccs) {
         // ignore preferred formats
         if (fourccs == nullptr) return false;
 

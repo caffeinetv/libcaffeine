@@ -34,13 +34,13 @@ using namespace std::chrono_literals;
 namespace caff {
 
     Broadcast::Broadcast(
-        SharedCredentials & sharedCredentials,
-        std::string username,
-        std::string title,
-        caff_Rating rating,
-        std::string gameId,
-        AudioDevice * audioDevice,
-        webrtc::PeerConnectionFactoryInterface * factory)
+            SharedCredentials & sharedCredentials,
+            std::string username,
+            std::string title,
+            caff_Rating rating,
+            std::string gameId,
+            AudioDevice * audioDevice,
+            webrtc::PeerConnectionFactoryInterface * factory)
         : isScreenshotNeeded(true)
         , sharedCredentials(sharedCredentials)
         , username(std::move(username))
@@ -48,14 +48,12 @@ namespace caff {
         , rating(rating)
         , gameId(gameId)
         , audioDevice(audioDevice)
-        , factory(factory)
-    {}
+        , factory(factory) {}
 
     Broadcast::~Broadcast() {}
 
     // TODO something better?
-    static std::string createUniqueId()
-    {
+    static std::string createUniqueId() {
         static char const charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
         size_t const idLength = 12;
 
@@ -71,8 +69,7 @@ namespace caff {
         return id;
     }
 
-    char const * Broadcast::stateString(Broadcast::State state)
-    {
+    char const * Broadcast::stateString(Broadcast::State state) {
         switch (state) {
         case State::Offline:
             return "Offline";
@@ -87,8 +84,7 @@ namespace caff {
         }
     }
 
-    bool Broadcast::requireState(State expectedState) const
-    {
+    bool Broadcast::requireState(State expectedState) const {
         State currentState = state;
         if (currentState != expectedState) {
             LOG_ERROR("In state %s when expecting %s", stateString(currentState), stateString(expectedState));
@@ -97,8 +93,7 @@ namespace caff {
         return true;
     }
 
-    bool Broadcast::transitionState(State oldState, State newState)
-    {
+    bool Broadcast::transitionState(State oldState, State newState) {
         bool result = state.compare_exchange_strong(oldState, newState);
         if (!result)
             LOG_ERROR("Transitioning to state %s expects state %s", stateString(newState), stateString(oldState));
@@ -107,8 +102,7 @@ namespace caff {
 
     bool Broadcast::isOnline() const { return state == State::Online; }
 
-    static std::string annotateTitle(std::string title, caff_Rating rating)
-    {
+    static std::string annotateTitle(std::string title, caff_Rating rating) {
         size_t const maxTitleLength = 60;                             // TODO: policy- should be somewhere else
         static std::string const ratingStrings[] = { "", "[17+] " };  // TODO maybe same here
 
@@ -118,8 +112,7 @@ namespace caff {
         return fullTitle;
     }
 
-    variant<std::string, caff_Result> Broadcast::createFeed(std::string const & offer)
-    {
+    variant<std::string, caff_Result> Broadcast::createFeed(std::string const & offer) {
         feedId = createUniqueId();
 
         if (!requireState(State::Starting)) {
@@ -185,8 +178,7 @@ namespace caff {
     }
 
     // Returns `true` if the feed's game id changed
-    bool Broadcast::updateGameId(Feed & feed)
-    {
+    bool Broadcast::updateGameId(Feed & feed) {
         std::lock_guard<std::mutex> lock(mutex);
 
         if (!gameId.empty()) {
@@ -209,8 +201,7 @@ namespace caff {
         }
     }
 
-    void Broadcast::start(std::function<void()> startedCallback, std::function<void(caff_Result)> failedCallback)
-    {
+    void Broadcast::start(std::function<void()> startedCallback, std::function<void(caff_Result)> failedCallback) {
         this->failedCallback = failedCallback;
         transitionState(State::Offline, State::Starting);
 
@@ -253,7 +244,7 @@ namespace caff {
             peerConnection->SetBitrate(bitrateOptions);
 
             rtc::scoped_refptr<CreateSessionDescriptionObserver> creationObserver =
-                new rtc::RefCountedObject<CreateSessionDescriptionObserver>;
+                    new rtc::RefCountedObject<CreateSessionDescriptionObserver>;
             webrtc::PeerConnectionInterface::RTCOfferAnswerOptions answerOptions;
             peerConnection->CreateOffer(creationObserver, answerOptions);
 
@@ -287,7 +278,7 @@ namespace caff {
             }
 
             rtc::scoped_refptr<SetSessionDescriptionObserver> setLocalObserver =
-                new rtc::RefCountedObject<SetSessionDescriptionObserver>;
+                    new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
             auto setLocalSuccess = setLocalObserver->getFuture().get();
@@ -306,7 +297,7 @@ namespace caff {
 
             webrtc::SdpParseError answerError;
             auto remoteDesc =
-                webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, get<std::string>(result), &answerError);
+                    webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, get<std::string>(result), &answerError);
             if (!remoteDesc) {
                 LOG_ERROR("Error parsing SDP answer: %s", answerError.description.c_str());
                 failedCallback(caff_ResultFailure);
@@ -321,7 +312,7 @@ namespace caff {
             }
 
             rtc::scoped_refptr<SetSessionDescriptionObserver> setRemoteObserver =
-                new rtc::RefCountedObject<SetSessionDescriptionObserver>;
+                    new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
             peerConnection->SetRemoteDescription(setRemoteObserver, remoteDesc.release());
             auto setRemoteSuccess = setRemoteObserver->getFuture().get();
@@ -342,14 +333,12 @@ namespace caff {
         });
     }
 
-    void Broadcast::setGameId(std::string id)
-    {
+    void Broadcast::setGameId(std::string id) {
         std::lock_guard<std::mutex> lock(mutex);
         gameId = id;
     }
 
-    void Broadcast::startHeartbeat()
-    {
+    void Broadcast::startHeartbeat() {
         if (!requireState(State::Online)) {
             return;
         }
@@ -521,8 +510,7 @@ namespace caff {
         }
     }
 
-    void Broadcast::startLongpollThread()
-    {
+    void Broadcast::startLongpollThread() {
         longpollThread = std::thread([=] {
             // This thread is purely for hearbeating our feed.
             // If the broadcast thread is making a mutation, this thread waits.
@@ -572,8 +560,7 @@ namespace caff {
         });
     }
 
-    void Broadcast::stop()
-    {
+    void Broadcast::stop() {
         state = State::Stopping;
         if (broadcastThread.joinable()) {
             broadcastThread.join();
@@ -581,16 +568,14 @@ namespace caff {
         state = State::Offline;
     }
 
-    void Broadcast::sendAudio(uint8_t const * samples, size_t samplesPerChannel)
-    {
+    void Broadcast::sendAudio(uint8_t const * samples, size_t samplesPerChannel) {
         if (isOnline()) {
             audioDevice->sendAudio(samples, samplesPerChannel);
         }
     }
 
     void Broadcast::sendVideo(
-        uint8_t const * frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format)
-    {
+            uint8_t const * frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format) {
         if (isOnline()) {
             auto rtcFormat = static_cast<webrtc::VideoType>(format);
             auto i420frame = videoCapturer->sendVideo(frameData, frameBytes, width, height, rtcFormat);
@@ -610,15 +595,13 @@ namespace caff {
         }
     }
 
-    static void writeScreenshot(void * context, void * data, int size)
-    {
+    static void writeScreenshot(void * context, void * data, int size) {
         auto screenshot = reinterpret_cast<ScreenshotData *>(context);
         auto pixels = reinterpret_cast<uint8_t *>(data);
         screenshot->insert(screenshot->end(), pixels, pixels + size);
     }
 
-    ScreenshotData Broadcast::createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer)
-    {
+    ScreenshotData Broadcast::createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer) {
         auto const width = buffer->width();
         auto const height = buffer->height();
         auto constexpr channels = 3;
@@ -628,16 +611,16 @@ namespace caff {
         raw.resize(destStride * height);
 
         auto ret = libyuv::I420ToRAW(
-            buffer->DataY(),
-            buffer->StrideY(),
-            buffer->DataU(),
-            buffer->StrideU(),
-            buffer->DataV(),
-            buffer->StrideV(),
-            &raw[0],
-            destStride,
-            width,
-            height);
+                buffer->DataY(),
+                buffer->StrideY(),
+                buffer->DataU(),
+                buffer->StrideU(),
+                buffer->DataV(),
+                buffer->StrideV(),
+                &raw[0],
+                destStride,
+                width,
+                height);
         if (ret != 0) {
             throw std::runtime_error("Failed to convert I420 to RAW");
         }
@@ -653,8 +636,7 @@ namespace caff {
         return screenshot;
     }
 
-    caff_ConnectionQuality Broadcast::getConnectionQuality() const
-    {
+    caff_ConnectionQuality Broadcast::getConnectionQuality() const {
         if (nextRequest && nextRequest->stage->feeds) {
             auto feedIt = nextRequest->stage->feeds->find(feedId);
             if (feedIt != nextRequest->stage->feeds->end() && feedIt->second.sourceConnectionQuality) {
