@@ -1,15 +1,37 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+################################################################################
+# Setup / Bootstrap
+################################################################################
 include(cmake/CMakeHelpers.cmake)
 include(cmake/CMakeFindExtensions.cmake)
 
-project(libcaffeine)
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-find_package(WebRTC REQUIRED)
-find_package(Libcurl REQUIRED) # TODO: use a C++ http library
+project(libcaffeine)
 
+################################################################################
+# CMake / Compiler
+################################################################################
+# C++ Standard and Extensions
+SET(CMAKE_CXX_STANDARD 14)
+## Disable nonstandard extensions
+SET(CMAKE_CXX_EXTENSIONS OFF)
+
+################################################################################
+# Options
+################################################################################
+
+# WebRTC
+find_package(WebRTC REQUIRED)
+
+# LibCURL
+# TODO: use a C++ http library
+find_package(Libcurl REQUIRED)
+
+################################################################################
+# Code
+################################################################################
 include_directories(
     include
     third_party/x264/include #TODO find externally
@@ -60,7 +82,7 @@ if(WIN32)
 endif()
 
 if(MSVC)
-    add_compile_options("/MP" "/WX")
+    add_compile_options("/MP" "/WX" "/EHa")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
 
