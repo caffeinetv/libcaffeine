@@ -2,10 +2,10 @@
 
 #include "LogSink.hpp"
 
-#include <iostream>
-#include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <iostream>
+#include <sstream>
 
 namespace caff {
     caff_Severity rtcToCaffSeverity(rtc::LoggingSeverity rtcSeverity)
@@ -41,7 +41,7 @@ namespace caff {
         }
     }
 
-    void LogSink::OnLogMessage(const std::string& messageIn, rtc::LoggingSeverity severity, const char* tag)
+    void LogSink::OnLogMessage(const std::string & messageIn, rtc::LoggingSeverity severity, const char * tag)
     {
         if (!callback) return;
 
@@ -53,15 +53,12 @@ namespace caff {
         auto messageOut = outstr.str();
 
         // Remove trailing newline
-        messageOut.erase(std::find_if(messageOut.rbegin(), messageOut.rend(), [](int ch) {
-            return !std::isspace(ch);
-        }).base(), messageOut.end());
+        messageOut.erase(
+            std::find_if(messageOut.rbegin(), messageOut.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+            messageOut.end());
 
         callback(rtcToCaffSeverity(severity), messageOut.c_str());
     }
 
-    void LogSink::OnLogMessage(const std::string& message)
-    {
-        OnLogMessage(message, rtc::LS_INFO, nullptr);
-    }
+    void LogSink::OnLogMessage(const std::string & message) { OnLogMessage(message, rtc::LS_INFO, nullptr); }
 }  // namespace caff

@@ -10,31 +10,29 @@
 
 // C datatype serialization has to be outside of caff namespace
 
-NLOHMANN_JSON_SERIALIZE_ENUM(caff_ConnectionQuality, {
-    {caff_ConnectionQualityGood, "GOOD"},
-    {caff_ConnectionQualityPoor, "POOR"},
-    {caff_ConnectionQualityUnknown, nullptr},
-    })
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    caff_ConnectionQuality,
+    { { caff_ConnectionQualityGood, "GOOD" },
+      { caff_ConnectionQualityPoor, "POOR" },
+      { caff_ConnectionQualityUnknown, nullptr } })
 
 namespace nlohmann {
     template <typename T>
     struct adl_serializer<caff::optional<T>> {
-        static void to_json(json& json, const caff::optional<T>& opt)
+        static void to_json(json & json, const caff::optional<T> & opt)
         {
             if (opt.has_value()) {
                 json = *opt;
-            }
-            else {
+            } else {
                 json = nullptr;
             }
         }
 
-        static void from_json(const json& json, caff::optional<T>& opt)
+        static void from_json(const json & json, caff::optional<T> & opt)
         {
             if (json.is_null()) {
                 opt.reset();
-            }
-            else {
+            } else {
                 opt = json.get<T>();
             }
         }
@@ -47,14 +45,13 @@ namespace nlohmann {
             for (auto & entry : json) {
                 try {
                     gameList.emplace_back(entry);
-                }
-                catch (...) {
+                } catch (...) {
                     LOG_DEBUG("Skipping unreadable game info");
                 }
             }
         }
     };
-}
+}  // namespace nlohmann
 
 namespace caff {
     using Json = nlohmann::json;
@@ -71,8 +68,7 @@ namespace caff {
         auto it = json.find(key);
         if (it != json.end()) {
             it->get_to(target);
-        }
-        else {
+        } else {
             target.reset();
         }
     }
@@ -96,10 +92,7 @@ namespace caff {
         }
     }
 
-    NLOHMANN_JSON_SERIALIZE_ENUM(ContentType, {
-        {ContentType::Game, "game"},
-        {ContentType::User, "user"},
-        })
+    NLOHMANN_JSON_SERIALIZE_ENUM(ContentType, { { ContentType::Game, "game" }, { ContentType::User, "user" } })
 
     void from_json(Json const & json, Credentials & credentials);
 
@@ -135,4 +128,4 @@ namespace caff {
     void from_json(Json const & json, DisplayMessage & message);
 
     void from_json(Json const & json, FailureResponse & response);
-}
+}  // namespace caff

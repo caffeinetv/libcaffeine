@@ -8,21 +8,21 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-#   define CAFFEINE_LINKAGE extern "C"
+#    define CAFFEINE_LINKAGE extern "C"
 #else
-#   define CAFFEINE_LINKAGE
+#    define CAFFEINE_LINKAGE
 #endif
 
 #if defined(LIBCAFFEINE_LIBRARY)
-#   if defined(_WIN32)
-#       define CAFFEINE_API CAFFEINE_LINKAGE __declspec(dllexport)
-#   else
-#       define CAFFEINE_API CAFFEINE_LINKAGE __attribute__((visibility("default")))
-#   endif
+#    if defined(_WIN32)
+#        define CAFFEINE_API CAFFEINE_LINKAGE __declspec(dllexport)
+#    else
+#        define CAFFEINE_API CAFFEINE_LINKAGE __attribute__((visibility("default")))
+#    endif
 #elif defined(_WIN32)
-#   define CAFFEINE_API CAFFEINE_LINKAGE __declspec(dllimport)
+#    define CAFFEINE_API CAFFEINE_LINKAGE __declspec(dllimport)
 #else
-#   define CAFFEINE_API CAFFEINE_LINKAGE
+#    define CAFFEINE_API CAFFEINE_LINKAGE
 #endif
 
 // Log severities
@@ -99,18 +99,15 @@ typedef enum caff_ConnectionQuality {
 typedef struct caff_Instance * caff_InstanceHandle;
 
 // Callback type for WebRTC log messages
-typedef void(*caff_LogCallback)(caff_Severity severity, char const * message);
+typedef void (*caff_LogCallback)(caff_Severity severity, char const * message);
 
 // Game enumeration callback
-typedef void(*caff_GameEnumerator)(
-    void * userData,
-    char const * processName,
-    char const * gameId,
-    char const * gameName);
+typedef void (*caff_GameEnumerator)(
+    void * userData, char const * processName, char const * gameId, char const * gameName);
 
 // Callback types for starting broadcast
-typedef void(*caff_BroadcastStartedCallback)(void * userData);
-typedef void(*caff_BroadcastFailedCallback)(void * userData, caff_Result error);
+typedef void (*caff_BroadcastStartedCallback)(void * userData);
+typedef void (*caff_BroadcastFailedCallback)(void * userData, caff_Result error);
 
 /* Get string representation of error enum
  *
@@ -140,10 +137,8 @@ CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCall
 CAFFEINE_API caff_InstanceHandle caff_createInstance();
 
 // Enumerate the supported games list
-CAFFEINE_API caff_Result caff_enumerateGames(
-    caff_InstanceHandle instanceHandle,
-    void * userData,
-    caff_GameEnumerator enumerator);
+CAFFEINE_API caff_Result
+caff_enumerateGames(caff_InstanceHandle instanceHandle, void * userData, caff_GameEnumerator enumerator);
 
 /* start broadcast on Caffeine
  *
@@ -201,11 +196,8 @@ CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle);
 CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle);
 
 // TODO: sort these into above, and document
-CAFFEINE_API caff_Result caff_signIn(
-    caff_InstanceHandle instanceHandle,
-    char const * username,
-    char const * password,
-    char const * otp);
+CAFFEINE_API caff_Result
+caff_signIn(caff_InstanceHandle instanceHandle, char const * username, char const * password, char const * otp);
 
 CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken);
 

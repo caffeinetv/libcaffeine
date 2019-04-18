@@ -4,17 +4,16 @@
 
 #include <atomic>
 #include <functional>
-#include <vector>
 #include <future>
+#include <vector>
 
-#include "caffeine.h"
 #include "Api.hpp"
 #include "ErrorLogging.hpp"
 
 #include "absl/types/optional.h"
+#include "api/video/i420_buffer.h"
 #include "common_types.h"
 #include "rtc_base/scoped_ref_ptr.h"
-#include "api/video/i420_buffer.h"
 
 ASSERT_MATCH(caff_VideoFormatUnknown, webrtc::VideoType::kUnknown);
 ASSERT_MATCH(caff_VideoFormatI420, webrtc::VideoType::kI420);
@@ -37,7 +36,7 @@ namespace webrtc {
     class PeerConnectionFactoryInterface;
     class MediaStreamInterface;
     class PeerConnectionInterface;
-}
+}  // namespace webrtc
 
 namespace caff {
     class AudioDevice;
@@ -54,23 +53,22 @@ namespace caff {
             std::string title,
             caff_Rating rating,
             std::string gameId,
-            AudioDevice* audioDevice,
-            webrtc::PeerConnectionFactoryInterface* factory);
+            AudioDevice * audioDevice,
+            webrtc::PeerConnectionFactoryInterface * factory);
 
         virtual ~Broadcast();
 
-        void start(
-            std::function<void()> startedCallback,
-            std::function<void(caff_Result)> failedCallback);
+        void start(std::function<void()> startedCallback, std::function<void(caff_Result)> failedCallback);
         void stop();
 
         // TODO
-        //void setTitle(std::string title);
-        //void setRating(std::string rating);
+        // void setTitle(std::string title);
+        // void setRating(std::string rating);
         void setGameId(std::string id);
 
-        void sendAudio(uint8_t const* samples, size_t samplesPerChannel);
-        void sendVideo(uint8_t const* frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format);
+        void sendAudio(uint8_t const * samples, size_t samplesPerChannel);
+        void sendVideo(
+            uint8_t const * frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format);
 
         caff_ConnectionQuality getConnectionQuality() const;
 
@@ -94,9 +92,9 @@ namespace caff {
         caff_Rating rating;
         std::string gameId;
 
-        AudioDevice* audioDevice;
-        VideoCapturer* videoCapturer;
-        webrtc::PeerConnectionFactoryInterface* factory;
+        AudioDevice * audioDevice;
+        VideoCapturer * videoCapturer;
+        webrtc::PeerConnectionFactoryInterface * factory;
         rtc::scoped_refptr<webrtc::PeerConnectionInterface> peerConnection;
 
         std::string streamUrl;

@@ -4,22 +4,23 @@
 
 #include "caffeine.h"
 
-#include <string>
+#include <chrono>
 #include <map>
-#include <vector>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
-#include <chrono>
+#include <vector>
+
 #include "absl/types/optional.h"
 #include "absl/types/variant.h"
 
 namespace caff {
     // TODO: Get C++17 working and use standard versions
-    using absl::optional;
-    using absl::variant;
     using absl::get;
     using absl::get_if;
+    using absl::optional;
+    using absl::variant;
 
     struct Credentials {
         std::string accessToken;
@@ -56,9 +57,7 @@ namespace caff {
         optional<Credentials> credentials;
 
         // Helper for RETRY_REQUEST
-        operator bool() const {
-            return result != caff_ResultFailure;
-        }
+        operator bool() const { return result != caff_ResultFailure; }
     };
 
     struct UserInfo {
@@ -95,10 +94,7 @@ namespace caff {
         bool audio;
     };
 
-    enum class ContentType {
-        Game,
-        User
-    };
+    enum class ContentType { Game, User };
 
     struct FeedContent {
         std::string id;
@@ -174,9 +170,7 @@ namespace caff {
     optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & creds);
 
     bool updateScreenshot(
-        std::string broadcastId,
-        ScreenshotData const & screenshotData,
-        SharedCredentials & sharedCreds);
+        std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds);
 
     optional<GameList> getSupportedGames();
 
@@ -189,14 +183,9 @@ namespace caff {
     optional<UserInfo> getUserInfo(SharedCredentials & creds);
 
     bool trickleCandidates(
-        std::vector<caff::IceInfo> const & candidates,
-        std::string const & streamUrl,
-        SharedCredentials & credentials);
+        std::vector<caff::IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & credentials);
 
     bool requestStageUpdate(
-        StageRequest & request,
-        SharedCredentials & creds,
-        std::chrono::milliseconds * retryIn,
-        bool * isOutOfCapacity);
+        StageRequest & request, SharedCredentials & creds, std::chrono::milliseconds * retryIn, bool * isOutOfCapacity);
 
-}
+}  // namespace caff

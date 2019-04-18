@@ -37,8 +37,7 @@ namespace caff {
                     continue;
                 }
                 gameInfo.processNames.push_back(std::move(processNameStr));
-            }
-            catch (...) {
+            } catch (...) {
                 LOG_DEBUG("Skipping unreadable process name");
             }
         }
@@ -188,4 +187,4 @@ namespace caff {
         get_value_to(json, "reason", response.reason);
         get_value_to(json, "display_message", response.displayMessage);
     };
-}
+}  // namespace caff

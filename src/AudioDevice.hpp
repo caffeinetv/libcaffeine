@@ -12,9 +12,9 @@ namespace caff {
     public:
         AudioDevice();
 
-        void sendAudio(uint8_t const* data, size_t samples_per_channel);
+        void sendAudio(uint8_t const * data, size_t samples_per_channel);
 
-        virtual int32_t RegisterAudioCallback(webrtc::AudioTransport* audioTransport) override;
+        virtual int32_t RegisterAudioCallback(webrtc::AudioTransport * audioTransport) override;
         virtual int32_t Init() override;
         virtual int32_t Terminate() override;
         virtual bool Initialized() const override;
@@ -25,10 +25,10 @@ namespace caff {
         virtual int32_t StopRecording() override;
         virtual bool Recording() const override;
         virtual int32_t SetStereoRecording(bool enable) override;
-        virtual int32_t StereoRecording(bool* enabled) const override;
+        virtual int32_t StereoRecording(bool * enabled) const override;
 
     private:
-        webrtc::AudioTransport* audioTransport{ nullptr };
+        webrtc::AudioTransport * audioTransport{ nullptr };
         std::vector<uint8_t> buffer;
         size_t bufferIndex{ 0 };
     };

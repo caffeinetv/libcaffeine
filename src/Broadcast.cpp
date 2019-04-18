@@ -2,17 +2,17 @@
 
 #include "Broadcast.hpp"
 
-#include <thread>
+#include <chrono>
 #include <ctime>
 #include <random>
-#include <chrono>
+#include <thread>
 
-#include "caffeine.h"
 #include "Api.hpp"
 #include "AudioDevice.hpp"
 #include "PeerConnectionObserver.hpp"
 #include "SessionDescriptionObserver.hpp"
 #include "VideoCapturer.hpp"
+#include "caffeine.h"
 
 #include "libyuv.h"
 
@@ -20,7 +20,7 @@
 //#define SAVE_SCREENSHOT
 
 #ifndef SAVE_SCREENSHOT
-#define STBI_WRITE_NO_STDIO
+#    define STBI_WRITE_NO_STDIO
 #endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -39,8 +39,8 @@ namespace caff {
         std::string title,
         caff_Rating rating,
         std::string gameId,
-        AudioDevice* audioDevice,
-        webrtc::PeerConnectionFactoryInterface* factory)
+        AudioDevice * audioDevice,
+        webrtc::PeerConnectionFactoryInterface * factory)
         : isScreenshotNeeded(true)
         , sharedCredentials(sharedCredentials)
         , username(std::move(username))
@@ -105,19 +105,15 @@ namespace caff {
         return result;
     }
 
-    bool Broadcast::isOnline() const
-    {
-        return state == State::Online;
-    }
+    bool Broadcast::isOnline() const { return state == State::Online; }
 
     static std::string annotateTitle(std::string title, caff_Rating rating)
     {
-        size_t const maxTitleLength = 60; // TODO: policy- should be somewhere else
-        static std::string const ratingStrings[] = { "", "[17+] " }; // TODO maybe same here
+        size_t const maxTitleLength = 60;                             // TODO: policy- should be somewhere else
+        static std::string const ratingStrings[] = { "", "[17+] " };  // TODO maybe same here
 
         auto fullTitle = ratingStrings[rating] + title;
-        if (fullTitle.length() > maxTitleLength)
-            fullTitle.resize(maxTitleLength);
+        if (fullTitle.length() > maxTitleLength) fullTitle.resize(maxTitleLength);
 
         return fullTitle;
     }
@@ -158,14 +154,13 @@ namespace caff {
         feed.capabilities = { true, true };
         feed.stream = std::move(stream);
 
-        request.stage->feeds = { {feedId, std::move(feed)} };
+        request.stage->feeds = { { feedId, std::move(feed) } };
 
         bool isOutOfCapacity = false;
         if (!requestStageUpdate(request, sharedCredentials, NULL, &isOutOfCapacity)) {
             if (isOutOfCapacity) {
                 return caff_ResultOutOfCapacity;
-            }
-            else {
+            } else {
                 return caff_ResultBroadcastFailed;
             }
         }
@@ -178,11 +173,8 @@ namespace caff {
 
         auto & responseStream = feedIt->second.stream;
 
-        if (!responseStream
-            || !responseStream->sdpAnswer
-            || responseStream->sdpAnswer->empty()
-            || !responseStream->url
-            || responseStream->url->empty()) {
+        if (!responseStream || !responseStream->sdpAnswer || responseStream->sdpAnswer->empty() ||
+            !responseStream->url || responseStream->url->empty()) {
             return caff_ResultFailure;
         }
 
@@ -206,23 +198,18 @@ namespace caff {
                 feed.content->id = gameId;
                 feed.content->type = ContentType::Game;
                 return true;
-            }
-            else {
+            } else {
                 return false;
             }
-        }
-        else if (feed.content) {
+        } else if (feed.content) {
             feed.content = {};
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
-    void Broadcast::start(
-        std::function<void()> startedCallback,
-        std::function<void(caff_Result)> failedCallback)
+    void Broadcast::start(std::function<void()> startedCallback, std::function<void(caff_Result)> failedCallback)
     {
         this->failedCallback = failedCallback;
         transitionState(State::Offline, State::Starting);
@@ -256,8 +243,7 @@ namespace caff {
 
             webrtc::PeerConnectionInterface::RTCConfiguration config;
             auto observer = new PeerConnectionObserver;
-            peerConnection = factory->CreatePeerConnection(
-                config, webrtc::PeerConnectionDependencies(observer));
+            peerConnection = factory->CreatePeerConnection(config, webrtc::PeerConnectionDependencies(observer));
 
             peerConnection->AddStream(mediaStream);
 
@@ -319,10 +305,8 @@ namespace caff {
             }
 
             webrtc::SdpParseError answerError;
-            auto remoteDesc = webrtc::CreateSessionDescription(
-                webrtc::SdpType::kAnswer,
-                get<std::string>(result),
-                &answerError);
+            auto remoteDesc =
+                webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, get<std::string>(result), &answerError);
             if (!remoteDesc) {
                 LOG_ERROR("Error parsing SDP answer: %s", answerError.description.c_str());
                 failedCallback(caff_ResultFailure);
@@ -382,10 +366,8 @@ namespace caff {
 
         for (int broadcastIdRetryCount = 0; !broadcastId && broadcastIdRetryCount < 3; ++broadcastIdRetryCount) {
             request->stage->upsertBroadcast = true;
-            if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL)
-                || !request->stage->feeds
-                || request->stage->feeds->find(feedId) == request->stage->feeds->end())
-            {
+            if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL) || !request->stage->feeds ||
+                request->stage->feeds->find(feedId) == request->stage->feeds->end()) {
                 failedCallback(caff_ResultBroadcastFailed);
                 return;
             }
@@ -406,8 +388,7 @@ namespace caff {
                 failedCallback(caff_ResultBroadcastFailed);
                 return;
             }
-        }
-        catch (...) {
+        } catch (...) {
             // Already logged
             failedCallback(caff_ResultBroadcastFailed);
             return;
@@ -422,11 +403,8 @@ namespace caff {
 
         request->stage->live = true;
 
-        if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL)
-            || !request->stage->live
-            || !request->stage->feeds
-            || request->stage->feeds->find(feedId) == request->stage->feeds->end())
-        {
+        if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL) || !request->stage->live ||
+            !request->stage->feeds || request->stage->feeds->find(feedId) == request->stage->feeds->end()) {
             failedCallback(caff_ResultBroadcastFailed);
             return;
         }
@@ -446,12 +424,10 @@ namespace caff {
         int const max_failures = 5;
         int failures = 0;
 
-        for (; state == State::Online; std::this_thread::sleep_for(checkInterval))
-        {
+        for (; state == State::Online; std::this_thread::sleep_for(checkInterval)) {
             // TODO: use wall time?
             interval += checkInterval;
-            if (interval < heartbeatInterval)
-                continue;
+            if (interval < heartbeatInterval) continue;
 
             interval = 0ms;
 
@@ -460,9 +436,7 @@ namespace caff {
                 request = nextRequest;
             }
 
-            if (!request
-                || !request->stage
-                || !request->stage->feeds) {
+            if (!request || !request->stage || !request->stage->feeds) {
                 failedCallback(caff_ResultBroadcastFailed);
                 return;
             }
@@ -486,8 +460,7 @@ namespace caff {
                     feed.sourceConnectionQuality = heartbeatResponse->connectionQuality;
                 }
                 failures = 0;
-            }
-            else {
+            } else {
                 LOG_ERROR("Heartbeat failed");
                 ++failures;
                 if (failures > max_failures) {
@@ -514,10 +487,8 @@ namespace caff {
                 continue;
             }
 
-            if (!request->stage->live
-                || !request->stage->feeds
-                || request->stage->feeds->find(feedId) == request->stage->feeds->end())
-            {
+            if (!request->stage->live || !request->stage->feeds ||
+                request->stage->feeds->find(feedId) == request->stage->feeds->end()) {
                 failedCallback(caff_ResultTakeover);
                 return;
             }
@@ -560,11 +531,9 @@ namespace caff {
 
             auto interval = retryInterval;
 
-            for (; state == State::Online; std::this_thread::sleep_for(checkInterval))
-            {
+            for (; state == State::Online; std::this_thread::sleep_for(checkInterval)) {
                 interval += checkInterval;
-                if (interval < retryInterval || isMutatingFeed)
-                    continue;
+                if (interval < retryInterval || isMutatingFeed) continue;
 
                 optional<StageRequest> request{};
                 {
@@ -579,16 +548,14 @@ namespace caff {
                 auto retryIn = 0ms;
 
                 if (!requestStageUpdate(*request, sharedCredentials, &retryIn, NULL)) {
-                    //If we have a broadcast going but can't talk to the stage endpoint,
+                    // If we have a broadcast going but can't talk to the stage endpoint,
                     // just continually retry with some waiting
                     retryInterval = 5000ms;
                     continue;
                 }
 
-                bool isLiveFeedPresent =
-                    request->stage->live
-                    && request->stage->feeds
-                    && request->stage->feeds->find(feedId) != request->stage->feeds->end();
+                bool isLiveFeedPresent = request->stage->live && request->stage->feeds &&
+                                         request->stage->feeds->find(feedId) != request->stage->feeds->end();
 
                 {
                     std::lock_guard<std::mutex> lock(mutex);
@@ -614,18 +581,15 @@ namespace caff {
         state = State::Offline;
     }
 
-    void Broadcast::sendAudio(uint8_t const* samples, size_t samplesPerChannel)
+    void Broadcast::sendAudio(uint8_t const * samples, size_t samplesPerChannel)
     {
         if (isOnline()) {
             audioDevice->sendAudio(samples, samplesPerChannel);
         }
     }
 
-    void Broadcast::sendVideo(uint8_t const* frameData,
-        size_t frameBytes,
-        int32_t width,
-        int32_t height,
-        caff_VideoFormat format)
+    void Broadcast::sendVideo(
+        uint8_t const * frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format)
     {
         if (isOnline()) {
             auto rtcFormat = static_cast<webrtc::VideoType>(format);
@@ -635,12 +599,10 @@ namespace caff {
             if (isScreenshotNeeded.compare_exchange_strong(expected, false)) {
                 try {
                     screenshotPromise.set_value(createScreenshot(i420frame));
-                }
-                catch (std::exception ex) {
+                } catch (std::exception ex) {
                     LOG_ERROR("Failed to create screenshot: %s", ex.what());
                     screenshotPromise.set_exception(std::current_exception());
-                }
-                catch (...) {
+                } catch (...) {
                     LOG_ERROR("Failed to create screenshot");
                     screenshotPromise.set_exception(std::current_exception());
                 }

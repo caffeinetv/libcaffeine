@@ -17,7 +17,7 @@ namespace caff {
         PeerConnectionObserver & operator=(PeerConnectionObserver const &) = delete;
 
         using Candidates = std::vector<IceInfo>;
-        std::future<Candidates const&> getFuture();
+        std::future<Candidates const &> getFuture();
 
         virtual void OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) override;
         virtual void OnRenegotiationNeeded() override;
@@ -26,10 +26,10 @@ namespace caff {
         virtual void OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) override;
         virtual void OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel) override;
         virtual void OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state) override;
-        virtual void OnIceCandidate(webrtc::IceCandidateInterface const* candidate) override;
+        virtual void OnIceCandidate(webrtc::IceCandidateInterface const * candidate) override;
 
     private:
-        std::promise<Candidates const&> promise;
+        std::promise<Candidates const &> promise;
         Candidates gatheredCandidates;
     };
 

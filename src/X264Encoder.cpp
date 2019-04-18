@@ -28,7 +28,8 @@ namespace caff {
         kX264EncoderEventMax = 16,
     };
 
-    webrtc::FrameType ConvertToWebrtcFrameType(int type) {
+    webrtc::FrameType ConvertToWebrtcFrameType(int type)
+    {
         switch (type) {
         case X264_TYPE_IDR:
             return webrtc::kVideoFrameKey;
@@ -48,13 +49,13 @@ namespace caff {
     // fragmentation information of |fragHeader|. The |encodedImage->_buffer| may
     // be deleted and reallocated if a bigger buffer is required.
     static void rtpFragmentize(
-        webrtc::EncodedImage* encodedImage,
-        std::unique_ptr<uint8_t[]>* encodedImageBuffer,
-        const webrtc::VideoFrameBuffer& frameBuffer,
+        webrtc::EncodedImage * encodedImage,
+        std::unique_ptr<uint8_t[]> * encodedImageBuffer,
+        const webrtc::VideoFrameBuffer & frameBuffer,
         uint32_t numNals,
-        x264_nal_t* nal,
-        webrtc::RTPFragmentationHeader* fragHeader) {
-
+        x264_nal_t * nal,
+        webrtc::RTPFragmentationHeader * fragHeader)
+    {
         // Calculate minimum buffer size required to hold encoded data.
         size_t requiredSize = 0;
         size_t fragmentsCount = 0;
@@ -78,8 +79,8 @@ namespace caff {
             // should be more than enough to hold any encoded data of future frames of
             // the same size (avoiding possible future reallocation due to variations in
             // required size).
-            encodedImage->_size = webrtc::CalcBufferSize(
-                webrtc::VideoType::kI420, frameBuffer.width(), frameBuffer.height());
+            encodedImage->_size =
+                webrtc::CalcBufferSize(webrtc::VideoType::kI420, frameBuffer.width(), frameBuffer.height());
 
             if (encodedImage->_size < requiredSize) {
                 // Encoded data > unencoded data. Allocate required bytes.
@@ -127,23 +128,20 @@ namespace caff {
         }
     }
 
-    X264Encoder::X264Encoder(const cricket::VideoCodec& codec) {
+    X264Encoder::X264Encoder(const cricket::VideoCodec & codec)
+    {
         LOG_DEBUG("Using x264 encoder");
         std::string packetizationModeString;
-        if (codec.GetParam(cricket::kH264FmtpPacketizationMode, &packetizationModeString)
-            && packetizationModeString == "1") {
+        if (codec.GetParam(cricket::kH264FmtpPacketizationMode, &packetizationModeString) &&
+            packetizationModeString == "1") {
             packetizationMode = webrtc::H264PacketizationMode::NonInterleaved;
         }
     }
 
-    X264Encoder::~X264Encoder() {
-        Release();
-    }
+    X264Encoder::~X264Encoder() { Release(); }
 
-    int32_t X264Encoder::InitEncode(
-        const webrtc::VideoCodec* codecSettings,
-        int32_t numCores,
-        size_t maxPayloadSize) {
+    int32_t X264Encoder::InitEncode(const webrtc::VideoCodec * codecSettings, int32_t numCores, size_t maxPayloadSize)
+    {
         reportInit();
 
         if (!codecSettings || codecSettings->codecType != webrtc::kVideoCodecH264) {
@@ -216,10 +214,8 @@ namespace caff {
         encoderParams.rc.i_bitrate = targetKbps;
 
         encoderParams.rc.f_rf_constant =
-            (height >= kMaxFrameHeightHighQualityCrf ||
-                targetKbps < kMinBitrateKbpsHighQualityCrf)
-            ? kNormalQualityCrf
-            : kHighQualityCrf;
+            (height >= kMaxFrameHeightHighQualityCrf || targetKbps < kMinBitrateKbpsHighQualityCrf) ? kNormalQualityCrf
+                                                                                                    : kHighQualityCrf;
         encoderParams.rc.i_vbv_buffer_size = targetKbps;
         encoderParams.rc.i_vbv_max_bitrate = targetKbps;
         encoderParams.rc.f_vbv_buffer_init = 0.5;
@@ -253,8 +249,8 @@ namespace caff {
         }
 
         // Initialize encoded image. Default buffer size: size of unencoded data.
-        encodedImage._size = webrtc::CalcBufferSize(
-            webrtc::VideoType::kI420, codecSettings->width, codecSettings->height);
+        encodedImage._size =
+            webrtc::CalcBufferSize(webrtc::VideoType::kI420, codecSettings->width, codecSettings->height);
         encodedImage._buffer = new uint8_t[encodedImage._size];
         encodedImageBuffer.reset(encodedImage._buffer);
         encodedImage._completeFrame = true;
@@ -266,7 +262,8 @@ namespace caff {
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    int32_t X264Encoder::Release() {
+    int32_t X264Encoder::Release()
+    {
         if (encoder) {
             x264_encoder_close(encoder);
             encoder = nullptr;
@@ -279,12 +276,14 @@ namespace caff {
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    int32_t X264Encoder::RegisterEncodeCompleteCallback(webrtc::EncodedImageCallback* callback) {
+    int32_t X264Encoder::RegisterEncodeCompleteCallback(webrtc::EncodedImageCallback * callback)
+    {
         encodedImageCallback = callback;
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    int32_t X264Encoder::SetRateAllocation(const webrtc::BitrateAllocation& bitrateAllocation, uint32_t framerate) {
+    int32_t X264Encoder::SetRateAllocation(const webrtc::BitrateAllocation & bitrateAllocation, uint32_t framerate)
+    {
         if (bitrateAllocation.get_sum_bps() <= 0 || framerate <= 0) {
             return WEBRTC_VIDEO_CODEC_ERR_PARAMETER;
         }
@@ -297,9 +296,10 @@ namespace caff {
     }
 
     int32_t X264Encoder::Encode(
-        const webrtc::VideoFrame& inputFrame,
-        const webrtc::CodecSpecificInfo* codecSpecificInfo,
-        const std::vector<webrtc::FrameType>* frameTypes) {
+        const webrtc::VideoFrame & inputFrame,
+        const webrtc::CodecSpecificInfo * codecSpecificInfo,
+        const std::vector<webrtc::FrameType> * frameTypes)
+    {
         if (!isInitialized()) {
             reportError();
             return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
@@ -315,14 +315,12 @@ namespace caff {
 
         // check if frame size has been changed by the AdaptFrame API.
         if (inputFrame.height() != height) {
-            x264_param_t* encoderParams = nullptr;
+            x264_param_t * encoderParams = nullptr;
             x264_encoder_parameters(encoder, encoderParams);
 
             if (nullptr != encoderParams) {
                 encoderParams->rc.f_rf_constant =
-                    (inputFrame.height() < kMaxFrameHeightHighQualityCrf)
-                    ? kHighQualityCrf
-                    : kNormalQualityCrf;
+                    (inputFrame.height() < kMaxFrameHeightHighQualityCrf) ? kHighQualityCrf : kNormalQualityCrf;
 
                 int ret = x264_encoder_reconfig(encoder, encoderParams);
                 if (ret < 0) {
@@ -350,12 +348,12 @@ namespace caff {
 
         rtc::scoped_refptr<const webrtc::I420BufferInterface> frameBuffer = inputFrame.video_frame_buffer()->ToI420();
 
-        pictureIn.img.plane[0] = const_cast<uint8_t*>(frameBuffer->DataY());
-        pictureIn.img.plane[1] = const_cast<uint8_t*>(frameBuffer->DataU());
-        pictureIn.img.plane[2] = const_cast<uint8_t*>(frameBuffer->DataV());
+        pictureIn.img.plane[0] = const_cast<uint8_t *>(frameBuffer->DataY());
+        pictureIn.img.plane[1] = const_cast<uint8_t *>(frameBuffer->DataU());
+        pictureIn.img.plane[2] = const_cast<uint8_t *>(frameBuffer->DataV());
         pictureIn.i_pts = frameCount;
 
-        x264_nal_t* nal = nullptr;
+        x264_nal_t * nal = nullptr;
         int32_t numNals = 0;
         int32_t encodedFrameSize = x264_encoder_encode(encoder, &nal, &numNals, &pictureIn, &pictureOut);
 
@@ -374,10 +372,9 @@ namespace caff {
         encodedImage.ntp_time_ms_ = inputFrame.ntp_time_ms();
         encodedImage.capture_time_ms_ = inputFrame.render_time_ms();
         encodedImage.rotation_ = inputFrame.rotation();
-        encodedImage.content_type_ =
-            (mode == webrtc::VideoCodecMode::kScreensharing)
-            ? webrtc::VideoContentType::SCREENSHARE
-            : webrtc::VideoContentType::UNSPECIFIED;
+        encodedImage.content_type_ = (mode == webrtc::VideoCodecMode::kScreensharing)
+                                         ? webrtc::VideoContentType::SCREENSHARE
+                                         : webrtc::VideoContentType::UNSPECIFIED;
         encodedImage.timing_.flags = webrtc::VideoSendTiming::kInvalid;
         encodedImage._frameType = ConvertToWebrtcFrameType(pictureOut.i_type);
 
@@ -403,17 +400,20 @@ namespace caff {
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    const char* X264Encoder::ImplementationName() const {
+    const char * X264Encoder::ImplementationName() const
+    {
         // implementation name.
         return "libx264";
     }
 
-    bool X264Encoder::isInitialized() const {
+    bool X264Encoder::isInitialized() const
+    {
         // return if initialized.
         return encoder != nullptr;
     }
 
-    void X264Encoder::reportInit() {
+    void X264Encoder::reportInit()
+    {
         if (hasReportedInit) {
             return;
         }
@@ -421,7 +421,8 @@ namespace caff {
         hasReportedInit = true;
     }
 
-    void X264Encoder::reportError() {
+    void X264Encoder::reportError()
+    {
         if (hasReportedError) {
             return;
         }
@@ -429,11 +430,10 @@ namespace caff {
         hasReportedError = true;
     }
 
-    int32_t X264Encoder::SetChannelParameters(uint32_t packetLoss, int64_t rtt) {
-        return WEBRTC_VIDEO_CODEC_OK;
-    }
+    int32_t X264Encoder::SetChannelParameters(uint32_t packetLoss, int64_t rtt) { return WEBRTC_VIDEO_CODEC_OK; }
 
-    webrtc::VideoEncoder::ScalingSettings X264Encoder::GetScalingSettings() const {
+    webrtc::VideoEncoder::ScalingSettings X264Encoder::GetScalingSettings() const
+    {
         return webrtc::VideoEncoder::ScalingSettings::kOff;
     }
 }  // namespace caff

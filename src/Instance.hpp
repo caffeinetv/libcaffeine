@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "caffeine.h"
 #include "Api.hpp"
+#include "caffeine.h"
 
 #include <functional>
 #include <vector>
@@ -60,7 +60,7 @@ namespace caff {
         std::unique_ptr<rtc::Thread> networkThread;
         std::unique_ptr<rtc::Thread> workerThread;
         std::unique_ptr<rtc::Thread> signalingThread;
-        rtc::TaskQueue taskQueue; // TODO: only used for disptaching failures; maybe find a better way
+        rtc::TaskQueue taskQueue;  // TODO: only used for disptaching failures; maybe find a better way
 
         optional<SharedCredentials> sharedCredentials;
         std::shared_ptr<Broadcast> broadcast;

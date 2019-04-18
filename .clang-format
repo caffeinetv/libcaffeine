@@ -1,0 +1,36 @@
+# Visual Studio generated .clang-format file
+
+BasedOnStyle: Google
+AccessModifierOffset: -4
+AlignAfterOpenBracket: AlwaysBreak
+AlignEscapedNewlines: Right
+AllowShortFunctionsOnASingleLine: All
+BinPackParameters: false
+BinPackArguments: false
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: BeforeComma
+ColumnLimit: 120
+Cpp11BracedListStyle: false
+DerivePointerAlignment: false
+PointerAlignment: Middle
+FixNamespaceComments: true
+IndentCaseLabels: false
+IndentPPDirectives: AfterHash
+IndentWidth: 4
+MaxEmptyLinesToKeep: 4
+NamespaceIndentation: All
+TabWidth: 4
+UseTab: false

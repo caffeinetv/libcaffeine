@@ -12,11 +12,9 @@
 #include "api/video_codecs/builtin_video_decoder_factory.h"
 #include "api/video_codecs/builtin_video_encoder_factory.h"
 #include "api/video_codecs/sdp_video_format.h"
-
 #include "media/base/h264_profile_level_id.h"
 #include "media/base/mediaconstants.h"
 #include "modules/audio_processing/include/audio_processing.h"
-
 #include "rtc_base/thread.h"
 
 namespace caff {
@@ -28,29 +26,27 @@ namespace caff {
 
         virtual std::vector<webrtc::SdpVideoFormat> GetSupportedFormats() const override
         {
-            auto profileId = webrtc::H264::ProfileLevelId(
-                webrtc::H264::kProfileConstrainedBaseline, webrtc::H264::kLevel3_1);
+            auto profileId =
+                webrtc::H264::ProfileLevelId(webrtc::H264::kProfileConstrainedBaseline, webrtc::H264::kLevel3_1);
             auto name = cricket::kH264CodecName;
             auto profile_string = webrtc::H264::ProfileLevelIdToString(profileId);
-            std::map<std::string, std::string> parameters = {
-                {cricket::kH264FmtpProfileLevelId, profile_string.value()} };
+            std::map<std::string, std::string> parameters = { { cricket::kH264FmtpProfileLevelId,
+                                                                profile_string.value() } };
             return { webrtc::SdpVideoFormat(name, parameters) };
         }
 
-        virtual CodecInfo QueryVideoEncoder(const webrtc::SdpVideoFormat& format) const override
+        virtual CodecInfo QueryVideoEncoder(const webrtc::SdpVideoFormat & format) const override
         {
             return { false, false };
         }
 
-        virtual std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
-            const webrtc::SdpVideoFormat& format) override
+        virtual std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(const webrtc::SdpVideoFormat & format) override
         {
             return std::make_unique<X264Encoder>(cricket::VideoCodec(format));
         }
     };
 
-    Instance::Instance()
-        : taskQueue("caffeine-dispatcher")
+    Instance::Instance() : taskQueue("caffeine-dispatcher")
     {
         networkThread = rtc::Thread::CreateWithSocketServer();
         networkThread->SetName("caffeine-network", nullptr);
@@ -64,25 +60,28 @@ namespace caff {
         signalingThread->SetName("caffeine-signaling", nullptr);
         signalingThread->Start();
 
-        audioDevice = workerThread->Invoke<rtc::scoped_refptr<AudioDevice>>(
-            RTC_FROM_HERE, [] { return new AudioDevice(); });
+        audioDevice =
+            workerThread->Invoke<rtc::scoped_refptr<AudioDevice>>(RTC_FROM_HERE, [] { return new AudioDevice(); });
 
         factory = webrtc::CreatePeerConnectionFactory(
-            networkThread.get(), workerThread.get(), signalingThread.get(),
-            audioDevice, webrtc::CreateBuiltinAudioEncoderFactory(),
+            networkThread.get(),
+            workerThread.get(),
+            signalingThread.get(),
+            audioDevice,
+            webrtc::CreateBuiltinAudioEncoderFactory(),
             webrtc::CreateBuiltinAudioDecoderFactory(),
             std::make_unique<EncoderFactory>(),
-            webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);
+            webrtc::CreateBuiltinVideoDecoderFactory(),
+            nullptr,
+            nullptr);
 
         gameList = getSupportedGames();
     }
 
-    Instance::~Instance()
-    {
-        factory = nullptr;
-    }
+    Instance::~Instance() { factory = nullptr; }
 
-    caff_Result Instance::enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator) {
+    caff_Result Instance::enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator)
+    {
         if (!gameList) {
             gameList = getSupportedGames();
         }
@@ -135,30 +134,15 @@ namespace caff {
         userInfo.reset();
     }
 
-    bool Instance::isSignedIn() const
-    {
-        return sharedCredentials.has_value() && userInfo.has_value();
-    }
+    bool Instance::isSignedIn() const { return sharedCredentials.has_value() && userInfo.has_value(); }
 
-    char const * Instance::getRefreshToken() const
-    {
-        return refreshToken ? refreshToken->c_str() : nullptr;
-    }
+    char const * Instance::getRefreshToken() const { return refreshToken ? refreshToken->c_str() : nullptr; }
 
-    char const * Instance::getUsername() const
-    {
-        return userInfo ? userInfo->username.c_str() : nullptr;
-    }
+    char const * Instance::getUsername() const { return userInfo ? userInfo->username.c_str() : nullptr; }
 
-    char const * Instance::getStageId() const
-    {
-        return userInfo ? userInfo->stageId.c_str() : nullptr;
-    }
+    char const * Instance::getStageId() const { return userInfo ? userInfo->stageId.c_str() : nullptr; }
 
-    bool Instance::canBroadcast() const
-    {
-        return userInfo ? userInfo->canBroadcast : false;
-    }
+    bool Instance::canBroadcast() const { return userInfo ? userInfo->canBroadcast : false; }
 
     caff_Result Instance::startBroadcast(
         std::string title,
@@ -185,13 +169,7 @@ namespace caff {
         };
 
         broadcast = std::make_shared<Broadcast>(
-            *sharedCredentials,
-            userInfo->username,
-            std::move(title),
-            rating,
-            std::move(gameId),
-            audioDevice,
-            factory);
+            *sharedCredentials, userInfo->username, std::move(title), rating, std::move(gameId), audioDevice, factory);
         broadcast->start(startedCallback, dispatchFailure);
         return caff_ResultSuccess;
     }

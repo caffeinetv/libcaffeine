@@ -6,34 +6,36 @@
 
 #include <vector>
 
+#include "Broadcast.hpp"
 #include "ErrorLogging.hpp"
 #include "Instance.hpp"
 #include "LogSink.hpp"
-#include "Broadcast.hpp"
 
 #include "rtc_base/ssladapter.h"
 
 #ifdef _WIN32
-#include "rtc_base/win32socketinit.h"
+#    include "rtc_base/win32socketinit.h"
 #endif
 
 using namespace caff;
 
-#define CATCHALL_RETURN(ret) \
-    catch (std::logic_error ex) { \
-        LOG_ERROR("Logic error. See logs."); \
-        return ret; \
-    } \
-    catch (...) { \
-        LOG_ERROR("Unhandled exception. See logs."); \
-        return ret; \
+#define CATCHALL_RETURN(ret)                                                                                           \
+    catch (std::logic_error ex)                                                                                        \
+    {                                                                                                                  \
+        LOG_ERROR("Logic error. See logs.");                                                                           \
+        return ret;                                                                                                    \
+    }                                                                                                                  \
+    catch (...)                                                                                                        \
+    {                                                                                                                  \
+        LOG_ERROR("Unhandled exception. See logs.");                                                                   \
+        return ret;                                                                                                    \
     }
 
 #define CATCHALL CATCHALL_RETURN()
 
+// TODO: Figure out why clang-format won't wrap before the `try` of a function-try-block
 
-CAFFEINE_API char const* caff_resultString(caff_Result error)
-try {
+CAFFEINE_API char const * caff_resultString(caff_Result error) try {
     CHECK_ENUM(caff_Result, error);
 
     switch (error) {
@@ -72,12 +74,11 @@ try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback)
-try {
+CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback) try {
     CHECK_ENUM(caff_Severity, minSeverity);
 
     // Thread-safe single-init
-    static caff_Result result = ([=]{
+    static caff_Result result = ([=] {
         // Set up logging
         rtc::LogMessage::LogThreads(true);
         rtc::LogMessage::LogTimestamps(true);
@@ -87,8 +88,7 @@ try {
             rtc::LogMessage::LogToDebug(rtc::LS_NONE);
             rtc::LogMessage::SetLogToStderr(false);
             rtc::LogMessage::AddLogToStream(new LogSink(logCallback), caffToRtcSeverity(minSeverity));
-        }
-        else {
+        } else {
 #ifdef NDEBUG
             rtc::LogMessage::LogToDebug(rtc::LS_NONE);
 #else
@@ -114,8 +114,7 @@ try {
 CATCHALL_RETURN(caff_ResultFailure)
 
 
-CAFFEINE_API caff_InstanceHandle caff_createInstance()
-try {
+CAFFEINE_API caff_InstanceHandle caff_createInstance() try {
     auto instance = new Instance;
     return reinterpret_cast<caff_InstanceHandle>(instance);
 }
@@ -126,8 +125,7 @@ CAFFEINE_API caff_Result caff_signIn(
     caff_InstanceHandle instanceHandle,
     char const * username,
     char const * password,
-    char const * otp)
-try {
+    char const * otp) try {  // TODO: why is formatter indenting this line?
     CHECK_PTR(instanceHandle);
     CHECK_CSTR(username);
     CHECK_CSTR(password);
@@ -138,8 +136,7 @@ try {
 CATCHALL_RETURN(caff_ResultFailure)
 
 
-CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken)
-try {
+CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken) try {
     CHECK_PTR(instanceHandle);
     CHECK_CSTR(refreshToken);
 
@@ -149,8 +146,7 @@ try {
 CATCHALL_RETURN(caff_ResultFailure)
 
 
-CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
@@ -159,8 +155,7 @@ try {
 CATCHALL
 
 
-CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
@@ -169,8 +164,7 @@ try {
 CATCHALL_RETURN(false)
 
 
-CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
@@ -179,8 +173,7 @@ try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
@@ -189,8 +182,7 @@ try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
@@ -199,8 +191,7 @@ try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
@@ -209,11 +200,8 @@ try {
 CATCHALL_RETURN(false)
 
 
-CAFFEINE_API caff_Result caff_enumerateGames(
-    caff_InstanceHandle instanceHandle,
-    void * userData,
-    caff_GameEnumerator enumerator)
-try {
+CAFFEINE_API caff_Result
+caff_enumerateGames(caff_InstanceHandle instanceHandle, void * userData, caff_GameEnumerator enumerator) try {
     CHECK_PTR(instanceHandle);
     CHECK_PTR(enumerator);
 
@@ -233,8 +221,7 @@ CAFFEINE_API caff_Result caff_startBroadcast(
     caff_Rating rating,
     char const * gameId,
     caff_BroadcastStartedCallback broadcastStartedCallback,
-    caff_BroadcastFailedCallback broadcastFailedCallback)
-try {
+    caff_BroadcastFailedCallback broadcastFailedCallback) try {
     CHECK_PTR(instanceHandle);
     CHECK_ENUM(caff_Rating, rating);
     CHECK_PTR(broadcastStartedCallback);
@@ -252,9 +239,7 @@ try {
 
     // Encapsulate void * inside lambdas, and other C++ -> C translations
     auto startedCallback = [=] { broadcastStartedCallback(user_data); };
-    auto failedCallback = [=](caff_Result error) {
-        broadcastFailedCallback(user_data, error);
-    };
+    auto failedCallback = [=](caff_Result error) { broadcastFailedCallback(user_data, error); };
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->startBroadcast(std::move(titleStr), rating, std::move(gameIdStr), startedCallback, failedCallback);
@@ -262,8 +247,7 @@ try {
 CATCHALL_RETURN(caff_ResultBroadcastFailed)
 
 
-CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const * id)
-try {
+CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const * id) try {
     CHECK_PTR(instanceHandle);
     std::string idStr;
     if (id) {
@@ -274,19 +258,14 @@ try {
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
         broadcast->setGameId(std::move(idStr));
-    }
-    else {
+    } else {
         LOG_DEBUG("Setting game ID without an active broadcast. (This is probably OK if the stream just ended)");
     }
 }
 CATCHALL
 
 
-CAFFEINE_API void caff_sendAudio(
-    caff_InstanceHandle instanceHandle,
-    uint8_t * samples,
-    size_t samplesPerChannel)
-try {
+CAFFEINE_API void caff_sendAudio(caff_InstanceHandle instanceHandle, uint8_t * samples, size_t samplesPerChannel) try {
     CHECK_PTR(instanceHandle);
     CHECK_PTR(samples);
     CHECK_POSITIVE(samplesPerChannel);
@@ -295,8 +274,7 @@ try {
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
         broadcast->sendAudio(samples, samplesPerChannel);
-    }
-    else {
+    } else {
         LOG_DEBUG("Sending audio without an active broadcast. (This is probably OK if the stream just ended)");
     }
 }
@@ -309,8 +287,7 @@ CAFFEINE_API void caff_sendVideo(
     size_t frameBytes,
     int32_t width,
     int32_t height,
-    caff_VideoFormat format)
-try {
+    caff_VideoFormat format) try {
     CHECK_PTR(frameData);
     CHECK_POSITIVE(frameBytes);
     CHECK_POSITIVE(width);
@@ -321,32 +298,28 @@ try {
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
         broadcast->sendVideo(frameData, frameBytes, width, height, format);
-    }
-    else {
+    } else {
         LOG_DEBUG("Sending video without an active broadcast. (This is probably OK if the stream just ended)");
     }
 }
 CATCHALL
 
 
-CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
         return broadcast->getConnectionQuality();
-    }
-    else {
+    } else {
         return caff_ConnectionQualityUnknown;
     }
 }
 CATCHALL_RETURN(caff_ConnectionQualityUnknown)
 
 
-CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle)
-try {
+CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     instance->endBroadcast();
@@ -355,8 +328,7 @@ try {
 CATCHALL
 
 
-CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle)
-try {
+CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle) try {
     CHECK_PTR(instanceHandle);
     CHECK_PTR(*instanceHandle);
     auto instance = reinterpret_cast<Instance *>(*instanceHandle);

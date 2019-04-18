@@ -15,7 +15,8 @@ namespace caff {
 
     AudioDevice::AudioDevice() : buffer(chunkSize) {}
 
-    void AudioDevice::sendAudio(uint8_t const* data, size_t samplesPerChannel) {
+    void AudioDevice::sendAudio(uint8_t const * data, size_t samplesPerChannel)
+    {
         size_t remainingData = samplesPerChannel * channels * sampleSize;
         size_t remainingBuffer = buffer.size() - bufferIndex;
         size_t toCopy = std::min(remainingData, remainingBuffer);
@@ -37,52 +38,34 @@ namespace caff {
         }
     }
 
-    int32_t AudioDevice::RegisterAudioCallback(webrtc::AudioTransport* audioTransport) {
+    int32_t AudioDevice::RegisterAudioCallback(webrtc::AudioTransport * audioTransport)
+    {
         this->audioTransport = audioTransport;
         return 0;
     }
 
-    int32_t AudioDevice::Init() {
-        return 0;
-    }
+    int32_t AudioDevice::Init() { return 0; }
 
-    int32_t AudioDevice::Terminate() {
-        return 0;
-    }
+    int32_t AudioDevice::Terminate() { return 0; }
 
-    bool AudioDevice::Initialized() const {
-        return true;
-    }
+    bool AudioDevice::Initialized() const { return true; }
 
-    int16_t AudioDevice::RecordingDevices() {
-        return 1;
-    }
+    int16_t AudioDevice::RecordingDevices() { return 1; }
 
-    int32_t AudioDevice::InitRecording() {
-        return 0;
-    }
+    int32_t AudioDevice::InitRecording() { return 0; }
 
-    bool AudioDevice::RecordingIsInitialized() const {
-        return true;
-    }
+    bool AudioDevice::RecordingIsInitialized() const { return true; }
 
-    int32_t AudioDevice::StartRecording() {
-        return 0;
-    }
+    int32_t AudioDevice::StartRecording() { return 0; }
 
-    int32_t AudioDevice::StopRecording() {
-        return 0;
-    }
+    int32_t AudioDevice::StopRecording() { return 0; }
 
-    bool AudioDevice::Recording() const {
-        return true;
-    }
+    bool AudioDevice::Recording() const { return true; }
 
-    int32_t AudioDevice::SetStereoRecording(bool enable) {
-        return 0;
-    }
+    int32_t AudioDevice::SetStereoRecording(bool enable) { return 0; }
 
-    int32_t AudioDevice::StereoRecording(bool* enabled) const {
+    int32_t AudioDevice::StereoRecording(bool * enabled) const
+    {
         *enabled = true;
         return 0;
     }

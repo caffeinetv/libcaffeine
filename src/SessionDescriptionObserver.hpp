@@ -13,8 +13,8 @@ namespace caff {
     public:
         std::future<std::unique_ptr<webrtc::SessionDescriptionInterface>> getFuture();
 
-        virtual void OnSuccess(webrtc::SessionDescriptionInterface* desc) override;
-        virtual void OnFailure(std::string const& error) override;
+        virtual void OnSuccess(webrtc::SessionDescriptionInterface * desc) override;
+        virtual void OnFailure(std::string const & error) override;
 
     private:
         std::promise<std::unique_ptr<webrtc::SessionDescriptionInterface>> promise;
@@ -25,7 +25,7 @@ namespace caff {
         std::future<bool> getFuture();
 
         virtual void OnSuccess() override;
-        virtual void OnFailure(std::string const& error) override;
+        virtual void OnFailure(std::string const & error) override;
 
     private:
         std::promise<bool> promise;

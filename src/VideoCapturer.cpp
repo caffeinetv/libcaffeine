@@ -10,7 +10,8 @@
 namespace caff {
 
     // Copied from old version of libwebrtc
-    static libyuv::RotationMode convertRotationMode(webrtc::VideoRotation rotation) {
+    static libyuv::RotationMode convertRotationMode(webrtc::VideoRotation rotation)
+    {
         switch (rotation) {
         case webrtc::kVideoRotation_0:
             return libyuv::kRotate0;
@@ -26,36 +27,43 @@ namespace caff {
     // Copied from old version of libwebrtc
     static int convertToI420(
         webrtc::VideoType srcVideoType,
-        const uint8_t* srcFrame,
+        const uint8_t * srcFrame,
         int cropX,
         int cropY,
         int srcWidth,
         int srcHeight,
         size_t sampleSize,
         webrtc::VideoRotation rotation,
-        webrtc::I420Buffer* dstBuffer) {
-
+        webrtc::I420Buffer * dstBuffer)
+    {
         int dstWidth = dstBuffer->width();
         int dstHeight = dstBuffer->height();
         // LibYuv expects pre-rotation values for dst.
         // Stride values should correspond to the destination values.
-        if (rotation == webrtc::kVideoRotation_90 ||
-            rotation == webrtc::kVideoRotation_270) {
+        if (rotation == webrtc::kVideoRotation_90 || rotation == webrtc::kVideoRotation_270) {
             std::swap(dstWidth, dstHeight);
         }
         return libyuv::ConvertToI420(
-            srcFrame, sampleSize,
-            dstBuffer->MutableDataY(), dstBuffer->StrideY(),
-            dstBuffer->MutableDataU(), dstBuffer->StrideU(),
-            dstBuffer->MutableDataV(), dstBuffer->StrideV(),
-            cropX, cropY,
-            srcWidth, srcHeight,
-            dstWidth, dstHeight,
+            srcFrame,
+            sampleSize,
+            dstBuffer->MutableDataY(),
+            dstBuffer->StrideY(),
+            dstBuffer->MutableDataU(),
+            dstBuffer->StrideU(),
+            dstBuffer->MutableDataV(),
+            dstBuffer->StrideV(),
+            cropX,
+            cropY,
+            srcWidth,
+            srcHeight,
+            dstWidth,
+            dstHeight,
             convertRotationMode(rotation),
             webrtc::ConvertVideoType(srcVideoType));
     }
 
-    cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const& format) {
+    cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const & format)
+    {
         SetCaptureFormat(&format);
         SetCaptureState(cricket::CS_RUNNING);
         return cricket::CS_STARTING;
@@ -68,12 +76,8 @@ namespace caff {
     static int64_t const minFrameMicros = (1000000 / 32);
 
     rtc::scoped_refptr<webrtc::I420Buffer> VideoCapturer::sendVideo(
-        uint8_t const* frameData,
-        size_t frameByteCount,
-        int32_t width,
-        int32_t height,
-        webrtc::VideoType format) {
-
+        uint8_t const * frameData, size_t frameByteCount, int32_t width, int32_t height, webrtc::VideoType format)
+    {
         auto const now = rtc::TimeMicros();
         auto span = now - lastFrameMicros;
         if (span < minFrameMicros) {
@@ -90,9 +94,18 @@ namespace caff {
         int32_t cropY;
         int64_t translatedCameraTime;
 
-        if (!AdaptFrame(width, height, now, now,
-            &adaptedWidth, &adaptedHeight, &cropWidth, &cropHeight,
-            &cropX, &cropY, &translatedCameraTime)) {
+        if (!AdaptFrame(
+                width,
+                height,
+                now,
+                now,
+                &adaptedWidth,
+                &adaptedHeight,
+                &cropWidth,
+                &cropHeight,
+                &cropX,
+                &cropY,
+                &translatedCameraTime)) {
             LOG_DEBUG("Adapter dropped the frame.");
             return nullptr;
         }
@@ -103,8 +116,7 @@ namespace caff {
         if ((width >= height) && (adaptedHeight < minDimension)) {
             adaptedWidth = width * minDimension / height;
             adaptedHeight = minDimension;
-        }
-        else if ((height > width) && (adaptedWidth < minDimension)) {
+        } else if ((height > width) && (adaptedWidth < minDimension)) {
             adaptedWidth = minDimension;
             adaptedHeight = height * minDimension / width;
         }
@@ -140,18 +152,14 @@ namespace caff {
 
     void VideoCapturer::Stop() {}
 
-    bool VideoCapturer::IsRunning() {
-        return true;
-    }
+    bool VideoCapturer::IsRunning() { return true; }
 
-    bool VideoCapturer::IsScreencast() const {
-        return false;
-    }
+    bool VideoCapturer::IsScreencast() const { return false; }
 
-    bool VideoCapturer::GetPreferredFourccs(std::vector<uint32_t>* fourccs) {
+    bool VideoCapturer::GetPreferredFourccs(std::vector<uint32_t> * fourccs)
+    {
         // ignore preferred formats
-        if (fourccs == nullptr)
-            return false;
+        if (fourccs == nullptr) return false;
 
         fourccs->clear();
         return true;
