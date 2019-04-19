@@ -10,7 +10,6 @@
 #include "ErrorLogging.hpp"
 #include "Instance.hpp"
 #include "LogSink.hpp"
-
 #include "rtc_base/ssladapter.h"
 
 #ifdef _WIN32
@@ -117,11 +116,8 @@ CAFFEINE_API caff_InstanceHandle caff_createInstance() try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API caff_Result caff_signIn(
-        caff_InstanceHandle instanceHandle,
-        char const * username,
-        char const * password,
-        char const * otp) try {
+CAFFEINE_API caff_Result
+caff_signIn(caff_InstanceHandle instanceHandle, char const * username, char const * password, char const * otp) try {
     CHECK_PTR(instanceHandle);
     CHECK_CSTR(username);
     CHECK_CSTR(password);
@@ -256,6 +252,37 @@ CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const 
         broadcast->setGameId(std::move(idStr));
     } else {
         LOG_DEBUG("Setting game ID without an active broadcast. (This is probably OK if the stream just ended)");
+    }
+}
+CATCHALL
+
+
+CAFFEINE_API void caff_setTitle(caff_InstanceHandle instanceHandle, char const * id) try {
+    CHECK_PTR(instanceHandle);
+    std::string idStr;
+    if (id) {
+        idStr = id;
+    }
+
+    auto instance = reinterpret_cast<Instance *>(instanceHandle);
+    auto broadcast = instance->getBroadcast();
+    if (broadcast) {
+        broadcast->setTitle(std::move(idStr));
+    } else {
+        LOG_DEBUG("Setting title without an active broadcast. (This is probably OK if the stream just ended)");
+    }
+}
+CATCHALL
+
+
+CAFFEINE_API void caff_setRating(caff_InstanceHandle instanceHandle, caff_Rating rating) try {
+    CHECK_PTR(instanceHandle);
+    auto instance = reinterpret_cast<Instance *>(instanceHandle);
+    auto broadcast = instance->getBroadcast();
+    if (broadcast) {
+        broadcast->setRating(rating);
+    } else {
+        LOG_DEBUG("Setting rating without an active broadcast. (This is probably OK if the stream just ended)");
     }
 }
 CATCHALL

@@ -13,7 +13,6 @@
 #include "SessionDescriptionObserver.hpp"
 #include "VideoCapturer.hpp"
 #include "caffeine.h"
-
 #include "libyuv.h"
 
 // Uncomment this to save png & jpg copies of the screenshot to the working directory
@@ -24,10 +23,9 @@
 #endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"
+#include "stb_image_write.h"
 
 using namespace std::chrono_literals;
 
@@ -333,9 +331,19 @@ namespace caff {
         });
     }
 
+    void Broadcast::setTitle(std::string title) {
+        std::lock_guard<std::mutex> lock(mutex);
+        this->title = title;
+    }
+
+    void Broadcast::setRating(caff_Rating rating) {
+        std::lock_guard<std::mutex> lock(mutex);
+        this->rating = rating;
+    }
+
     void Broadcast::setGameId(std::string id) {
         std::lock_guard<std::mutex> lock(mutex);
-        gameId = id;
+        this->gameId = id;
     }
 
     void Broadcast::startHeartbeat() {
@@ -459,7 +467,7 @@ namespace caff {
                 }
             }
 
-            shouldMutateFeed = updateGameId(feed) || shouldMutateFeed;
+            shouldMutateFeed = updateGameId(feed) || updateTitle(request->stage) || shouldMutateFeed;
 
             if (!shouldMutateFeed) {
                 continue;
@@ -508,6 +516,23 @@ namespace caff {
                 requestStageUpdate(*request, sharedCredentials, NULL, NULL);
             }
         }
+    }
+
+    bool Broadcast::updateTitle(optional<Stage> & stage) {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        auto fullTitle = annotateTitle(this->title, this->rating);
+
+        if (!stage) {
+            return false;
+        } else if (this->title.empty()) {
+            return false;
+        } else if (stage->title == fullTitle) {
+            return false;
+        }
+
+        stage->title = fullTitle;
+        return true;
     }
 
     void Broadcast::startLongpollThread() {
