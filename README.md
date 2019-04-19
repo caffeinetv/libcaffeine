@@ -17,8 +17,11 @@ Prereqs:
 Steps:
 
 * Follow [Google's instructions](https://webrtc.org/native-code/development/) for checking out webrtc with their tools until you get to the `gn gen ...` command. Instead, do the following:
-    * `gn gen outDebug --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
-    * `gn gen outRelease --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
+    * **TODO:** Fuller instruction list, including not doing the sync until checking out the right branch
+    * `git checkout 'branch-heads/70'`
+    * `gclient sync`
+    * `gn gen out\Debug --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
+    * `gn gen out\Release --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
     * `ninja -C out\Debug webrtc`
     * `ninja -C out\Release webrtc`
 * Set `WEBRTC_ROOT_DIR` environment variable to the webrtc src/ directory
@@ -34,6 +37,8 @@ Steps:
 **TODO:** Linux
 
 ## Code style
+
+`.clang-format` is the source of truth. Ignore anything here that conflicts.
 
 Rule of thumb: mimic the style of whatever is around what you're changing. Here are some decided-on details:
 
