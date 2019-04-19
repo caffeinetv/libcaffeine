@@ -333,9 +333,19 @@ namespace caff {
         });
     }
 
+    void Broadcast::setTitle(std::string title) {
+        std::lock_guard<std::mutex> lock(mutex);
+        this->title = title;
+    }
+
+    void Broadcast::setRating(caff_Rating rating) {
+        std::lock_guard<std::mutex> lock(mutex);
+        this->rating = rating;
+    }
+
     void Broadcast::setGameId(std::string id) {
         std::lock_guard<std::mutex> lock(mutex);
-        gameId = id;
+        this->gameId = id;
     }
 
     void Broadcast::startHeartbeat() {
@@ -459,7 +469,7 @@ namespace caff {
                 }
             }
 
-            shouldMutateFeed = updateGameId(feed) || shouldMutateFeed;
+            shouldMutateFeed = updateGameId(feed) || updateTitle(request->stage) || shouldMutateFeed;
 
             if (!shouldMutateFeed) {
                 continue;
@@ -508,6 +518,23 @@ namespace caff {
                 requestStageUpdate(*request, sharedCredentials, NULL, NULL);
             }
         }
+    }
+
+    bool Broadcast::updateTitle(optional<Stage> & stage) {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        auto fullTitle = annotateTitle(this->title, this->rating);
+
+        if (!stage) {
+            return false;
+        } else if (this->title.empty()) {
+            return false;
+        } else if (stage->title == fullTitle) {
+            return false;
+        }
+
+        stage->title = fullTitle;
+        return true;
     }
 
     void Broadcast::startLongpollThread() {
