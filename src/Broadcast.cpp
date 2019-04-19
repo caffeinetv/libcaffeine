@@ -333,9 +333,19 @@ namespace caff {
         });
     }
 
+    void Broadcast::setTitle(std::string title) {
+        std::lock_guard<std::mutex> lock(mutex);
+        this->title = title;
+    }
+
+    void Broadcast::setRating(caff_Rating rating) {
+        std::lock_guard<std::mutex> lock(mutex);
+        this->rating = rating;
+    }
+
     void Broadcast::setGameId(std::string id) {
         std::lock_guard<std::mutex> lock(mutex);
-        gameId = id;
+        this->gameId = id;
     }
 
     void Broadcast::startHeartbeat() {

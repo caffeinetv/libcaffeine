@@ -61,9 +61,8 @@ namespace caff {
         void start(std::function<void()> startedCallback, std::function<void(caff_Result)> failedCallback);
         void stop();
 
-        // TODO
-        // void setTitle(std::string title);
-        // void setRating(std::string rating);
+        void setTitle(std::string title);
+        void setRating(caff_Rating rating);
         void setGameId(std::string id);
 
         void sendAudio(uint8_t const * samples, size_t samplesPerChannel);

@@ -178,6 +178,10 @@ CAFFEINE_API void caff_sendVideo(
 
 CAFFEINE_API void caff_setGameId(caff_InstanceHandle, char const * gameId);
 
+CAFFEINE_API void caff_setTitle(caff_InstanceHandle, char const * title);
+
+CAFFEINE_API void caff_setRating(caff_InstanceHandle, caff_Rating rating);
+
 CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle);
 
 /* End a Caffeine broadcast
