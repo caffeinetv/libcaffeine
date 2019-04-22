@@ -1,37 +1,96 @@
-# Visual Studio generated .clang-format file
-
+# Basic Formatting
 BasedOnStyle: Google
+ColumnLimit: 120
+TabWidth: 4
+UseTab: false
+MaxEmptyLinesToKeep: 4
+
+# Language
+Language: Cpp
+Standard: Cpp11
+
+# Indentation
 AccessModifierOffset: -4
-AlignAfterOpenBracket: AlwaysBreak
-AlignEscapedNewlines: Right
-AllowShortFunctionsOnASingleLine: All
-BinPackParameters: false
-BinPackArguments: false
+ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 8
+IndentCaseLabels: false
+IndentPPDirectives: AfterHash
+IndentWidth: 4
+IndentWrappedFunctionNames: true
+NamespaceIndentation: All
+
+# Includes
+IncludeBlocks: Preserve
+SortIncludes: true
+
+# Alignment
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: Right
+AlignOperands: true
+AlignTrailingComments: true
+DerivePointerAlignment: false
+PointerAlignment: Middle
+
+# Wrapping and Breaking
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: false
 BraceWrapping:
   AfterClass: false
   AfterControlStatement: false
   AfterEnum: false
+  AfterExternBlock: false
   AfterFunction: false
   AfterNamespace: false
   AfterStruct: false
   AfterUnion: false
   BeforeCatch: false
   BeforeElse: false
-  IndentBraces: false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
+BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
-ColumnLimit: 120
+BreakInheritanceList: BeforeComma
+BreakStringLiterals: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 Cpp11BracedListStyle: false
-DerivePointerAlignment: false
-PointerAlignment: Middle
+
+# Spaces
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+ 
+# Other
+CommentPragmas: '^(!FIXME!|!TODO!|ToDo:)'
+CompactNamespaces: false
+DisableFormat: false
 FixNamespaceComments: true
-IndentCaseLabels: false
-IndentPPDirectives: AfterHash
-IndentWidth: 4
-MaxEmptyLinesToKeep: 4
-NamespaceIndentation: All
-TabWidth: 4
-UseTab: false
+#ForEachMacros: ''
+KeepEmptyLinesAtTheStartOfBlocks: true
+ReflowComments: false
+SortUsingDeclarations: true
