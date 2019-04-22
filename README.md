@@ -2,6 +2,8 @@
 
 This is a library for setting up broadcasts and streaming on [Caffeine.tv](https://www.caffeine.tv).
 
+Libcaffeine is licensed under the GNU GPL version 2. See LICENSE.txt for details.
+
 TODO: Documentation
 
 ## Build instructions
