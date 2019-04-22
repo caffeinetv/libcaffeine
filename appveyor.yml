@@ -1,0 +1,38 @@
+version: '{build}-{branch}'
+platform: x64
+
+matrix:
+  fast_finish: true
+
+environment:
+  global: 
+    CMAKE_SYSTEM_VERSION: 10.0.17134.0
+    CURL_VERSION: 7.56.1
+    LLVM_VERSION: 8.0.0
+    LIBYUV_GIT: "https://chromium.googlesource.com/libyuv/libyuv"
+    
+  matrix:  
+  - APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2017"
+    CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+    CMAKE_TOOLSET: "LLVM"
+    WEBRTC_URL: "https://github.com/caffeinetv/webrtc/releases/download/v70/webrtc-prebuilt.7z"
+    # Used for libcurl only, should be replaced in the future by a proper C++ library.
+    OBS_DEPENDENCIES_URL: "https://obsproject.com/downloads/dependencies2017.zip"
+    OBS_DEPENDENCIES_ARCH: "win64"
+
+# Caching
+cache:
+  - .cache/webrtc.7z
+  - .cache/obs_deps.zip
+
+# Scripts
+install:
+- cmd: ci/win/install.cmd
+
+build_script:
+- cmd: ci/win/build.cmd
+
+after_build:
+- cmd: ci/win/package.cmd
+
+test: off
