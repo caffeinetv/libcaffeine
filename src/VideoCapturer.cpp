@@ -125,8 +125,8 @@ namespace caff {
 
         // if the given input is a weird resolution that is an odd number, the adapted
         // may be odd too, and we need to ensure that it is even.
-        adaptedWidth = (adaptedWidth + 1) & ~1;    // round up to even
-        adaptedHeight = (adaptedHeight + 1) & ~1;  // round up to even
+        adaptedWidth = (adaptedWidth + 1) & ~1;   // round up to even
+        adaptedHeight = (adaptedHeight + 1) & ~1; // round up to even
 
         rtc::scoped_refptr<webrtc::I420Buffer> unscaledBuffer = webrtc::I420Buffer::Create(width, height);
 
@@ -154,10 +154,11 @@ namespace caff {
 
     bool VideoCapturer::GetPreferredFourccs(std::vector<uint32_t> * fourccs) {
         // ignore preferred formats
-        if (fourccs == nullptr) return false;
+        if (fourccs == nullptr)
+            return false;
 
         fourccs->clear();
         return true;
     }
 
-}  // namespace caff
+} // namespace caff

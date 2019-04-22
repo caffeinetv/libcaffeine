@@ -184,4 +184,4 @@ namespace caff {
         }
     }
 
-}  // namespace caff
+} // namespace caff

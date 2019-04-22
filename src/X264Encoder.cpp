@@ -299,9 +299,8 @@ namespace caff {
         }
 
         if (!encodedImageCallback) {
-            LOG_WARNING(
-                    "InitEncode() has been called, but a callback function "
-                    "has not been set with RegisterEncodeCompleteCallback()");
+            LOG_WARNING("InitEncode() has been called, but a callback function "
+                        "has not been set with RegisterEncodeCompleteCallback()");
             reportError();
             return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
         }
@@ -424,4 +423,4 @@ namespace caff {
     webrtc::VideoEncoder::ScalingSettings X264Encoder::GetScalingSettings() const {
         return webrtc::VideoEncoder::ScalingSettings::kOff;
     }
-}  // namespace caff
+} // namespace caff

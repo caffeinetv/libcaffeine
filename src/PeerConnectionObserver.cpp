@@ -57,4 +57,4 @@ namespace caff {
         LOG_DEBUG("ICE candidate added");
     }
 
-}  // namespace caff
+} // namespace caff

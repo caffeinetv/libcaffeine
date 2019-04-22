@@ -58,19 +58,16 @@
 namespace caff {
     class ScopedCurl final {
     public:
-        explicit ScopedCurl(char const * contentType) : curl(curl_easy_init()), headers(basicHeaders(contentType))
-        {
+        explicit ScopedCurl(char const * contentType) : curl(curl_easy_init()), headers(basicHeaders(contentType)) {
             applyHeaders();
         }
 
         ScopedCurl(char const * contentType, SharedCredentials & creds)
-            : curl(curl_easy_init()), headers(authenticatedHeaders(contentType, creds))
-        {
+            : curl(curl_easy_init()), headers(authenticatedHeaders(contentType, creds)) {
             applyHeaders();
         }
 
-        ~ScopedCurl()
-        {
+        ~ScopedCurl() {
             curl_slist_free_all(headers);
             curl_easy_cleanup(curl);
         }
@@ -83,8 +80,7 @@ namespace caff {
 
         void applyHeaders() { curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); }
 
-        static curl_slist * basicHeaders(char const * contentType)
-        {
+        static curl_slist * basicHeaders(char const * contentType) {
             curl_slist * headers = nullptr;
             headers = curl_slist_append(headers, contentType);
             headers = curl_slist_append(headers, "X-Client-Type: libcaffeine");
@@ -92,8 +88,7 @@ namespace caff {
             return headers;
         }
 
-        static curl_slist * authenticatedHeaders(char const * contentType, SharedCredentials & sharedCreds)
-        {
+        static curl_slist * authenticatedHeaders(char const * contentType, SharedCredentials & sharedCreds) {
             std::string authorization("Authorization: Bearer ");
             std::string credential("X-Credential: ");
 
@@ -116,8 +111,7 @@ namespace caff {
         curl_httppost * tail = nullptr;
     };
 
-    static size_t curlWriteCallback(char * ptr, size_t size, size_t nmemb, void * userData)
-    {
+    static size_t curlWriteCallback(char * ptr, size_t size, size_t nmemb, void * userData) {
         UNUSED_PARAMETER(size);
         if (nmemb > 0) {
             std::string & resultStr = *(reinterpret_cast<std::string *>(userData));
@@ -143,18 +137,15 @@ namespace caff {
 
     SharedCredentials::SharedCredentials(Credentials credentials) : credentials(std::move(credentials)) {}
 
-    LockedCredentials SharedCredentials::lock()
-    {
+    LockedCredentials SharedCredentials::lock() {
         mutex.lock();
         return LockedCredentials(*this);
     }
 
     LockedCredentials::LockedCredentials(SharedCredentials & sharedCredentials)
-        : credentials(sharedCredentials.credentials), lock(sharedCredentials.mutex, std::adopt_lock)
-    {}
+        : credentials(sharedCredentials.credentials), lock(sharedCredentials.mutex, std::adopt_lock) {}
 
-    static bool doIsSupportedVersion()
-    {
+    static bool doIsSupportedVersion() {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, VERSION_CHECK_URL);
@@ -196,15 +187,14 @@ namespace caff {
     /* TODO: refactor this - lots of dupe code between request types
      * TODO: reuse curl handle across requests
      */
-    static AuthResponse doSignin(char const * username, char const * password, char const * otp)
-    {
+    static AuthResponse doSignin(char const * username, char const * password, char const * otp) {
         Json requestJson;
 
         try {
             requestJson = { { "account",
                               {
-                                  { "username", username },
-                                  { "password", password },
+                                      { "username", username },
+                                      { "password", password },
                               } } };
 
             if (otp && otp[0]) {
@@ -288,13 +278,11 @@ namespace caff {
         return {};
     }
 
-    AuthResponse signIn(char const * username, char const * password, char const * otp)
-    {
+    AuthResponse signIn(char const * username, char const * password, char const * otp) {
         RETRY_REQUEST(AuthResponse, doSignin(username, password, otp));
     }
 
-    static AuthResponse doRefreshAuth(char const * refreshToken)
-    {
+    static AuthResponse doRefreshAuth(char const * refreshToken) {
         Json requestJson = { { "refresh_token", refreshToken } };
 
         auto requestBody = requestJson.dump();
@@ -349,8 +337,7 @@ namespace caff {
 
     AuthResponse refreshAuth(char const * refreshToken) { RETRY_REQUEST(AuthResponse, doRefreshAuth(refreshToken)); }
 
-    static bool doRefreshCredentials(SharedCredentials & creds)
-    {
+    static bool doRefreshCredentials(SharedCredentials & creds) {
         auto refreshToken = creds.lock().credentials.refreshToken;
         auto response = doRefreshAuth(refreshToken.c_str());
         if (response.credentials) {
@@ -363,8 +350,7 @@ namespace caff {
 
     static bool refreshCredentials(SharedCredentials & creds) { RETRY_REQUEST(bool, doRefreshCredentials(creds)); }
 
-    static optional<UserInfo> doGetUserInfo(SharedCredentials & creds)
-    {
+    static optional<UserInfo> doGetUserInfo(SharedCredentials & creds) {
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
         auto urlStr = GETUSER_URL(creds.lock().credentials.caid);
@@ -409,13 +395,11 @@ namespace caff {
         return {};
     }
 
-    optional<UserInfo> getUserInfo(SharedCredentials & creds)
-    {
+    optional<UserInfo> getUserInfo(SharedCredentials & creds) {
         RETRY_REQUEST(optional<UserInfo>, doGetUserInfo(creds));
     }
 
-    static optional<GameList> doGetSupportedGames()
-    {
+    static optional<GameList> doGetSupportedGames() {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, GETGAMES_URL);
@@ -454,8 +438,7 @@ namespace caff {
     optional<GameList> getSupportedGames() { RETRY_REQUEST(optional<GameList>, doGetSupportedGames()); }
 
     static bool doTrickleCandidates(
-        std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds)
-    {
+            std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds) {
         Json requestJson = { { "ice_candidates", candidates } };
 
         std::string requestBody = requestJson.dump();
@@ -504,19 +487,18 @@ namespace caff {
     }
 
     bool trickleCandidates(
-        std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds)
-    {
+            std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds) {
         RETRY_REQUEST(bool, doTrickleCandidates(candidates, streamUrl, creds));
     }
 
-    static optional<HeartbeatResponse> doHeartbeatStream(std::string const & streamUrl, SharedCredentials & sharedCreds)
-    {
+    static optional<HeartbeatResponse> doHeartbeatStream(
+            std::string const & streamUrl, SharedCredentials & sharedCreds) {
         ScopedCurl curl(CONTENT_TYPE_JSON, sharedCreds);
 
         auto url = STREAM_HEARTBEAT_URL(streamUrl);
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{}");  // TODO: is this necessary?
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{}"); // TODO: is this necessary?
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
 
         std::string responseStr;
@@ -561,33 +543,31 @@ namespace caff {
         return HeartbeatResponse(responseJson);
     }
 
-    optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & sharedCreds)
-    {
+    optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & sharedCreds) {
         RETRY_REQUEST(optional<HeartbeatResponse>, doHeartbeatStream(streamUrl, sharedCreds));
     }
 
     static bool doUpdateScreenshot(
-        std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds)
-    {
+            std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds) {
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
         ScopedPost post;
 
         if (!screenshotData.empty()) {
             curl_formadd(
-                &post.head,
-                &post.tail,
-                CURLFORM_COPYNAME,
-                "broadcast[game_image]",
-                CURLFORM_BUFFER,
-                "game_image.jpg",
-                CURLFORM_BUFFERPTR,
-                &screenshotData[0],
-                CURLFORM_BUFFERLENGTH,
-                screenshotData.size(),
-                CURLFORM_CONTENTTYPE,
-                "image/jpeg",
-                CURLFORM_END);
+                    &post.head,
+                    &post.tail,
+                    CURLFORM_COPYNAME,
+                    "broadcast[game_image]",
+                    CURLFORM_BUFFER,
+                    "game_image.jpg",
+                    CURLFORM_BUFFERPTR,
+                    &screenshotData[0],
+                    CURLFORM_BUFFERLENGTH,
+                    screenshotData.size(),
+                    CURLFORM_CONTENTTYPE,
+                    "image/jpeg",
+                    CURLFORM_END);
         }
 
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, post.head);
@@ -620,15 +600,13 @@ namespace caff {
     }
 
     bool updateScreenshot(
-        std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds)
-    {
+            std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds) {
         RETRY_REQUEST(bool, doUpdateScreenshot(broadcastId, screenshotData, sharedCreds));
     }
 
     static bool isOutOfCapacityFailure(std::string const & type) { return type == "OutOfCapacity"; }
 
-    static optional<StageResponseResult> doStageUpdate(StageRequest const & request, SharedCredentials & creds)
-    {
+    static optional<StageResponseResult> doStageUpdate(StageRequest const & request, SharedCredentials & creds) {
         if (!request.stage || !request.stage->username || request.stage->username->empty()) {
             LOG_ERROR("Did not set request username");
             return {};
@@ -701,14 +679,15 @@ namespace caff {
         }
     }
 
-    static optional<StageResponseResult> stageUpdate(StageRequest const & request, SharedCredentials & creds)
-    {
+    static optional<StageResponseResult> stageUpdate(StageRequest const & request, SharedCredentials & creds) {
         RETRY_REQUEST(optional<StageResponseResult>, doStageUpdate(request, creds));
     }
 
     bool requestStageUpdate(
-        StageRequest & request, SharedCredentials & creds, std::chrono::milliseconds * retryIn, bool * isOutOfCapacity)
-    {
+            StageRequest & request,
+            SharedCredentials & creds,
+            std::chrono::milliseconds * retryIn,
+            bool * isOutOfCapacity) {
         auto result = stageUpdate(request, creds);
         if (!result.has_value()) {
             return false;
@@ -730,4 +709,4 @@ namespace caff {
             return false;
         }
     }
-}  // namespace caff
+} // namespace caff

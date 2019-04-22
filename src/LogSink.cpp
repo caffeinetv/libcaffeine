@@ -40,7 +40,8 @@ namespace caff {
     }
 
     void LogSink::OnLogMessage(const std::string & messageIn, rtc::LoggingSeverity severity, const char * tag) {
-        if (!callback) return;
+        if (!callback)
+            return;
 
         std::ostringstream outstr;
         if (tag && tag[0]) {
@@ -58,4 +59,4 @@ namespace caff {
     }
 
     void LogSink::OnLogMessage(const std::string & message) { OnLogMessage(message, rtc::LS_INFO, nullptr); }
-}  // namespace caff
+} // namespace caff

@@ -103,11 +103,12 @@ namespace caff {
     bool Broadcast::isOnline() const { return state == State::Online; }
 
     static std::string annotateTitle(std::string title, caff_Rating rating) {
-        size_t const maxTitleLength = 60;                             // TODO: policy- should be somewhere else
-        static std::string const ratingStrings[] = { "", "[17+] " };  // TODO maybe same here
+        size_t const maxTitleLength = 60;                            // TODO: policy- should be somewhere else
+        static std::string const ratingStrings[] = { "", "[17+] " }; // TODO maybe same here
 
         auto fullTitle = ratingStrings[rating] + title;
-        if (fullTitle.length() > maxTitleLength) fullTitle.resize(maxTitleLength);
+        if (fullTitle.length() > maxTitleLength)
+            fullTitle.resize(maxTitleLength);
 
         return fullTitle;
     }
@@ -426,7 +427,8 @@ namespace caff {
         for (; state == State::Online; std::this_thread::sleep_for(checkInterval)) {
             // TODO: use wall time?
             interval += checkInterval;
-            if (interval < heartbeatInterval) continue;
+            if (interval < heartbeatInterval)
+                continue;
 
             interval = 0ms;
 
@@ -548,7 +550,8 @@ namespace caff {
 
             for (; state == State::Online; std::this_thread::sleep_for(checkInterval)) {
                 interval += checkInterval;
-                if (interval < retryInterval || isMutatingFeed) continue;
+                if (interval < retryInterval || isMutatingFeed)
+                    continue;
 
                 optional<StageRequest> request{};
                 {
@@ -674,4 +677,4 @@ namespace caff {
         return caff_ConnectionQualityUnknown;
     }
 
-}  // namespace caff
+} // namespace caff

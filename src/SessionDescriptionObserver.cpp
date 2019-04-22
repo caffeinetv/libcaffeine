@@ -28,4 +28,4 @@ namespace caff {
         promise.set_value(false);
     }
 
-}  // namespace caff
+} // namespace caff

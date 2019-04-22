@@ -166,4 +166,4 @@ namespace caff {
         get_value_to(json, "reason", response.reason);
         get_value_to(json, "display_message", response.displayMessage);
     };
-}  // namespace caff
+} // namespace caff

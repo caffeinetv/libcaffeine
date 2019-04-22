@@ -117,8 +117,8 @@ CAFFEINE_API caff_InstanceHandle caff_createInstance() try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API caff_Result
-caff_signIn(caff_InstanceHandle instanceHandle, char const * username, char const * password, char const * otp) try {
+CAFFEINE_API caff_Result caff_signIn(
+        caff_InstanceHandle instanceHandle, char const * username, char const * password, char const * otp) try {
     CHECK_PTR(instanceHandle);
     CHECK_CSTR(username);
     CHECK_CSTR(password);
@@ -194,7 +194,7 @@ CATCHALL_RETURN(false)
 
 
 CAFFEINE_API caff_Result
-caff_enumerateGames(caff_InstanceHandle instanceHandle, void * userData, caff_GameEnumerator enumerator) try {
+        caff_enumerateGames(caff_InstanceHandle instanceHandle, void * userData, caff_GameEnumerator enumerator) try {
     CHECK_PTR(instanceHandle);
     CHECK_PTR(enumerator);
 

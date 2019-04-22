@@ -15,8 +15,7 @@ namespace caff {
 
     AudioDevice::AudioDevice() : buffer(chunkSize) {}
 
-    void AudioDevice::sendAudio(uint8_t const * data, size_t samplesPerChannel)
-    {
+    void AudioDevice::sendAudio(uint8_t const * data, size_t samplesPerChannel) {
         size_t remainingData = samplesPerChannel * channels * sampleSize;
         size_t remainingBuffer = buffer.size() - bufferIndex;
         size_t toCopy = std::min(remainingData, remainingBuffer);
@@ -30,7 +29,7 @@ namespace caff {
             if (remainingBuffer == 0) {
                 uint32_t unused;
                 audioTransport->RecordedDataIsAvailable(
-                    &buffer[0], chunkSamples, sampleSize * channels, channels, sampleRate, 0, 0, 0, 0, unused);
+                        &buffer[0], chunkSamples, sampleSize * channels, channels, sampleRate, 0, 0, 0, 0, unused);
                 bufferIndex = 0;
                 remainingBuffer = buffer.size();
             }
@@ -38,8 +37,7 @@ namespace caff {
         }
     }
 
-    int32_t AudioDevice::RegisterAudioCallback(webrtc::AudioTransport * audioTransport)
-    {
+    int32_t AudioDevice::RegisterAudioCallback(webrtc::AudioTransport * audioTransport) {
         this->audioTransport = audioTransport;
         return 0;
     }
@@ -64,10 +62,9 @@ namespace caff {
 
     int32_t AudioDevice::SetStereoRecording(bool enable) { return 0; }
 
-    int32_t AudioDevice::StereoRecording(bool * enabled) const
-    {
+    int32_t AudioDevice::StereoRecording(bool * enabled) const {
         *enabled = true;
         return 0;
     }
 
-}  // namespace caff
+} // namespace caff
