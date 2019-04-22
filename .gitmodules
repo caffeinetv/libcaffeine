@@ -1,0 +1,6 @@
+[submodule "third_party/libyuv"]
+	path = third_party/libyuv
+	url = https://chromium.googlesource.com/libyuv/libyuv
+[submodule "third_party/abseil-cpp"]
+	path = third_party/abseil-cpp
+	url = https://github.com/abseil/abseil-cpp.git

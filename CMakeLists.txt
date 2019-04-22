@@ -29,6 +29,20 @@ find_package(WebRTC REQUIRED)
 # TODO: use a C++ http library
 find_package(Libcurl REQUIRED)
 
+# Abseil
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/abseil-cpp")
+	message(FATAL_ERROR "Missing Abseil-Cpp, make sure that you've updated the submodules!")
+	return()
+endif()
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/third_party/abseil-cpp")
+
+# libyuv
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libyuv")
+	message(FATAL_ERROR "Missing libYUV, make sure that you've updated the submodules!")
+	return()
+endif()
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/third_party/libyuv")
+
 ################################################################################
 # Code
 ################################################################################
@@ -39,10 +53,9 @@ include_directories(
     third_party/stb
 
     ${LIBCURL_INCLUDE_DIRS}
-
 	${WEBRTC_INCLUDE_DIR}
-	${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
-    ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
+	${CMAKE_CURRENT_SOURCE_DIR}/third_party/abseil-cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/third_party/libyuv/include
 )
 
 # External header distributed with compiled libcaffeine
@@ -106,4 +119,6 @@ target_link_libraries(libcaffeine PRIVATE
     ${LIBCURL_LIBRARIES}
     ${WEBRTC_LIBRARIES}
 	${WEBRTC_DEPENDENCIES}
+	absl_base
+	yuv
 )
