@@ -253,6 +253,24 @@ function(do_package)
     set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
     set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
     include(CPack)
+	
+	# Archive Packaging
+	add_custom_target(
+		PACKAGE_7Z
+		${CMAKE_COMMAND} -E tar cfv "${CMAKE_BINARY_DIR}/${CPACK_PACKAGE_NAME}.7z" --format=7zip --
+			"${CMAKE_INSTALL_PREFIX}/bin${BITS}"
+			"${CMAKE_INSTALL_PREFIX}/lib${BITS}"
+			"${CMAKE_INSTALL_PREFIX}/include"
+		WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}"
+	)
+	add_custom_target(
+		PACKAGE_ZIP
+		${CMAKE_COMMAND} -E tar cfv "${CMAKE_BINARY_DIR}/${CPACK_PACKAGE_NAME}.zip" --format=zip --
+			"${CMAKE_INSTALL_PREFIX}/bin${BITS}"
+			"${CMAKE_INSTALL_PREFIX}/lib${BITS}"
+			"${CMAKE_INSTALL_PREFIX}/include"
+		WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}"
+	)
 endfunction()
 
 do_package()
