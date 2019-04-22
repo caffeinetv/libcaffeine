@@ -1,0 +1,3 @@
+@ECHO OFF
+SET "HERE=%~dp0"
+SET "ROOT=%HERE%..\.."
