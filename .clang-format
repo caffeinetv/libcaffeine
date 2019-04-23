@@ -63,7 +63,6 @@ BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
-BreakInheritanceList: BeforeComma
 BreakStringLiterals: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 Cpp11BracedListStyle: false
@@ -72,11 +71,7 @@ Cpp11BracedListStyle: false
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: true
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeCpp11BracedList: false
-SpaceBeforeCtorInitializerColon: true
-SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements
-SpaceBeforeRangeBasedForLoopColon: true
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
@@ -84,6 +79,13 @@ SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
+
+## These aren't recognized by the version of clang-format in visual studio 17
+#SpaceBeforeCpp11BracedList: false
+#SpaceBeforeCtorInitializerColon: true
+#SpaceBeforeInheritanceColon: true
+#SpaceBeforeRangeBasedForLoopColon: true
+#BreakInheritanceList: BeforeComma
  
 # Other
 CommentPragmas: '^(!FIXME!|!TODO!|ToDo:)'
