@@ -10,6 +10,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 project(libcaffeine)
 
+math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
+
 ################################################################################
 # CMake / Compiler
 ################################################################################
@@ -32,22 +34,10 @@ find_package(Libcurl REQUIRED)
 ################################################################################
 # Code
 ################################################################################
-include_directories(
-    include
-    third_party/x264/include #TODO find externally
-    third_party/nlohmann_json/single_include
-    third_party/stb
-
-    ${LIBCURL_INCLUDE_DIRS}
-
-	${WEBRTC_INCLUDE_DIR}
-	${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
-    ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
-)
-
 # External header distributed with compiled libcaffeine
 set(libcaffeine_HEADERS
-    include/caffeine.h
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/caffeine.h>  
+    $<INSTALL_INTERFACE:caffeine.h>
 )
 
 # Source & internal headers
@@ -96,14 +86,186 @@ if(MSVC)
     set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} /MT")
 endif()
 
-add_library(libcaffeine SHARED
-    ${libcaffeine_HEADERS}
-	${libcaffeine_SOURCES}
+add_library(${PROJECT_NAME} SHARED)
+
+set_target_properties(${PROJECT_NAME}
+    PROPERTIES
+        OUTPUT_NAME ${PROJECT_NAME}
+        OUTPUT_NAME_DEBUG ${PROJECT_NAME}d
+        OUTPUT_NAME_MINSIZEREL ${PROJECT_NAME}s
+        OUTPUT_NAME_RELEASE ${PROJECT_NAME}r
 )
 
-target_link_libraries(libcaffeine PRIVATE
-    ${PROJECT_SOURCE_DIR}/third_party/x264/lib/win64/libx264.lib #TODO find externally
-    ${LIBCURL_LIBRARIES}
-    ${WEBRTC_LIBRARIES}
-	${WEBRTC_DEPENDENCIES}
+target_sources(${PROJECT_NAME}
+    PRIVATE
+        ${libcaffeine_SOURCES}
+    INTERFACE
+        ${libcaffeine_HEADERS}
+)        
+
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/third_party/x264/lib/win64/libx264.lib #TODO find externally
+        ${LIBCURL_LIBRARIES}
+        ${WEBRTC_LIBRARIES}
+        ${WEBRTC_DEPENDENCIES}
 )
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        include
+        third_party/x264/include #TODO find externally
+        third_party/nlohmann_json/single_include
+        third_party/stb
+        ${LIBCURL_INCLUDE_DIRS}
+        ${WEBRTC_INCLUDE_DIR}
+        ${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
+        ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+        $<INSTALL_INTERFACE:include>
+        
+)
+
+################################################################################
+# Installing
+################################################################################
+
+function(do_install)
+    install(
+        TARGETS ${PROJECT_NAME}
+        EXPORT ${PROJECT_NAME}Target
+        RUNTIME DESTINATION "bin${BITS}" COMPONENT Caffeine
+        LIBRARY DESTINATION "lib${BITS}" COMPONENT Caffeine
+        ARCHIVE DESTINATION "lib${BITS}" COMPONENT Caffeine
+    )
+    install(
+        FILES
+        # FIXME: Use generator expressions instead.
+            ${libcaffeine_HEADERS}
+        DESTINATION
+            "include"
+        COMPONENT
+            Caffeine
+    )
+    if(MSVC)
+        # Debug Symbols (optional)
+        install(
+            FILES $<TARGET_PDB_FILE:${PROJECT_NAME}>
+            DESTINATION "bin${BITS}"
+            COMPONENT Caffeine
+            OPTIONAL
+        )
+    endif()
+endfunction()
+
+do_install()
+
+################################################################################
+# Packaging
+################################################################################
+
+function(do_package)
+    # Package Configuration
+    include(CMakePackageConfigHelpers)
+    set(INCLUDE_INSTALL_DIR "include")
+    set(LIBRARY_INSTALL_DIR "lib${BITS}")
+    set(BINARY_INSTALL_DIR "bin${BITS}")
+    set(BINARY_PDB_PATH "")
+    set(BINARY_PDB_RELWITHDEBINFO "")
+    set(BINARY_PDB_DEBUG "")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        set(BIN_SUFFIX "dylib")
+        set(LIB_SUFFIX "a")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(BIN_SUFFIX "so")
+        set(LIB_SUFFIX "a")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+            set(BIN_SUFFIX "dll")
+        if(MSVC)
+            set(LIB_SUFFIX "lib")
+            set(BINARY_PDB_RELWITHDEBINFO "${BINARY_INSTALL_DIR}/${PROJECT_NAME}.pdb")
+            set(BINARY_PDB_PATH "${BINARY_PDB_RELWITHDEBINFO}")
+            set(BINARY_PDB_DEBUG "${LIBRARY_INSTALL_DIR}/${PROJECT_NAME}d.pdb")
+        else()
+            set(LIB_SUFFIX "a")
+        endif()
+    endif()
+
+    set(BINARY_PATH "${BINARY_INSTALL_DIR}/${PROJECT_NAME}.${BIN_SUFFIX}")
+    set(LIBRARY_PATH "${LIBRARY_INSTALL_DIR}/${PROJECT_NAME}.${LIB_SUFFIX}")
+    set(BINARY_RELEASE "${BINARY_INSTALL_DIR}/${PROJECT_NAME}r.${BIN_SUFFIX}")
+    set(LIBRARY_RELEASE "${LIBRARY_INSTALL_DIR}/${PROJECT_NAME}r.${LIB_SUFFIX}")
+    set(BINARY_RELWITHDEBINFO "${BINARY_INSTALL_DIR}/${PROJECT_NAME}.${BIN_SUFFIX}")
+    set(LIBRARY_RELWITHDEBINFO "${LIBRARY_INSTALL_DIR}/${PROJECT_NAME}.${LIB_SUFFIX}")
+    set(BINARY_MINSIZEREL "${BINARY_INSTALL_DIR}/${PROJECT_NAME}s.${BIN_SUFFIX}")
+    set(LIBRARY_MINSIZEREL "${LIBRARY_INSTALL_DIR}/${PROJECT_NAME}s.${LIB_SUFFIX}")
+    set(BINARY_DEBUG "${BINARY_INSTALL_DIR}/${PROJECT_NAME}d.${BIN_SUFFIX}")
+    set(LIBRARY_DEBUG "${LIBRARY_INSTALL_DIR}/${PROJECT_NAME}d.${LIB_SUFFIX}")
+
+    configure_package_config_file(
+        "cmake/PackageConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+        INSTALL_DESTINATION "lib${BITS}/cmake"
+        PATH_VARS
+            INCLUDE_INSTALL_DIR
+            LIBRARY_INSTALL_DIR
+            BINARY_INSTALL_DIR
+            
+            BINARY_PATH
+            BINARY_PDB_PATH
+            LIBRARY_PATH
+            BINARY_RELEASE
+            LIBRARY_RELEASE
+            BINARY_RELWITHDEBINFO
+            BINARY_PDB_RELWITHDEBINFO
+            LIBRARY_RELWITHDEBINFO
+            BINARY_MINSIZEREL
+            LIBRARY_MINSIZEREL
+            BINARY_DEBUG
+            BINARY_PDB_DEBUG
+            LIBRARY_DEBUG
+    )
+
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        VERSION 0.0.1
+        COMPATIBILITY SameMajorVersion
+    )
+     
+    install(
+        FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION
+            "lib${BITS}/cmake"
+        COMPONENT
+            Caffeine
+    )
+
+    # Package Exports
+    install(
+        EXPORT ${PROJECT_NAME}Target
+        DESTINATION "lib${BITS}/cmake"
+    )
+
+    # CPack
+    set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
+    set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
+    include(CPack)
+endfunction()
+
+do_package()
+
+################################################################################
+# Exporting
+################################################################################
+
+# TODO: Figure out how to make this work for the CMake package registry.
+#function(do_export)
+#    export(
+#        TARGETS ${PROJECT_NAME}
+#        FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Target.cmake"
+#    )
+#    export(PACKAGE "${PROJECT_NAME}")
+#endfunction()
