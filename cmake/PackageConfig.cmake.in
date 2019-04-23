@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+set_and_check(CAFFEINE_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check(CAFFEINE_LIBRARY_DIR "@PACKAGE_LIBRARY_INSTALL_DIR@")
+set_and_check(CAFFEINE_LIBRARY "@PACKAGE_LIBRARY_PATH@")
+set_and_check(CAFFEINE_BINARY_DIR "@PACKAGE_BINARY_INSTALL_DIR@")
+set_and_check(CAFFEINE_BINARY "@PACKAGE_BINARY_PATH@")
+
+check_required_components(Caffeine)
+
+if(NOT TARGET libcaffeine)
+	include("${CMAKE_CURRENT_LIST_DIR}/CaffeineTarget.cmake")
+endif()
