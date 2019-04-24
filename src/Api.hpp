@@ -62,7 +62,6 @@ namespace caff {
 
     struct UserInfo {
         std::string username;
-        std::string stageId;
         bool canBroadcast;
     };
 
