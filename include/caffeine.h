@@ -13,29 +13,39 @@
 #    define CAFFEINE_LINKAGE
 #endif
 
-#if defined(LIBCAFFEINE_LIBRARY)
-#    if defined(_WIN32)
+#ifdef _WIN32
+#    ifdef LIBCAFFEINE_LIBRARY
 #        define CAFFEINE_API CAFFEINE_LINKAGE __declspec(dllexport)
 #    else
-#        define CAFFEINE_API CAFFEINE_LINKAGE __attribute__((visibility("default")))
+#        define CAFFEINE_API CAFFEINE_LINKAGE __declspec(dllimport)
 #    endif
-#elif defined(_WIN32)
-#    define CAFFEINE_API CAFFEINE_LINKAGE __declspec(dllimport)
 #else
 #    define CAFFEINE_API CAFFEINE_LINKAGE
 #endif
 
-// Log severities
+//! Log level severities
+/*!
+These are used to filter out log messages based on their severity
+
+\see caff_initialize()
+\see caff_LogCallback
+*/
 typedef enum caff_Severity {
-    caff_SeverityAll,
-    caff_SeverityDebug,
-    caff_SeverityWarning,
-    caff_SeverityError,
-    caff_SeverityNone,
+    caff_SeverityAll,     //!< Extremely verbose, potentially containing sensitive information
+    caff_SeverityDebug,   //!< Verbose logging for debug purposes
+    caff_SeverityWarning, //!< Messages that may indicate a problem but are tolerable failures
+    caff_SeverityError,   //!< Messages indicating a failure state
+    caff_SeverityNone,    //!< Do not log any messages
+
+    //! Used for bounds checking
     caff_SeverityLast = caff_SeverityNone
 } caff_Severity;
 
-// Raw video formats supported by WebRTC
+
+//! Raw pixel formats supported by WebRTC
+/*!
+\see caff_sendVideo()
+*/
 typedef enum caff_VideoFormat {
     caff_VideoFormatUnknown,
     caff_VideoFormatI420,
@@ -53,109 +63,294 @@ typedef enum caff_VideoFormat {
     caff_VideoFormatNv21,
     caff_VideoFormatNv12,
     caff_VideoFormatBgra,
+
+    //! Used for bounds checking
     caff_VideoFormatLast = caff_VideoFormatBgra
 } caff_VideoFormat;
 
-// Status results and errors
+
+//! Status results and errors returned by libcaffeine API functions
 typedef enum caff_Result {
-    // General
-    caff_ResultSuccess = 0,
-    caff_ResultFailure,
+    caff_ResultSuccess = 0, //!< General success result
+    caff_ResultFailure,     //!< General failure result
 
     // Auth
-    caff_ResultOldVersion,
-    caff_ResultInfoIncorrect,
-    caff_ResultLegalAcceptanceRequired,
-    caff_ResultEmailVerificationRequired,
-    caff_ResultMfaOtpRequired,
-    caff_ResultMfaOtpIncorrect,
+    caff_ResultOldVersion,                //!< libcaffeine version is too old
+    caff_ResultInfoIncorrect,             //!< Username/password or refresh token are incorrect
+    caff_ResultLegalAcceptanceRequired,   //!< User must accept Caffeine Terms of Use
+    caff_ResultEmailVerificationRequired, //!< User must verify email address
+    caff_ResultMfaOtpRequired,            //!< User must enter a 2-factor one-time-password sent to their email
+    caff_ResultMfaOtpIncorrect,           //!< The one-time-password provided was incorrect
 
     // Broadcast
-    caff_ResultNotSignedIn,
-    caff_ResultOutOfCapacity,
-    caff_ResultTakeover,
-    caff_ResultAlreadyBroadcasting,
-    caff_ResultDisconnected,
-    caff_ResultBroadcastFailed,
+    caff_ResultNotSignedIn,         //!< The instance must be signed in
+    caff_ResultOutOfCapacity,       //!< Could not find capacity on the server to start a broadcast
+    caff_ResultTakeover,            //!< A broadcast has started from another device
+    caff_ResultAlreadyBroadcasting, //!< A broadcast is already online
+    caff_ResultDisconnected,        //!< Broadcast has been disconnected
+    caff_ResultBroadcastFailed,     //!< Broadcast failed to start
 
+    //! Used for bounds checking
     caff_ResultLast = caff_ResultBroadcastFailed
 } caff_Result;
 
-// Content rating for broadcasts
+
+//! Content rating for broadcasts
+/*!
+This is used to prefix the broadcast title with "[17+] " when selected. In the future this will likely be replaced with
+a more generic tagging system
+
+\see caff_startBroadcast()
+\see caff_setRating()
+*/
 typedef enum caff_Rating {
-    caff_RatingNone,
-    caff_RatingSeventeenPlus,
+    caff_RatingNone,          //!< Do not apply a rating tag
+    caff_RatingSeventeenPlus, //!< Add [17+] tag
+
+    //! Used for bounds checking
     caff_RatingLast = caff_RatingSeventeenPlus
 } caff_Rating;
 
-// Rough measure of connection quality, reported by Caffeine's back-end
+
+//! Indicator of connection quality, reported by Caffeine's back-end
+/*!
+\see caff_getConnectionQuality()
+*/
 typedef enum caff_ConnectionQuality {
-    caff_ConnectionQualityGood,
-    caff_ConnectionQualityPoor,
-    caff_ConnectionQualityUnknown
+    caff_ConnectionQualityGood,   //!< The connection quality is good
+    caff_ConnectionQualityPoor,   //!< There is a significant amount of packet loss on the way to the server
+    caff_ConnectionQualityUnknown //!< Connection quality has not been established
 } caff_ConnectionQuality;
 
-// Opaque handle to Caffeine instance
+
+//! Opaque handle to libcaffeine instance.
+/*!
+This is passed into most libcaffeine API functions
+
+\see caff_initialize()
+*/
 typedef struct caff_Instance * caff_InstanceHandle;
 
-// Callback type for WebRTC log messages
+
+//! Log message callback
+/*!
+This callback is used to pass log messages from libcaffeine into the application's logging facility.
+
+\param severity is the severity of the log message
+\param message is the log message itself
+
+\see caff_initialize()
+*/
 typedef void (*caff_LogCallback)(caff_Severity severity, char const * message);
 
-// Game enumeration callback
+
+//! Game enumeration callback
+/*!
+This callback is used to iterate over the list of games supported by Caffeine.
+
+\param userData is the pointer provided to caff_enumerateGames()
+\param processName is the name of the game's binary with its file extension removed. For example, "WoW64.exe" would be
+    reported as "WoW64".
+\param gameId is Caffeine's unique ID for the game
+\param gameName is the English name of the game as listed on the Caffeine website
+
+\see caff_enumerateGames()
+\see caff_setGameId()
+*/
 typedef void (*caff_GameEnumerator)(
         void * userData, char const * processName, char const * gameId, char const * gameName);
 
-// Callback types for starting broadcast
+
+//! Broadcast start callback
+/*!
+This is called when the stream has started and the broadcast is going online.
+
+\param userData is the pointer provided to caff_startBroadcast()
+
+\see caff_startBroadcast()
+*/
 typedef void (*caff_BroadcastStartedCallback)(void * userData);
+
+
+//! Broadcast failed callback
+/*!
+This is called when the stream failed
+
+\param userData is the pointer provided to caff_startBroadcast()
+\param error is the error result indicating the type of failure
+
+\see caff_startBroadcast()
+*/
 typedef void (*caff_BroadcastFailedCallback)(void * userData, caff_Result error);
 
-/* Get string representation of error enum
- *
- * TODO: localization support
- *
- * error: the error code
- *
- * Returns a string representing the given error or "Unknown" if out of range
- */
-CAFFEINE_API char const * caff_resultString(caff_Result error);
 
-/* Initialize the Caffeine library
- *
- * This should only be called once during application startup. Subsequent calls will be ignored and return the same
- * result as the first call.
- *
- * minSeverity: sets the minimum severity for log messages to be reported.
- *     caff_SeverityDebug will enable all messages
- *     caff_SeverityNone will disable all messages
- * logCallback: if specified, this function will be called with all log messages _instead of_ outputing to stderr
- *
- * Returns: caff_ResultSuccess on success
- */
+//! Get a string representation of an error enum
+/*!
+\param error the error code
+
+\return a string representing the given error or "Unknown" if out of range
+*/
+CAFFEINE_API char const * caff_resultString(caff_Result result);
+
+
+//! Initialize the Caffeine library
+/*!
+This should be called exactly once during application startup. Subsequent calls will be ignored and return the same
+result as the first call.
+
+\param minSeverity sets the minimum severity for log messages to be reported
+\param logCallback if provided, this function will be called with all log messages _instead of_ outputing to stderr
+
+\return caff_ResultSuccess() or caff_ResultFailure()
+
+\see caff_Severity
+\see caff_LogCallback
+*/
 CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback);
 
-// Create a caffeine instance
+
+//! Create a Caffeine instance
+/*!
+The instance manages authentication and the state of the broadcast, and is passed into most other API functions. An
+application usually only needs a single instance, but more than one can be created and will not interfere.
+
+When the application no longer needs the instance (e.g. on shutdown), call caff_freeInstance().
+
+\return an opaque handle to the instance
+
+\see caff_freeInstance()
+*/
 CAFFEINE_API caff_InstanceHandle caff_createInstance();
 
-// Enumerate the supported games list
-CAFFEINE_API caff_Result
-caff_enumerateGames(caff_InstanceHandle instanceHandle, void * userData, caff_GameEnumerator enumerator);
 
-/* start broadcast on Caffeine
- *
- * Sets up the WebRTC connection with Caffeine asynchronously. Calls
- * into broadcastStartedCallback or broadcastFailedCallback with the result. This may
- * happen on a different thread than the caller.
- *
- * instanceHandle: handle to the caffeine instance from caff_initialize
- * userData: an optional pointer passed blindly to the callbacks
- * credentials: authentication credentials obtained from signIn/refreshAuth
- * username: the username of the broadcaster
- * title: the raw (untagged) broadcast title
- * rating: the content rating (17+ or none)
- * gameId (optional): currently active game, for showing icons and categorizing on the Caffeine website
- * broadcastStartedCallback: called when broadcast successfully starts
- * broadcastFailedCallback: called when broadcast fails to start
- */
+//! Enumerate the supported games list
+/*!
+The supplied enumerator will be called synchronously, once for each process name/game ID combination in Caffeine's
+supported games list. 
+
+This is used by an application to decide which game ID to set on the broadcast. The application is responsible for
+determining what game is running, e.g. by monitoring the foreground window process.
+
+\param instanceHandle the handle returned by caff_createInstance()
+\param userData an arbitrary pointer passed unmodified to the enumerator for context
+\param enumerator the enumerator callback
+
+\return caff_ResultFailure if the game list failed to download, otherwise caff_ResultSuccess
+
+\see caff_startBroadcast()
+\see caff_setGameId()
+*/
+CAFFEINE_API caff_Result
+        caff_enumerateGames(caff_InstanceHandle instanceHandle, void * userData, caff_GameEnumerator enumerator);
+
+
+//! First-time sign-in with username and password
+/*!
+This will attempt to authenticate the user. The status result indicates further actions the user must take, if possible.
+
+The first time this function is called, otp should be NULL. If the user has 2-factor authentication enabled, an e-mail
+will be sent to the user with a one-time password. To finish signing in, call caff_signIn again with the same username,
+password, and the new one-time password.
+
+\param instanceHandle the handle returned by caff_createInstance()
+\param username the username attempting to sign in
+\param password the user's password
+\param otp (optional) one-time-password for 2-factor authentication enabled
+
+\return - caff_ResultSuccess upon successful sign-in
+        - caff_ResultFailure for unknown/unexpected errors
+        - caff_ResultOldVersion
+        - caff_ResultInfoIncorrect
+        - caff_ResultLegalAcceptanceRequired
+        - caff_ResultEmailVerificationRequired
+        - caff_ResultMfaOtpRequired
+        - caff_ResultMfaOtpIncorrect
+
+\see caff_Result
+\see caff_getRefreshToken()
+\see caff_refreshAuth()
+*/
+CAFFEINE_API caff_Result
+        caff_signIn(caff_InstanceHandle instanceHandle, char const * username, char const * password, char const * otp);
+
+
+//! Get an authentication refresh token
+/*!
+Once the instance is signed in (caff_signIn()), this will provide a refresh token which can be used for subsequent
+authentications. This token is intended to be stored by the application to provide "stay signed in" behavior.
+
+\param instanceHandle the handle returned by caff_createInstance()
+
+\return the refresh token if signed in, otherwise NULL
+*/
+CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle);
+
+
+//! Sign in with refresh token
+/*!
+This attempts to authenticate using the provided refresh token. If this fails, the user will need to sign in again with
+username and password.
+
+TODO: Return a different error if the authentication actually failed vs. some other failure in the request
+
+\param instanceHandle the handle returned by caff_createInstance()
+\param refreshToken the refresh token returned by caff_getRefreshToken() after a previous sign-in
+
+\return caff_ResultSuccess or caff_ResultFailure
+
+\see caff_signIn()
+\see caff_getRefreshToken()
+*/
+CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken);
+
+
+//! Determine if the instance is signed in
+CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle);
+
+
+//! Get the signed-in username
+/*!
+\return the username if signed in, otherwise NULL
+*/
+CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle);
+
+
+//! Determine if the user is allowed to broadcast
+/*!
+\return false if the user's account is flagged as unable to broadcast. Otherwise true
+*/
+CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle);
+
+
+//! Start a broadcast on Caffeine
+/*!
+This will initiate the broadcast startup process on a new thread as long as the instance is signed in and there isn't
+already a broadcast in progress. When the broadcast has started, broadcastStartedCallback will be called from that
+thread, signalling that the application should start sending audio & video frames.
+
+If there is an error that either prevents the broadcast from starting or interrupts a broadcast in progress, then
+broadcastFailedCallback will be called instead.
+
+\param instanceHandle the handle returned by caff_createInstance()
+\param userData an optional pointer passed unmodified to the callbacks
+\param username the username of the broadcaster
+\param title the raw (untagged) broadcast title
+\param rating the content rating
+\param gameId (optional) currently active game, for showing icons and categorizing on the Caffeine website
+\param broadcastStartedCallback called when broadcast successfully starts
+\param broadcastFailedCallback called when broadcast fails
+
+\return - caff_ResultAlreadyBroadcasting if the instance already has a broadcast in progress
+        - caff_ResultNotSignedIn if the instance has not been authenticated
+        - caff_ResultSuccess if the broadcast thread has started
+
+\see caff_setTitle()
+\see caff_setRating()
+\see caff_setGameId()
+\see caff_sendAudio()
+\see caff_sendVideo()
+\see caff_endBroadcast()
+*/
 CAFFEINE_API caff_Result caff_startBroadcast(
         caff_InstanceHandle instanceHandle,
         void * userData,
@@ -165,53 +360,137 @@ CAFFEINE_API caff_Result caff_startBroadcast(
         caff_BroadcastStartedCallback broadcastStartedCallback,
         caff_BroadcastFailedCallback broadcastFailedCallback);
 
-// TODO pass format, channels, etc
+//! Broadcasts a frame of audio
+/*!
+This should be called by the application's audio output thread as long as the broadcast is online (after
+broadcastStartedCallback has been called, and before either caff_endBroadcast() or broadcastFailedCallback).
+
+Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+
+**TODO**: accept audio in different formats and transcode (with a warning log message)
+
+\param instanceHandle the instance returned by caff_createInstance()
+\param samples pointer to raw sample data. Samples must be 16-bit integer, 48000 Hz, 2-channel pending above TODO
+\param samplesPerChannel number of samples per channel
+
+\see caff_startBroadcast()
+\see caff_sendVideo()
+*/
 CAFFEINE_API void caff_sendAudio(caff_InstanceHandle instanceHandle, uint8_t * samples, size_t samplesPerChannel);
 
+
+//! Broadcasts a frame of video
+/*!
+This should be called by the application's video output thread as long as the broadcast is online (after
+broadcastStartedCallback has been called, and before either caff_endBroadcast() or broadcastFailedCallback).
+
+Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+
+For best results, height should be 720 and format should be caff_VideoFormatI420. This will avoid costs of rescaling and
+reformatting by WebRTC.
+
+\param instanceHandle the instance returned by caff_createInstance()
+\param framePixels the raw pixel data
+\param frameTotalBytes the number of bytes of pixel data
+\param width the frame width
+\param height the frame height
+\param format the format of the raw pixel data
+
+\see caff_startBroadcast()
+\see caff_sendAudio()
+*/
 CAFFEINE_API void caff_sendVideo(
-        caff_InstanceHandle streamHandle,
-        uint8_t const * frameData,
-        size_t frameBytes,
+        caff_InstanceHandle instanceHandle,
+        uint8_t const * framePixels,
+        size_t frameTotalBytes,
         int32_t width,
         int32_t height,
         caff_VideoFormat format);
 
-CAFFEINE_API void caff_setGameId(caff_InstanceHandle, char const * gameId);
 
+//! Set the game ID for the broadcast
+/*!
+This should be called during an active broadcast to update the user's stage with a new game ID (or none, if no longer
+capturing a supported game).
+
+Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+
+\param instanceHandle the instance returned by caff_createInstance()
+\param gameId - a known game ID that the application acquires from caff_enumerateGames()
+              - NULL to indicate that there is no supported game being captured
+*/
+CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const * gameId);
+
+
+//! Set the title of the broadcast
+/*!
+This should be called during an active broadcast to update the user's stage with a broadcast title.
+
+Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+
+\param instanceHandle the instance returned by caff_createInstance()
+\param title the user's desired broadcast title, max 60 characters. If null or empty, the default title
+        "LIVE on Caffeine!" will be used
+*/
 CAFFEINE_API void caff_setTitle(caff_InstanceHandle, char const * title);
 
+
+//! Set the content rating of the broadcast
+/*!
+This should be called during an active broadcast to update the user's stage with a new game ID (or none, if no longer
+capturing a supported game).
+
+Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+
+\param instanceHandle the instance returned by caff_createInstance()
+\param gameId - a known game ID that the application acquires from caff_enumerateGames()
+              - NULL to indicate that there is no supported game being captured
+*/
 CAFFEINE_API void caff_setRating(caff_InstanceHandle, caff_Rating rating);
 
+
+//! Get the connection quality for the broadcast
+/*!
+The application can call this during an active broadcast to determine if there are issues with the network between the
+broadcaster and the Caffeine servers.
+
+\param instanceHandle the instance returned by caff_createInstance()
+
+\return - caff_ConnectionQualityGood if network conditions are acceptable
+        - caff_ConnectionQualityPoor if there is a significant amount of packet loss
+        - caff_ConnectionQualityUnknown if there is no broadcast or the server has not responded with a reading yet
+*/
 CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle);
 
-/* End a Caffeine broadcast
- *
- * This signals the server to end the broadcast and closes the RTC connection.
- */
+
+//! End a Caffeine broadcast
+/*!
+This signals the server to end the broadcast and closes the RTC connection.
+
+If the broadcast failed to start or ended in failure the application does not need to call this.
+
+\param instanceHandle the instance returned by caff_createInstance()
+*/
 CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle);
 
-/* Deinitialize Caffeine library
- *
- * This destroys the internal factory objects, shuts down worker threads, etc.
- *
- * instanceHandle: the instance handle received from caff_createInstance. This
- *     handle will no longer be valid after the function returns.
- */
-CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle);
 
-// TODO: sort these into above, and document
-CAFFEINE_API caff_Result
-caff_signIn(caff_InstanceHandle instanceHandle, char const * username, char const * password, char const * otp);
+//! Sign out of caffeine
+/*
+This will end the broadcast, if active, and discard the instance's authentication data.
 
-CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken);
-
+\param instanceHandle the instance returned by caff_createInstance()
+*/
 CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle);
 
-CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle);
 
-CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle);
-CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle);
-CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle);
-CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle);
+
+//! Deinitialize Caffeine library
+/*!
+This destroys the internal factory objects, shuts down worker threads, etc.
+
+\param instanceHandle the instance handle received from caff_createInstance. This handle will no longer be valid after
+    the function returns. Sets the pointer to null to prevent the caller from reusing it.
+*/
+CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle);
 
 #endif /* LIBCAFFEINE_CAFFEINE_H */

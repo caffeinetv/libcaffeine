@@ -4,7 +4,41 @@ This is a library for setting up broadcasts and streaming on [Caffeine.tv](https
 
 Libcaffeine is licensed under the GNU GPL version 2. See LICENSE.txt for details.
 
-TODO: Documentation
+TODO: More Documentation
+
+## Using the library
+
+Minimal Example:
+
+```c
+void started(void *myContext) {
+    // Start capturing audio & video
+}
+
+void failed(void *myContext, caff_Result result) {
+    // Handle error
+    // Stop capturing if necessary
+}
+
+// Starting a broadcast:
+caff_initialize(caff_SeverityDebug, NULL);
+caff_InstanceHandle instance = caff_createInstance();
+caff_Result result = caff_signIn(instance, "Myuser", "|\/|Yp455WYrd", NULL);
+if (result != caff_ResultSuccess) return -1;
+result = caff_startBroadcast(
+    instance, &myContext, "My title!", caff_RatingNone, NULL, started, failed);
+
+
+// In your video/audio capture thread:
+caff_sendVideo(
+    instance, pixels, pixelBytes, width, height, caff_VideoFormatNv12);
+caff_sendAudio(instance, samples, 2);
+
+
+// When it's over:
+caff_endBroadcast(instance);
+caff_freeInstance(&instance);
+```
 
 ## Build instructions
 

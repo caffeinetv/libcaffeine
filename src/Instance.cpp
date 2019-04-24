@@ -102,6 +102,10 @@ namespace caff {
     }
 
     caff_Result Instance::authenticate(std::function<AuthResponse()> authFunc) {
+        if (broadcast) {
+            LOG_WARNING("Attempting to authenticate while broadcast is already active");
+            return caff_ResultAlreadyBroadcasting;
+        }
         if (!isSupportedVersion()) {
             return caff_ResultOldVersion;
         }
@@ -121,6 +125,7 @@ namespace caff {
     }
 
     void Instance::signOut() {
+        endBroadcast();
         sharedCredentials.reset();
         refreshToken.reset();
         userInfo.reset();
@@ -131,8 +136,6 @@ namespace caff {
     char const * Instance::getRefreshToken() const { return refreshToken ? refreshToken->c_str() : nullptr; }
 
     char const * Instance::getUsername() const { return userInfo ? userInfo->username.c_str() : nullptr; }
-
-    char const * Instance::getStageId() const { return userInfo ? userInfo->stageId.c_str() : nullptr; }
 
     bool Instance::canBroadcast() const { return userInfo ? userInfo->canBroadcast : false; }
 
