@@ -36,7 +36,6 @@ namespace caff {
 
         char const * getRefreshToken() const;
         char const * getUsername() const;
-        char const * getStageId() const;
         bool canBroadcast() const;
 
         caff_Result enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator);

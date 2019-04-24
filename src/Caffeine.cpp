@@ -31,10 +31,10 @@ using namespace caff;
 
 #define CATCHALL CATCHALL_RETURN()
 
-CAFFEINE_API char const * caff_resultString(caff_Result error) try {
-    CHECK_ENUM(caff_Result, error);
+CAFFEINE_API char const * caff_resultString(caff_Result result) try {
+    CHECK_ENUM(caff_Result, result);
 
-    switch (error) {
+    switch (result) {
     case caff_ResultSuccess:
         return "Success";
     case caff_ResultFailure:
@@ -171,15 +171,6 @@ CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle) t
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->getUsername();
-}
-CATCHALL_RETURN(nullptr)
-
-
-CAFFEINE_API char const * caff_getStageId(caff_InstanceHandle instanceHandle) try {
-    CHECK_PTR(instanceHandle);
-
-    auto instance = reinterpret_cast<Instance *>(instanceHandle);
-    return instance->getStageId();
 }
 CATCHALL_RETURN(nullptr)
 

@@ -14,7 +14,6 @@ namespace caff {
 
     void from_json(Json const & json, UserInfo & userInfo) {
         caff::get_value_to(json, "username", userInfo.username);
-        caff::get_value_to(json, "stage_id", userInfo.stageId);
         caff::get_value_to(json, "can_broadcast", userInfo.canBroadcast);
     }
 
