@@ -45,8 +45,6 @@ namespace caff {
     // TODO: separate Broadcast & Feed/Stream functionality
     class Broadcast {
     public:
-        static int const kMaxBitrateBps = 2000000;
-
         Broadcast(
                 SharedCredentials & sharedCredentials,
                 std::string username,
