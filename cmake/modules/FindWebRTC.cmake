@@ -7,7 +7,7 @@
 #  WEBRTC_INCLUDE_DIRS
 #  WEBRTC_LIBRARIES
 #  WEBRTC_DEPENDENCIES
-# 
+#
 
 mark_as_advanced(
 	WEBRTC_FOUND
@@ -46,13 +46,13 @@ function(find_webrtc_includes search_dir)
 		PATHS
 			${search_dir}
 	)
-	
+
 	# Add vendor include directories
 	set(_include_dirs ${WEBRTC_INCLUDE_DIR})
 	if(_include_dirs)
 		list(APPEND _include_dirs ${WEBRTC_INCLUDE_DIR}/third_party/boringssl/src/include)
 	endif()
-	
+
 	set(WEBRTC_INCLUDE_DIR ${WEBRTC_INCLUDE_DIR} PARENT_SCOPE)
 	set(WEBRTC_INCLUDE_DIRS ${_include_dirs} PARENT_SCOPE)
 endfunction()
@@ -75,15 +75,15 @@ function(find_webrtc_libraries search_dir)
 	else()
 		set(ARCH 86)
 	endif()
-	
+
     if(MSVC)
 		set(lib_suffix "lib")
     else()
 		set(lib_suffix "a")
     endif()
-	
+
 	find_path(WEBRTC_PATH_DEBUG
-		webrtc.${lib_suffix}
+		webrtc.${lib_suffix} libwebrtc.${lib_suffix}
 		HINTS
 			${search_dir}
 			# Debug
@@ -116,6 +116,8 @@ function(find_webrtc_libraries search_dir)
 			${search_dir}/out/${BITS}/Debug
 			${search_dir}/out/x${BITS}/Debug
 			${search_dir}/out/Debug
+			# Mac
+			${search_dir}/out/macOS/Debug
 			# Default
 			${search_dir}/out/Default_${ARCH}
 			${search_dir}/out/Default-${ARCH}
@@ -159,11 +161,11 @@ function(find_webrtc_libraries search_dir)
 			libx${BITS} lib_x${BITS} lib-x${BITS}
 			libx${ARCH} lib_x${ARCH} lib-x${ARCH}
 			lib
-		
+
 	)
-	
+
 	find_path(WEBRTC_PATH_RELEASE
-		webrtc.${lib_suffix}
+		webrtc.${lib_suffix} libwebrtc.${lib_suffix}
 		HINTS
 			${search_dir}
 			# Release
@@ -196,6 +198,8 @@ function(find_webrtc_libraries search_dir)
 			${search_dir}/out/${BITS}/Release
 			${search_dir}/out/x${BITS}/Release
 			${search_dir}/out/Release
+			# Mac
+			${search_dir}/out/macOS/Release
 			# Fall back to debug
 			${WEBRTC_PATH_DEBUG}
 		PATHS
@@ -212,53 +216,53 @@ function(find_webrtc_libraries search_dir)
 			libx${ARCH} lib_x${ARCH} lib-x${ARCH}
 			lib
 	)
-	
+
 	find_library(WEBRTC_LIBRARY_DEBUG
 		NAMES
-			webrtc.${lib_suffix}
+			webrtc.${lib_suffix} libwebrtc.${lib_suffix}
 		PATHS
 			${WEBRTC_PATH_DEBUG}
 	)
-	
+
 	find_library(WEBRTC_LIBRARY_RELEASE
 		NAMES
-			webrtc.${lib_suffix}
+			webrtc.${lib_suffix} libwebrtc.${lib_suffix}
 		PATHS
 			${WEBRTC_PATH_RELEASE}
 	)
-	
+
 	# Find all debug libraries.
 	if (EXISTS ${WEBRTC_PATH_DEBUG})
 		file(GLOB_RECURSE _dlibs "${WEBRTC_PATH_DEBUG}/*.${lib_suffix}")
-		
+
 		set(_libs_debug ${WEBRTC_LIBRARY_DEBUG})
 		foreach(lib ${_dlibs})
 			if(${lib} MATCHES ${_WEBRTC_DEPENDENCY_INCLUDES})
 				list(APPEND _libs_debug ${lib})
 			endif()
 		endforeach()
-		
+
 		foreach(lib ${_libs_debug})
 			list(APPEND _libs "debug" ${lib})
 		endforeach()
 	endif()
-	
+
 	# Find all release libraries.
 	if (EXISTS ${WEBRTC_PATH_RELEASE})
 		file(GLOB_RECURSE _rlibs "${WEBRTC_PATH_RELEASE}/*.${lib_suffix}")
-		
+
 		set(_libs_release ${WEBRTC_LIBRARY_RELEASE})
 		foreach(lib ${_rlibs})
 			if(${lib} MATCHES ${_WEBRTC_DEPENDENCY_INCLUDES})
 				list(APPEND _libs_release ${lib})
 			endif()
 		endforeach()
-	
+
 		foreach(lib ${_libs_release})
 			list(APPEND _libs "optimized" ${lib})
 		endforeach()
 	endif()
-	
+
 	set(WEBRTC_PATH_DEBUG ${WEBRTC_PATH_DEBUG} PARENT_SCOPE)
 	set(WEBRTC_LIBRARY_DEBUG ${WEBRTC_LIBRARY_DEBUG} PARENT_SCOPE)
 	set(WEBRTC_LIBRARIES_DEBUG ${_libs_debug} PARENT_SCOPE)
@@ -270,7 +274,7 @@ endfunction()
 
 function(find_webrtc_dependencies)
 	unset(_libs)
-	
+
 	# Add required system libraries
 	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 		add_definitions(-DWEBRTC_WIN)
@@ -293,8 +297,19 @@ function(find_webrtc_dependencies)
 			-lGLU
 #			-lGL
 		)
+	elseif(APPLE)
+		add_definitions(-DWEBRTC_MAC -DWEBRTC_POSIX)
+
+		find_library(AUDIOTOOLBOX_LIBRARY AudioToolbox)
+  		find_library(COREAUDIO_LIBRARY CoreAudio)
+  		find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+  		find_library(COREGRAPHICS_LIBRARY CoreGraphics)
+		find_library(FOUNDATION_LIBRARY Foundation)
+
+		list(APPEND _libs ${AUDIOTOOLBOX_LIBRARY} ${COREAUDIO_LIBRARY}
+			${COREFOUNDATION_LIBRARY} ${COREGRAPHICS_LIBRARY} ${FOUNDATION_LIBRARY})
 	endif()
-	
+
 	set(WEBRTC_DEPENDENCIES ${_libs} PARENT_SCOPE)
 endfunction()
 
@@ -306,7 +321,7 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
 	WEBRTC
 	FOUND_VAR WEBRTC_FOUND
-	REQUIRED_VARS 
+	REQUIRED_VARS
 		WEBRTC_LIBRARIES_DEBUG
 		WEBRTC_LIBRARIES_RELEASE
 		WEBRTC_LIBRARIES
