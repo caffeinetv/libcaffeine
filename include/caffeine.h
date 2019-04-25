@@ -1,5 +1,10 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
+/*! \file caffeine.h
+
+This is the public API for Libcaffeine
+*/
+
 #ifndef LIBCAFFEINE_CAFFEINE_H
 #define LIBCAFFEINE_CAFFEINE_H
 
@@ -188,9 +193,9 @@ typedef void (*caff_BroadcastFailedCallback)(void * userData, caff_Result error)
 
 //! Get a string representation of an error enum
 /*!
-\param error the error code
+\param result the result code
 
-\return a string representing the given error or "Unknown" if out of range
+\return a string representing the given result or "Unknown" if out of range
 */
 CAFFEINE_API char const * caff_resultString(caff_Result result);
 
@@ -335,7 +340,6 @@ broadcastFailedCallback will be called instead.
 
 \param instanceHandle the handle returned by caff_createInstance()
 \param userData an optional pointer passed unmodified to the callbacks
-\param username the username of the broadcaster
 \param title the raw (untagged) broadcast title
 \param rating the content rating
 \param gameId (optional) currently active game, for showing icons and categorizing on the Caffeine website
@@ -434,21 +438,19 @@ Calling this while the broadcast is offline will have no effect, simplifying som
 \param title the user's desired broadcast title, max 60 characters. If null or empty, the default title
         "LIVE on Caffeine!" will be used
 */
-CAFFEINE_API void caff_setTitle(caff_InstanceHandle, char const * title);
+CAFFEINE_API void caff_setTitle(caff_InstanceHandle instanceHandle, char const * title);
 
 
 //! Set the content rating of the broadcast
 /*!
-This should be called during an active broadcast to update the user's stage with a new game ID (or none, if no longer
-capturing a supported game).
+This should be called during an active broadcast to update the broadcast title with a new content rating.
 
 Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
 
 \param instanceHandle the instance returned by caff_createInstance()
-\param gameId - a known game ID that the application acquires from caff_enumerateGames()
-              - NULL to indicate that there is no supported game being captured
+\param rating the new content rating
 */
-CAFFEINE_API void caff_setRating(caff_InstanceHandle, caff_Rating rating);
+CAFFEINE_API void caff_setRating(caff_InstanceHandle instanceHandle, caff_Rating rating);
 
 
 //! Get the connection quality for the broadcast
@@ -477,7 +479,7 @@ CAFFEINE_API void caff_endBroadcast(caff_InstanceHandle instanceHandle);
 
 
 //! Sign out of caffeine
-/*
+/*!
 This will end the broadcast, if active, and discard the instance's authentication data.
 
 \param instanceHandle the instance returned by caff_createInstance()
