@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['caff_5fcanbroadcast',['caff_canBroadcast',['../d6/db0/caffeine_8h.html#a3a799677cbee6d7017763ff3d4956d35',1,'caffeine.h']]],
+  ['caff_5fcreateinstance',['caff_createInstance',['../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57',1,'caffeine.h']]],
+  ['caff_5fendbroadcast',['caff_endBroadcast',['../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2',1,'caffeine.h']]],
+  ['caff_5fenumerategames',['caff_enumerateGames',['../d6/db0/caffeine_8h.html#a86f66db7e414f901d5ba4d3b8d3bed46',1,'caffeine.h']]],
+  ['caff_5ffreeinstance',['caff_freeInstance',['../d6/db0/caffeine_8h.html#ae986eac16f4cb9b8158e0d9a91d89101',1,'caffeine.h']]],
+  ['caff_5fgetconnectionquality',['caff_getConnectionQuality',['../d6/db0/caffeine_8h.html#acc5c6ae8707a0678ea79b48ea1039f46',1,'caffeine.h']]],
+  ['caff_5fgetrefreshtoken',['caff_getRefreshToken',['../d6/db0/caffeine_8h.html#aa8dd76f6b6076d1d8e045a1dbfcdf915',1,'caffeine.h']]],
+  ['caff_5fgetusername',['caff_getUsername',['../d6/db0/caffeine_8h.html#ac5b75f9fa7a59d334fcc7238ebbe158d',1,'caffeine.h']]],
+  ['caff_5finitialize',['caff_initialize',['../d6/db0/caffeine_8h.html#a0d87a43948e50bcf83a35a8684f142d5',1,'caffeine.h']]],
+  ['caff_5fissignedin',['caff_isSignedIn',['../d6/db0/caffeine_8h.html#ae72e73f6b41825893fcfae7a6435878f',1,'caffeine.h']]],
+  ['caff_5frefreshauth',['caff_refreshAuth',['../d6/db0/caffeine_8h.html#ac66593c062348ca99835daa79606dc56',1,'caffeine.h']]],
+  ['caff_5fresultstring',['caff_resultString',['../d6/db0/caffeine_8h.html#a094d91259057fe29557c9b11b038de6b',1,'caffeine.h']]],
+  ['caff_5fsendaudio',['caff_sendAudio',['../d6/db0/caffeine_8h.html#a2f89d2bd5cb8e2cb815f26aa60fd0a97',1,'caffeine.h']]],
+  ['caff_5fsendvideo',['caff_sendVideo',['../d6/db0/caffeine_8h.html#a9c0304fafccd7bf6f260c66e3f5b4c16',1,'caffeine.h']]],
+  ['caff_5fsetgameid',['caff_setGameId',['../d6/db0/caffeine_8h.html#a647f0b6978023394d20fc84b3ef8c06d',1,'caffeine.h']]],
+  ['caff_5fsetrating',['caff_setRating',['../d6/db0/caffeine_8h.html#a63acc8b9a5b9daba7b4e47020b3f11b5',1,'caffeine.h']]],
+  ['caff_5fsettitle',['caff_setTitle',['../d6/db0/caffeine_8h.html#a1ed7854dfa20e28476d39f29fd3822eb',1,'caffeine.h']]],
+  ['caff_5fsignin',['caff_signIn',['../d6/db0/caffeine_8h.html#a16b8229c9279479f7949b1540a584a03',1,'caffeine.h']]],
+  ['caff_5fsignout',['caff_signOut',['../d6/db0/caffeine_8h.html#a94aae87d606b52686531297d3cd1c7bf',1,'caffeine.h']]],
+  ['caff_5fstartbroadcast',['caff_startBroadcast',['../d6/db0/caffeine_8h.html#acd9abde3d6cf3193dc98752d28ea9e4f',1,'caffeine.h']]]
+];
