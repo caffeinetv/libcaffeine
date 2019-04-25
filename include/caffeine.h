@@ -92,7 +92,7 @@ typedef enum caff_Result {
     // Broadcast
     caff_ResultNotSignedIn,         //!< The instance must be signed in
     caff_ResultOutOfCapacity,       //!< Could not find capacity on the server to start a broadcast
-    caff_ResultTakeover,            //!< A broadcast has started from another device
+    caff_ResultTakeover,            //!< The user ended the broadcast from another device or instance
     caff_ResultAlreadyBroadcasting, //!< A broadcast is already online
     caff_ResultDisconnected,        //!< Broadcast has been disconnected
     caff_ResultBroadcastFailed,     //!< Broadcast failed to start
@@ -371,7 +371,8 @@ CAFFEINE_API caff_Result caff_startBroadcast(
 This should be called by the application's audio output thread as long as the broadcast is online (after
 broadcastStartedCallback has been called, and before either caff_endBroadcast() or broadcastFailedCallback).
 
-Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have
+to be strictly synchronized.
 
 **TODO**: accept audio in different formats and transcode (with a warning log message)
 
@@ -390,7 +391,10 @@ CAFFEINE_API void caff_sendAudio(caff_InstanceHandle instanceHandle, uint8_t * s
 This should be called by the application's video output thread as long as the broadcast is online (after
 broadcastStartedCallback has been called, and before either caff_endBroadcast() or broadcastFailedCallback).
 
-Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+The first frame of video sent after starting a broadcast will be used as the screenshot in the Caffeine.tv lobby.
+
+Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have
+to be strictly synchronized.
 
 For best results, height should be 720 and format should be caff_VideoFormatI420. This will avoid costs of rescaling and
 reformatting by WebRTC.
@@ -432,7 +436,8 @@ CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const 
 /*!
 This should be called during an active broadcast to update the user's stage with a broadcast title.
 
-Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-game-monitoring do
+not have to be strictly synchronized.
 
 \param instanceHandle the instance returned by caff_createInstance()
 \param title the user's desired broadcast title, max 60 characters. If null or empty, the default title
@@ -445,7 +450,7 @@ CAFFEINE_API void caff_setTitle(caff_InstanceHandle instanceHandle, char const *
 /*!
 This should be called during an active broadcast to update the broadcast title with a new content rating.
 
-Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+Calling this while the broadcast is offline will have no effect.
 
 \param instanceHandle the instance returned by caff_createInstance()
 \param rating the new content rating
@@ -472,6 +477,8 @@ CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandl
 This signals the server to end the broadcast and closes the RTC connection.
 
 If the broadcast failed to start or ended in failure the application does not need to call this.
+
+Calling this while the broadcast is offline will have no effect.
 
 \param instanceHandle the instance returned by caff_createInstance()
 */
