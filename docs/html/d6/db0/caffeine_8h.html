@@ -611,7 +611,7 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65cae1c74345839100d6fcf8c367f30676ce"></a>caff_ResultOutOfCapacity&#160;</td><td class="fielddoc"><p>Could not find capacity on the server to start a broadcast. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65ca8a90a98ade25a9e01bf0c18d863ab899"></a>caff_ResultTakeover&#160;</td><td class="fielddoc"><p>A broadcast has started from another device. </p>
+<tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65ca8a90a98ade25a9e01bf0c18d863ab899"></a>caff_ResultTakeover&#160;</td><td class="fielddoc"><p>The user ended the broadcast from another device or instance. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65cafb17c0ca2a182f300f747738821fe579"></a>caff_ResultAlreadyBroadcasting&#160;</td><td class="fielddoc"><p>A broadcast is already online. </p>
 </td></tr>
@@ -766,6 +766,7 @@ Functions</h2></td></tr>
 <p>End a Caffeine broadcast. </p>
 <p>This signals the server to end the broadcast and closes the RTC connection.</p>
 <p>If the broadcast failed to start or ended in failure the application does not need to call this.</p>
+<p>Calling this while the broadcast is offline will have no effect.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the instance returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>
@@ -1099,7 +1100,7 @@ Functions</h2></td></tr>
 
 <p>Broadcasts a frame of audio. </p>
 <p>This should be called by the application's audio output thread as long as the broadcast is online (after broadcastStartedCallback has been called, and before either <a class="el" href="../../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2" title="End a Caffeine broadcast.">caff_endBroadcast()</a> or broadcastFailedCallback).</p>
-<p>Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.</p>
+<p>Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have to be strictly synchronized.</p>
 <p>TODO**: accept audio in different formats and transcode (with a warning log message)</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -1167,7 +1168,8 @@ Functions</h2></td></tr>
 
 <p>Broadcasts a frame of video. </p>
 <p>This should be called by the application's video output thread as long as the broadcast is online (after broadcastStartedCallback has been called, and before either <a class="el" href="../../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2" title="End a Caffeine broadcast.">caff_endBroadcast()</a> or broadcastFailedCallback).</p>
-<p>Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.</p>
+<p>The first frame of video sent after starting a broadcast will be used as the screenshot in the Caffeine.tv lobby.</p>
+<p>Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have to be strictly synchronized.</p>
 <p>For best results, height should be 720 and format should be caff_VideoFormatI420. This will avoid costs of rescaling and reformatting by WebRTC.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -1256,7 +1258,7 @@ Functions</h2></td></tr>
 
 <p>Set the content rating of the broadcast. </p>
 <p>This should be called during an active broadcast to update the broadcast title with a new content rating.</p>
-<p>Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.</p>
+<p>Calling this while the broadcast is offline will have no effect.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the instance returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>
@@ -1295,7 +1297,7 @@ Functions</h2></td></tr>
 
 <p>Set the title of the broadcast. </p>
 <p>This should be called during an active broadcast to update the user's stage with a broadcast title.</p>
-<p>Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.</p>
+<p>Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-game-monitoring do not have to be strictly synchronized.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the instance returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>

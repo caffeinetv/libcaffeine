@@ -23,7 +23,7 @@ void failed(void *myContext, caff_Result result) {
 // Starting a broadcast:
 caff_initialize(caff_SeverityDebug, NULL);
 caff_InstanceHandle instance = caff_createInstance();
-caff_Result result = caff_signIn(instance, "Myuser", "|\/|Yp455WYrd", NULL);
+caff_Result result = caff_signIn(instance, "Myuser", "|\\/|Yp455WYrd", NULL);
 if (result != caff_ResultSuccess) return -1;
 result = caff_startBroadcast(
     instance, &myContext, "My title!", caff_RatingNone, NULL, started, failed);
