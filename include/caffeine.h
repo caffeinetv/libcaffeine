@@ -90,7 +90,7 @@ typedef enum caff_Result {
     // Broadcast
     caff_ResultNotSignedIn,         //!< The instance must be signed in
     caff_ResultOutOfCapacity,       //!< Could not find capacity on the server to start a broadcast
-    caff_ResultTakeover,            //!< A broadcast has started from another device
+    caff_ResultTakeover,            //!< This broadcast ended because the user started a new broadcast elsewhere
     caff_ResultAlreadyBroadcasting, //!< A broadcast is already online
     caff_ResultDisconnected,        //!< Broadcast has been disconnected
     caff_ResultBroadcastFailed,     //!< Broadcast failed to start
