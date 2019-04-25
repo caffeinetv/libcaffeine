@@ -36,7 +36,7 @@ find_package(Libcurl REQUIRED)
 ################################################################################
 # External header distributed with compiled libcaffeine
 set(libcaffeine_HEADERS
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/caffeine.h>  
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/caffeine.h>
     $<INSTALL_INTERFACE:include/caffeine.h>
 )
 
@@ -84,6 +84,8 @@ if(MSVC)
 
     set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /MT")
     set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} /MT")
+elseif(APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
 add_library(${PROJECT_NAME} SHARED)
@@ -101,15 +103,23 @@ target_sources(${PROJECT_NAME}
         ${libcaffeine_SOURCES}
     INTERFACE
         ${libcaffeine_HEADERS}
-)        
-
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        ${PROJECT_SOURCE_DIR}/third_party/x264/lib/win64/libx264.lib #TODO find externally
-        ${LIBCURL_LIBRARIES}
-        ${WEBRTC_LIBRARIES}
-        ${WEBRTC_DEPENDENCIES}
 )
+
+if(WIN32)
+    set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/win64/libx264.lib")
+elseif(APPLE)
+    set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/mac64/libx264.a")
+endif()
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${X264_LIB}
+    ${LIBCURL_LIBRARIES}
+    ${WEBRTC_LIBRARIES}
+    ${WEBRTC_DEPENDENCIES}
+)
+
+# Prevent naming the library `liblibcaffeine` on non-Windows platforms
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
@@ -122,9 +132,9 @@ target_include_directories(${PROJECT_NAME}
         ${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
         ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
     INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        
+
 )
 
 ################################################################################
@@ -211,7 +221,7 @@ function(do_package)
             INCLUDE_INSTALL_DIR
             LIBRARY_INSTALL_DIR
             BINARY_INSTALL_DIR
-            
+
             BINARY_PATH
             BINARY_PDB_PATH
             LIBRARY_PATH
@@ -232,7 +242,7 @@ function(do_package)
         VERSION 0.0.1
         COMPATIBILITY SameMajorVersion
     )
-     
+
     install(
         FILES
             "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
@@ -253,7 +263,7 @@ function(do_package)
     set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
     set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
     include(CPack)
-    
+
     # Archive Packaging
     add_custom_target(
         PACKAGE_7Z

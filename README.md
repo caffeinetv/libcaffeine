@@ -34,7 +34,34 @@ Steps:
     * `start libcaffeine.sln`
 * Build the solution in Visual Studio
 
-**TODO:** Mac
+### Mac
+Prereqs:
+
+* Xcode
+* CMAKE
+
+Steps:
+
+* Checkout WebRTC
+    * Clone Chrome `depot_tools` into a directory of your choice: `git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git`
+    * Add `depot_tools` to your path
+    * Make and navigate to a `WebRTC` checkout directory
+    * Checkout `WebRTC`:
+        * If you are only doing macOS development, run `fetch --nohooks`
+        * If you are also doing iOS development, run `fetch --nohooks webrtc_ios`
+    * Sync to the release we currently support: `gclient sync --revision=branch-heads/70`
+* Build WebRTC
+    * `gn gen out/macOS/Debug --args="use_rtti=true" --ide=xcode`
+    * `gn gen out/macOS/Release --args="is_debug=false use_rtti=true" --ide=xcode`
+    * `ninja -C out/macOS/Debug webrtc`
+    * `ninja -C out/macOS/Release webrtc`
+* Build libcaffeine
+    * Navigate to the libcaffeine root directory
+    * `mkdir build`
+    * `cd build`
+    * Set `WEBRTC_ROOT_DIR` environment variable to the `WEBRTC` `src` directory
+    * `cmake .. -G Xcode`
+    * Build the project in Xcode
 
 **TODO:** Linux
 
