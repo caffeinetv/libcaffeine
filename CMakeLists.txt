@@ -88,17 +88,10 @@ elseif(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
-add_library(${PROJECT_NAME} SHARED)
+set(OBJLIB_NAME "${PROJECT_NAME}-objlib")
+add_library(${OBJLIB_NAME} OBJECT)
 
-set_target_properties(${PROJECT_NAME}
-    PROPERTIES
-        OUTPUT_NAME ${PROJECT_NAME}
-        OUTPUT_NAME_DEBUG ${PROJECT_NAME}d
-        OUTPUT_NAME_MINSIZEREL ${PROJECT_NAME}s
-        OUTPUT_NAME_RELEASE ${PROJECT_NAME}r
-)
-
-target_sources(${PROJECT_NAME}
+target_sources(${OBJLIB_NAME}
     PRIVATE
         ${libcaffeine_SOURCES}
     INTERFACE
@@ -111,17 +104,7 @@ elseif(APPLE)
     set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/mac64/libx264.a")
 endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${X264_LIB}
-    ${LIBCURL_LIBRARIES}
-    ${WEBRTC_LIBRARIES}
-    ${WEBRTC_DEPENDENCIES}
-)
-
-# Prevent naming the library `liblibcaffeine` on non-Windows platforms
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
-
-target_include_directories(${PROJECT_NAME}
+target_include_directories(${OBJLIB_NAME}
     PRIVATE
         include
         third_party/x264/include #TODO find externally
@@ -136,6 +119,37 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
 
 )
+
+set(STATIC_NAME "${PROJECT_NAME}-static")
+
+function(set_output_name project_name)
+    set_target_properties(${project_name}
+        PROPERTIES
+            PREFIX "" # Prevent naming the library `liblibcaffeine`
+            OUTPUT_NAME ${project_name}
+            OUTPUT_NAME_DEBUG ${project_name}d
+            OUTPUT_NAME_MINSIZEREL ${project_name}s
+            OUTPUT_NAME_RELEASE ${project_name}r
+    )
+endfunction(set_output_name)
+
+add_library(${STATIC_NAME} STATIC $<TARGET_OBJECTS:${OBJLIB_NAME}>)
+add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:${OBJLIB_NAME}>)
+
+function(set_target_link_libraries project_name)
+    target_link_libraries(${project_name} PRIVATE
+        ${X264_LIB}
+        ${LIBCURL_LIBRARIES}
+        ${WEBRTC_LIBRARIES}
+        ${WEBRTC_DEPENDENCIES}
+    )
+endfunction(set_target_link_libraries)
+
+set_output_name(${STATIC_NAME})
+set_target_link_libraries(${STATIC_NAME})
+
+set_output_name(${PROJECT_NAME})
+set_target_link_libraries(${PROJECT_NAME})
 
 ################################################################################
 # Installing
