@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 
 ################################################################################
 # Setup / Bootstrap
@@ -23,6 +23,7 @@ SET(CMAKE_CXX_EXTENSIONS OFF)
 ################################################################################
 # Options
 ################################################################################
+option(libcaffeine_BuildTests "Build unit tests when BUILD_TESTING is enabled." ON)
 
 # WebRTC
 find_package(WebRTC REQUIRED)
@@ -104,19 +105,26 @@ elseif(APPLE)
     set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/mac64/libx264.a")
 endif()
 
+set(PRIVATE_INCLUDES
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/third_party/x264/include #TODO find externally
+    ${PROJECT_SOURCE_DIR}/third_party/nlohmann_json/single_include
+    ${PROJECT_SOURCE_DIR}/third_party/stb
+    ${LIBCURL_INCLUDE_DIRS}
+    ${WEBRTC_INCLUDE_DIR}
+    ${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
+    ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
+)
+
+set(PUBLIC_INCLUDES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
 target_include_directories(${OBJLIB_NAME}
-    PRIVATE
-        include
-        third_party/x264/include #TODO find externally
-        third_party/nlohmann_json/single_include
-        third_party/stb
-        ${LIBCURL_INCLUDE_DIRS}
-        ${WEBRTC_INCLUDE_DIR}
-        ${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
-        ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
-    INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+    PRIVATE ${PRIVATE_INCLUDES}
+    INTERFACE ${PUBLIC_INCLUDES}
 
 )
 
@@ -150,6 +158,17 @@ set_target_link_libraries(${STATIC_NAME})
 
 set_output_name(${PROJECT_NAME})
 set_target_link_libraries(${PROJECT_NAME})
+
+################################################################################
+# Tests
+################################################################################
+if(libcaffeine_BuildTests)
+    include(CTest)
+    if(BUILD_TESTING)
+        enable_testing()
+        add_subdirectory(tests)
+    endif()
+endif()
 
 ################################################################################
 # Installing
