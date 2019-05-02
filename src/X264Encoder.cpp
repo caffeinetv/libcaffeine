@@ -61,7 +61,7 @@ namespace caff {
         for (uint32_t idx = 0; idx < numNals; ++idx, ++fragmentsCount) {
             CHECK_POSITIVE(nal[idx].i_payload);
             // Ensure |requiredSize| will not overflow.
-            CHECK(nal[idx].i_payload <= std::numeric_limits<size_t>::max() - requiredSize);
+            CAFF_CHECK(nal[idx].i_payload <= std::numeric_limits<size_t>::max() - requiredSize);
             requiredSize += nal[idx].i_payload;
             // x264 uses 3 byte startcode instead, and uses 4 byte start codes only for
             // SPS and PPS. In the case of 3 byte start codes, we need to prepend an
@@ -105,7 +105,7 @@ namespace caff {
         encodedImage->_length = 0;
 
         for (uint32_t idx = 0; idx < numNals; ++idx, ++frag) {
-            CHECK(nal[idx].i_payload >= 4);
+            CAFF_CHECK(nal[idx].i_payload >= 4);
 
             uint32_t offset = nal[idx].b_long_startcode ? kLongStartcodeSize : kShortStartcodeSize;
             uint32_t naluSize = nal[idx].i_payload - offset;
@@ -160,7 +160,7 @@ namespace caff {
             reportError();
             return releaseRet;
         }
-        CHECK(!encoder);
+        CAFF_CHECK(!encoder);
 
         numberOfCores = numCores;
 
@@ -179,7 +179,7 @@ namespace caff {
         int32_t ret = x264_param_default_preset(&encoderParams, "veryfast", "zerolatency");
         if (0 != ret) {
             LOG_ERROR("Failed to create x264 param defaults");
-            CHECK(!encoder);
+            CAFF_CHECK(!encoder);
             reportError();
             return WEBRTC_VIDEO_CODEC_ERROR;
         }
@@ -227,7 +227,7 @@ namespace caff {
         ret = x264_picture_alloc(&pictureIn, encoderParams.i_csp, encoderParams.i_width, encoderParams.i_height);
         if (0 != ret) {
             LOG_ERROR("Failed to allocate picture. errno: %d", ret);
-            CHECK(!encoder);
+            CAFF_CHECK(!encoder);
             reportError();
             return WEBRTC_VIDEO_CODEC_ERROR;
         }
@@ -325,7 +325,7 @@ namespace caff {
         bool forceKeyFrame = false;
         if (frameTypes != nullptr) {
             // We only support a single stream.
-            CHECK(frameTypes->size() == 1);
+            CAFF_CHECK(frameTypes->size() == 1);
             // Skip frame?
             if ((*frameTypes)[0] == webrtc::kEmptyFrame) {
                 return WEBRTC_VIDEO_CODEC_OK;
