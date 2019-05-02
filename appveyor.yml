@@ -34,7 +34,12 @@ install:
 build_script:
 - cmd: node ci/win/build.js
 
-test: off
+test_script:
+- cd build
+- ctest -C Debug -V -j
+- ctest -C Release -V -j
+- ctest -C RelWithDebInfo -V -j
+- ctest -C MinSizeRel -V -j
 
 # Artifacts
 artifacts:
