@@ -36,10 +36,10 @@ build_script:
 
 test_script:
 - cd build
-- ctest -C Debug -V -j
-- ctest -C Release -V -j
-- ctest -C RelWithDebInfo -V -j
-- ctest -C MinSizeRel -V -j
+- ctest -C Debug -V -j 4
+- ctest -C Release -V -j 4
+- ctest -C RelWithDebInfo -V -j 4
+- ctest -C MinSizeRel -V -j 4
 
 # Artifacts
 artifacts:
