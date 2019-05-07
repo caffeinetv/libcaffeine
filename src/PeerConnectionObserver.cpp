@@ -6,7 +6,9 @@
 
 namespace caff {
 
-    PeerConnectionObserver::PeerConnectionObserver() {}
+    PeerConnectionObserver::PeerConnectionObserver(std::function<void(caff_Result)> failedCallback)
+		: failedCallback(failedCallback)
+	{}
 
     std::future<PeerConnectionObserver::Candidates const &> PeerConnectionObserver::getFuture() {
         return promise.get_future();
@@ -16,7 +18,36 @@ namespace caff {
 
     void PeerConnectionObserver::OnRenegotiationNeeded() {}
 
-    void PeerConnectionObserver::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState newState) {}
+    void PeerConnectionObserver::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState newState) {
+        using State = webrtc::PeerConnectionInterface::IceConnectionState;
+        switch (newState) {
+        case State::kIceConnectionFailed:
+            LOG_ERROR("ICE connection: failed");
+            failedCallback(caff_ResultDisconnected);
+            break;
+        case State::kIceConnectionDisconnected:
+            LOG_WARNING("ICE connection: disconnected");
+            break;
+        case State::kIceConnectionClosed:
+            LOG_DEBUG("ICE connection: closed");
+            break;
+        case State::kIceConnectionNew:
+            LOG_DEBUG("ICE connection: new");
+            break;
+        case State::kIceConnectionChecking:
+            LOG_DEBUG("ICE connection: checking");
+            break;
+        case State::kIceConnectionCompleted:
+            LOG_DEBUG("ICE connection: completed");
+            break;
+        case State::kIceConnectionMax:
+            LOG_DEBUG("ICE connection: maxed out");
+            break;
+        default:
+            LOG_WARNING("ICE connection: unhandled state");
+            break;
+        }
+    }
 
     void PeerConnectionObserver::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {}
 

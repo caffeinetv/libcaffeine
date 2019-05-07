@@ -12,7 +12,7 @@ namespace caff {
 
     class PeerConnectionObserver : public webrtc::PeerConnectionObserver {
     public:
-        PeerConnectionObserver();
+        PeerConnectionObserver(std::function<void(caff_Result)> failedCallback);
         PeerConnectionObserver(PeerConnectionObserver const &) = delete;
         PeerConnectionObserver & operator=(PeerConnectionObserver const &) = delete;
 
@@ -31,6 +31,7 @@ namespace caff {
     private:
         std::promise<Candidates const &> promise;
         Candidates gatheredCandidates;
+        std::function<void(caff_Result)> failedCallback;
     };
 
 }  // namespace caff

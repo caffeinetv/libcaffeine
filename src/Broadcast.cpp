@@ -234,7 +234,7 @@ namespace caff {
             mediaStream->AddTrack(audioTrack);
 
             webrtc::PeerConnectionInterface::RTCConfiguration config;
-            auto observer = new PeerConnectionObserver;
+            auto observer = new PeerConnectionObserver(failedCallback);
             peerConnection = factory->CreatePeerConnection(config, webrtc::PeerConnectionDependencies(observer));
 
             peerConnection->AddStream(mediaStream);
