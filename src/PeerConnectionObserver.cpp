@@ -6,7 +6,9 @@
 
 namespace caff {
 
-    PeerConnectionObserver::PeerConnectionObserver() {}
+    PeerConnectionObserver::PeerConnectionObserver(std::function<void(caff_Result)> failedCallback)
+		: failedCallback(failedCallback)
+	{}
 
     std::future<PeerConnectionObserver::Candidates const &> PeerConnectionObserver::getFuture() {
         return promise.get_future();
@@ -16,7 +18,21 @@ namespace caff {
 
     void PeerConnectionObserver::OnRenegotiationNeeded() {}
 
-    void PeerConnectionObserver::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState newState) {}
+    void PeerConnectionObserver::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState newState) {
+        using State = webrtc::PeerConnectionInterface::IceConnectionState;
+        switch (newState) {
+        case State::kIceConnectionFailed:
+            LOG_DEBUG("ICE connection: failed");
+            failedCallback(caff_ResultFailure);
+            break;
+        case State::kIceConnectionDisconnected:
+            LOG_DEBUG("ICE connection: disconnected");
+            failedCallback(caff_ResultFailure);
+            break;
+        default:
+            break;
+        }
+    }
 
     void PeerConnectionObserver::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {}
 
