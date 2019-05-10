@@ -3,12 +3,13 @@
 #pragma once
 
 #include "Api.hpp"
-#include "caffeine.h"
 
 #include <functional>
 #include <vector>
 
-#include "rtc_base/scoped_ref_ptr.h"
+#include "caffeine.h"
+
+#include "api/scoped_refptr.h"
 #include "rtc_base/task_queue.h"
 
 namespace webrtc {
@@ -59,7 +60,7 @@ namespace caff {
         std::unique_ptr<rtc::Thread> networkThread;
         std::unique_ptr<rtc::Thread> workerThread;
         std::unique_ptr<rtc::Thread> signalingThread;
-        rtc::TaskQueue taskQueue;  // TODO: only used for disptaching failures; maybe find a better way
+        std::unique_ptr<webrtc::TaskQueueBase, webrtc::TaskQueueDeleter> taskQueue;
 
         optional<SharedCredentials> sharedCredentials;
         std::shared_ptr<Broadcast> broadcast;
@@ -71,4 +72,4 @@ namespace caff {
         optional<GameList> gameList;
     };
 
-}  // namespace caff
+} // namespace caff

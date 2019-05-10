@@ -3,7 +3,7 @@
 #pragma once
 
 #include "modules/audio_device/audio_device_generic.h"
-#include "rtc_base/refcountedobject.h"
+#include "rtc_base/ref_counted_object.h"
 
 namespace caff {
 
@@ -136,4 +136,4 @@ namespace caff {
         virtual ~AudioDeviceDefaultImpl() override {}
     };
 
-}  // namespace caff
+} // namespace caff

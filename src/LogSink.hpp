@@ -24,4 +24,4 @@ namespace caff {
         caff_LogCallback callback;
     };
 
-}  // namespace caff
+} // namespace caff

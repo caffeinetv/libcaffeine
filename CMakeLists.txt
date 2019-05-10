@@ -62,8 +62,8 @@ set(libcaffeine_SOURCES
     src/Serialization.hpp
     src/SessionDescriptionObserver.cpp
     src/SessionDescriptionObserver.hpp
-    src/VideoCapturer.cpp
-    src/VideoCapturer.hpp
+    src/VideoSource.cpp
+    src/VideoSource.hpp
     src/X264Encoder.cpp
     src/X264Encoder.hpp
 )
@@ -73,6 +73,7 @@ if(WIN32)
 endif()
 
 if(MSVC)
+    add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
     add_compile_options("/MP" "/WX" "/EHa")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")

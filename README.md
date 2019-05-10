@@ -105,6 +105,37 @@ Steps:
 
 Rule of thumb: mimic the style of whatever is around what you're changing. Here are some decided-on details:
 
+### Organization
+
+#### Includes
+
+* Includes should be grouped as follows:
+    * Class declaration
+    * Standard library headers
+    * Libcaffeine headers
+    * Third-party headers
+    E.g.
+    ```c++
+    // Inside Broadcast.cpp
+    #include "Broadcast.hpp"
+
+    #include <chrono>
+    #include <ctime>
+    #include <random>
+    #include <thread>
+
+    #include "Api.hpp"
+    #include "AudioDevice.hpp"
+    #include "PeerConnectionObserver.hpp"
+    #include "SessionDescriptionObserver.hpp"
+    #include "VideoCapturer.hpp"
+    #include "caffeine.h"
+
+    #include "api/media_stream_interface.h"
+    #include "api/peer_connection_interface.h"
+    #include "libyuv.h"
+    ```
+
 ### Text formatting
 
 * 120-column text width

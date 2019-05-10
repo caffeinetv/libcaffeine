@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "api/jsep.h"
-#include "api/refcountedbase.h"
-
 #include <future>
+
+#include "api/jsep.h"
+#include "api/ref_counted_base.h"
 
 namespace caff {
 
@@ -31,4 +31,4 @@ namespace caff {
         std::promise<bool> promise;
     };
 
-}  // namespace caff
+} // namespace caff

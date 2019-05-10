@@ -8,13 +8,16 @@
 
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
-#include "api/peerconnectioninterface.h"
+#include "api/create_peerconnection_factory.h"
+#include "api/peer_connection_interface.h"
+#include "api/task_queue/global_task_queue_factory.h"
 #include "api/video_codecs/builtin_video_decoder_factory.h"
 #include "api/video_codecs/builtin_video_encoder_factory.h"
 #include "api/video_codecs/sdp_video_format.h"
 #include "media/base/h264_profile_level_id.h"
-#include "media/base/mediaconstants.h"
+#include "media/base/media_constants.h"
 #include "modules/audio_processing/include/audio_processing.h"
+#include "rtc_base/task_utils/to_queued_task.h"
 #include "rtc_base/thread.h"
 
 namespace caff {
@@ -44,7 +47,9 @@ namespace caff {
         }
     };
 
-    Instance::Instance() : taskQueue("caffeine-dispatcher") {
+    Instance::Instance()
+        : taskQueue(webrtc::GlobalTaskQueueFactory().CreateTaskQueue(
+                  "caffeine-dispatcher", webrtc::TaskQueueFactory::Priority::NORMAL)) {
         networkThread = rtc::Thread::CreateWithSocketServer();
         networkThread->SetName("caffeine-network", nullptr);
         networkThread->Start();
@@ -156,10 +161,10 @@ namespace caff {
         }
 
         auto dispatchFailure = [=](caff_Result error) {
-            taskQueue.PostTask([=] {
+            taskQueue->PostTask(webrtc::ToQueuedTask([=] {
                 failedCallback(error);
                 endBroadcast();
-            });
+            }));
         };
 
         broadcast = std::make_shared<Broadcast>(

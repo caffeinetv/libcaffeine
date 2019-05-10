@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "caffeine.h"
-
 #include <chrono>
 #include <map>
 #include <memory>
@@ -11,6 +9,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include "caffeine.h"
 
 #include "absl/types/optional.h"
 #include "absl/types/variant.h"
@@ -191,4 +191,4 @@ namespace caff {
             std::chrono::milliseconds * retryIn,
             bool * isOutOfCapacity);
 
-}  // namespace caff
+} // namespace caff

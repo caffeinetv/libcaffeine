@@ -1,8 +1,8 @@
 #include "Serialization.hpp"
 
-#include "ErrorLogging.hpp"
-
 #include <sstream>
+
+#include "ErrorLogging.hpp"
 
 namespace caff {
     void from_json(Json const & json, Credentials & credentials) {

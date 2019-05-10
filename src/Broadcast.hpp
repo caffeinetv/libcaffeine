@@ -11,9 +11,9 @@
 #include "ErrorLogging.hpp"
 
 #include "absl/types/optional.h"
+#include "api/scoped_refptr.h"
 #include "api/video/i420_buffer.h"
-#include "common_types.h"
-#include "rtc_base/scoped_ref_ptr.h"
+#include "common_video/libyuv/include/webrtc_libyuv.h"
 
 ASSERT_MATCH(caff_VideoFormatUnknown, webrtc::VideoType::kUnknown);
 ASSERT_MATCH(caff_VideoFormatI420, webrtc::VideoType::kI420);
@@ -36,11 +36,11 @@ namespace webrtc {
     class PeerConnectionFactoryInterface;
     class MediaStreamInterface;
     class PeerConnectionInterface;
-}  // namespace webrtc
+} // namespace webrtc
 
 namespace caff {
     class AudioDevice;
-    class VideoCapturer;
+    class VideoSource;
 
     // TODO: separate Broadcast & Feed/Stream functionality
     class Broadcast {
@@ -90,7 +90,7 @@ namespace caff {
         std::string gameId;
 
         AudioDevice * audioDevice;
-        VideoCapturer * videoCapturer;
+        rtc::scoped_refptr<VideoSource> videoSource;
         webrtc::PeerConnectionFactoryInterface * factory;
         rtc::scoped_refptr<webrtc::PeerConnectionInterface> peerConnection;
 
@@ -110,4 +110,4 @@ namespace caff {
         ScreenshotData createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer);
     };
 
-}  // namespace caff
+} // namespace caff

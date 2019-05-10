@@ -4,9 +4,9 @@
 
 #include "Api.hpp"
 
-#include "api/peerconnectioninterface.h"
-
 #include <future>
+
+#include "api/peer_connection_interface.h"
 
 namespace caff {
 
@@ -33,4 +33,4 @@ namespace caff {
         Candidates gatheredCandidates;
     };
 
-}  // namespace caff
+} // namespace caff

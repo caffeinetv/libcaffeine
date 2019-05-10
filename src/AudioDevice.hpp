@@ -33,4 +33,4 @@ namespace caff {
         size_t bufferIndex{ 0 };
     };
 
-}  // namespace caff
+} // namespace caff

@@ -1,13 +1,13 @@
 #include "Serialization.hpp"
 
-#include "ErrorLogging.hpp"
-
 #include <curl/curl.h>
 #include <algorithm>
 #include <chrono>
 #include <mutex>
 #include <sstream>
 #include <thread>
+
+#include "ErrorLogging.hpp"
 
 // TODO: should backend differentiate client from libcaffeine version?
 #define API_VERSION "0.1"

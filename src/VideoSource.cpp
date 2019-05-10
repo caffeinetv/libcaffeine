@@ -1,11 +1,11 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
-#include "VideoCapturer.hpp"
+#include "VideoSource.hpp"
 
 #include "ErrorLogging.hpp"
 
-#include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "libyuv.h"
+#include "rtc_base/time_utils.h"
 
 namespace caff {
 
@@ -60,19 +60,13 @@ namespace caff {
                 webrtc::ConvertVideoType(srcVideoType));
     }
 
-    cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const & format) {
-        SetCaptureFormat(&format);
-        SetCaptureState(cricket::CS_RUNNING);
-        return cricket::CS_STARTING;
-    }
-
     static int32_t const maxHeight = 720;
     static int32_t const minDimension = 360;
 
     // FPS limit is 30 (fudged a bit for variance)
     static int64_t const minFrameMicros = (1000000 / 32);
 
-    rtc::scoped_refptr<webrtc::I420Buffer> VideoCapturer::sendVideo(
+    rtc::scoped_refptr<webrtc::I420Buffer> VideoSource::sendVideo(
             uint8_t const * frameData, size_t frameByteCount, int32_t width, int32_t height, webrtc::VideoType format) {
         auto const now = rtc::TimeMicros();
         auto span = now - lastFrameMicros;
@@ -88,20 +82,8 @@ namespace caff {
         int32_t cropHeight;
         int32_t cropX;
         int32_t cropY;
-        int64_t translatedCameraTime;
 
-        if (!AdaptFrame(
-                    width,
-                    height,
-                    now,
-                    now,
-                    &adaptedWidth,
-                    &adaptedHeight,
-                    &cropWidth,
-                    &cropHeight,
-                    &cropX,
-                    &cropY,
-                    &translatedCameraTime)) {
+        if (!AdaptFrame(width, height, now, &adaptedWidth, &adaptedHeight, &cropWidth, &cropHeight, &cropX, &cropY)) {
             LOG_DEBUG("Adapter dropped the frame.");
             return nullptr;
         }
@@ -139,26 +121,18 @@ namespace caff {
             scaledBuffer->ScaleFrom(*unscaledBuffer);
         }
 
-        webrtc::VideoFrame frame(scaledBuffer, webrtc::kVideoRotation_0, translatedCameraTime);
+        webrtc::VideoFrame frame(scaledBuffer, webrtc::kVideoRotation_0, now);
 
-        OnFrame(frame, adaptedWidth, adaptedHeight);
+        OnFrame(frame);
 
         return scaledBuffer;
     }
 
-    void VideoCapturer::Stop() {}
+    bool VideoSource::is_screencast() const { return false; }
 
-    bool VideoCapturer::IsRunning() { return true; }
+    absl::optional<bool> VideoSource::needs_denoising() const { return {}; }
 
-    bool VideoCapturer::IsScreencast() const { return false; }
+    VideoSource::SourceState VideoSource::state() const { return SourceState::kLive; }
 
-    bool VideoCapturer::GetPreferredFourccs(std::vector<uint32_t> * fourccs) {
-        // ignore preferred formats
-        if (fourccs == nullptr)
-            return false;
-
-        fourccs->clear();
-        return true;
-    }
-
+    bool VideoSource::remote() const { return false; }
 } // namespace caff

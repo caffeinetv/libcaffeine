@@ -10,7 +10,6 @@
 namespace caff {
     caff_Severity rtcToCaffSeverity(rtc::LoggingSeverity rtcSeverity) {
         switch (rtcSeverity) {
-        case rtc::LS_SENSITIVE:
         case rtc::LS_VERBOSE:
             return caff_SeverityAll;
         case rtc::LS_INFO:
@@ -27,7 +26,6 @@ namespace caff {
     rtc::LoggingSeverity caffToRtcSeverity(caff_Severity caffSeverity) {
         switch (caffSeverity) {
         case caff_SeverityAll:
-            return rtc::LS_SENSITIVE;
         case caff_SeverityDebug:
             return rtc::LS_INFO;
         case caff_SeverityWarning:

@@ -2,19 +2,18 @@
 
 #define LIBCAFFEINE_LIBRARY
 
-#include "caffeine.h"
-
 #include <vector>
 
 #include "Broadcast.hpp"
 #include "ErrorLogging.hpp"
 #include "Instance.hpp"
 #include "LogSink.hpp"
+#include "caffeine.h"
 
-#include "rtc_base/ssladapter.h"
+#include "rtc_base/ssl_adapter.h"
 
 #ifdef _WIN32
-#    include "rtc_base/win32socketinit.h"
+#    include "rtc_base/win32_socket_init.h"
 #endif
 
 using namespace caff;
@@ -94,7 +93,7 @@ CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCall
 
         // Initialize WebRTC
 #ifdef _WIN32
-        rtc::EnsureWinsockInit();
+        static rtc::WinsockInitializer winsockInitializer;
 #endif
         if (!rtc::InitializeSSL()) {
             LOG_ERROR("Libcaffeine failed to initialize SSL");

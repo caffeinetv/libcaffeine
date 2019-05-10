@@ -6,7 +6,6 @@
 
 #include "common_video/h264/h264_bitstream_parser.h"
 #include "modules/video_coding/codecs/h264/include/h264.h"
-
 #include "x264.h"
 
 namespace caff {
@@ -22,18 +21,12 @@ namespace caff {
 
         virtual int32_t RegisterEncodeCompleteCallback(webrtc::EncodedImageCallback * callback) override;
         virtual int32_t SetRateAllocation(
-                const webrtc::BitrateAllocation & bitrate_allocation, uint32_t framerate) override;
+                webrtc::VideoBitrateAllocation const & bitrate_allocation, uint32_t framerate) override;
 
         virtual int32_t Encode(
-                const webrtc::VideoFrame & frame,
-                const webrtc::CodecSpecificInfo * codec_specific_info,
-                const std::vector<webrtc::FrameType> * frame_types) override;
+                webrtc::VideoFrame const & frame, std::vector<webrtc::VideoFrameType> const * frame_types) override;
 
-        virtual const char * ImplementationName() const override;
-
-        virtual webrtc::VideoEncoder::ScalingSettings GetScalingSettings() const override;
-
-        virtual int32_t SetChannelParameters(uint32_t packet_loss, int64_t rtt) override;
+        virtual EncoderInfo GetEncoderInfo() const override;
 
     private:
         bool isInitialized() const;
@@ -70,4 +63,4 @@ namespace caff {
         uint64_t frameCount = 0;
     };
 
-}  // namespace caff
+} // namespace caff

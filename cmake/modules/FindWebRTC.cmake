@@ -42,7 +42,7 @@ endif()
 function(find_webrtc_includes search_dir)
 	find_path(WEBRTC_INCLUDE_DIR
 		NAMES
-			api/peerconnectioninterface.h
+			api/peer_connection_interface.h
 		PATHS
 			${search_dir}
 	)

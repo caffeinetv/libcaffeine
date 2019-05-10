@@ -11,9 +11,11 @@
 #include "AudioDevice.hpp"
 #include "PeerConnectionObserver.hpp"
 #include "SessionDescriptionObserver.hpp"
-#include "VideoCapturer.hpp"
+#include "VideoSource.hpp"
 #include "caffeine.h"
 
+#include "api/media_stream_interface.h"
+#include "api/peer_connection_interface.h"
 #include "libyuv.h"
 
 // Uncomment this to save png & jpg copies of the screenshot to the working directory
@@ -25,9 +27,6 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-
-#include "api/mediastreaminterface.h"
-#include "api/peerconnectioninterface.h"
 
 using namespace std::chrono_literals;
 
@@ -207,22 +206,21 @@ namespace caff {
         transitionState(State::Offline, State::Starting);
 
         broadcastThread = std::thread([=] {
-            videoCapturer = new VideoCapturer;
-            auto videoSource = factory->CreateVideoSource(videoCapturer);
+            videoSource = new rtc::RefCountedObject<VideoSource>;
             auto videoTrack = factory->CreateVideoTrack("external_video", videoSource);
 
             cricket::AudioOptions audioOptions;
             audioOptions.echo_cancellation = false;
+            audioOptions.auto_gain_control = true;
             audioOptions.noise_suppression = false;
             audioOptions.highpass_filter = false;
             audioOptions.stereo_swapping = false;
+
             audioOptions.typing_detection = false;
-            audioOptions.aecm_generate_comfort_noise = false;
             audioOptions.experimental_agc = false;
             audioOptions.extended_filter_aec = false;
             audioOptions.delay_agnostic_aec = false;
             audioOptions.experimental_ns = false;
-            audioOptions.intelligibility_enhancer = false;
             audioOptions.residual_echo_detector = false;
             audioOptions.tx_agc_limiter = false;
 
@@ -609,7 +607,7 @@ namespace caff {
             uint8_t const * frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format) {
         if (isOnline()) {
             auto rtcFormat = static_cast<webrtc::VideoType>(format);
-            auto i420frame = videoCapturer->sendVideo(frameData, frameBytes, width, height, rtcFormat);
+            auto i420frame = videoSource->sendVideo(frameData, frameBytes, width, height, rtcFormat);
 
             bool expected = true;
             if (isScreenshotNeeded.compare_exchange_strong(expected, false)) {

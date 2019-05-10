@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Api.hpp"
-
 #include "ErrorLogging.hpp"
 
 #include "nlohmann/json.hpp"
@@ -17,8 +16,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
           { caff_ConnectionQualityUnknown, nullptr } })
 
 namespace nlohmann {
-    template <typename T>
-    struct adl_serializer<caff::optional<T>> {
+    template <typename T> struct adl_serializer<caff::optional<T>> {
         static void to_json(json & json, const caff::optional<T> & opt) {
             if (opt.has_value()) {
                 json = *opt;
@@ -36,8 +34,7 @@ namespace nlohmann {
         }
     };
 
-    template <>
-    struct adl_serializer<caff::GameList> {
+    template <> struct adl_serializer<caff::GameList> {
         static void from_json(const json & json, caff::GameList & gameList) {
             for (auto & entry : json) {
                 try {
@@ -48,18 +45,16 @@ namespace nlohmann {
             }
         }
     };
-}  // namespace nlohmann
+} // namespace nlohmann
 
 namespace caff {
     using Json = nlohmann::json;
 
-    template <typename T>
-    inline void get_value_to(Json const & json, char const * key, T & target) {
+    template <typename T> inline void get_value_to(Json const & json, char const * key, T & target) {
         json.at(key).get_to(target);
     }
 
-    template <typename T>
-    inline void get_value_to(Json const & json, char const * key, optional<T> & target) {
+    template <typename T> inline void get_value_to(Json const & json, char const * key, optional<T> & target) {
         auto it = json.find(key);
         if (it != json.end()) {
             it->get_to(target);
@@ -68,13 +63,11 @@ namespace caff {
         }
     }
 
-    template <typename T>
-    inline void set_value_from(Json & json, char const * key, T const & source) {
+    template <typename T> inline void set_value_from(Json & json, char const * key, T const & source) {
         json[key] = source;
     }
 
-    template <typename T>
-    inline void set_value_from(Json & json, char const * key, optional<T> const & source) {
+    template <typename T> inline void set_value_from(Json & json, char const * key, optional<T> const & source) {
         if (source) {
             json[key] = *source;
             return;
@@ -121,4 +114,4 @@ namespace caff {
     void from_json(Json const & json, DisplayMessage & message);
 
     void from_json(Json const & json, FailureResponse & response);
-}  // namespace caff
+} // namespace caff

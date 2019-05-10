@@ -28,24 +28,24 @@ namespace caff {
         kX264EncoderEventMax = 16,
     };
 
-    webrtc::FrameType ConvertToWebrtcFrameType(int type) {
+    webrtc::VideoFrameType ConvertToWebrtcFrameType(int type) {
         switch (type) {
         case X264_TYPE_IDR:
-            return webrtc::kVideoFrameKey;
+            return webrtc::VideoFrameType::kVideoFrameKey;
         case X264_TYPE_I:
         case X264_TYPE_P:
         case X264_TYPE_B:
         case X264_TYPE_AUTO:
-            return webrtc::kVideoFrameDelta;
+            return webrtc::VideoFrameType::kVideoFrameDelta;
         default:
             LOG_WARNING("Invalid frame type: %d", type);
-            return webrtc::kEmptyFrame;
+            return webrtc::VideoFrameType::kEmptyFrame;
         }
     }
 
     // Helper method used by H264EncoderImpl::Encode.
     // Copies the encoded bytes from |info| to |encodedImage| and updates the
-    // fragmentation information of |fragHeader|. The |encodedImage->_buffer| may
+    // fragmentation information of |fragHeader|. The |encodedImage->buffer()| may
     // be deleted and reallocated if a bigger buffer is required.
     static void rtpFragmentize(
             webrtc::EncodedImage * encodedImage,
@@ -72,28 +72,28 @@ namespace caff {
             }
         }
 
-        if (encodedImage->_size < requiredSize) {
+        if (encodedImage->size() < requiredSize) {
             // Increase buffer size. Allocate enough to hold an unencoded image, this
             // should be more than enough to hold any encoded data of future frames of
             // the same size (avoiding possible future reallocation due to variations in
             // required size).
-            encodedImage->_size =
-                    webrtc::CalcBufferSize(webrtc::VideoType::kI420, frameBuffer.width(), frameBuffer.height());
+            encodedImage->set_size(
+                    webrtc::CalcBufferSize(webrtc::VideoType::kI420, frameBuffer.width(), frameBuffer.height()));
 
-            if (encodedImage->_size < requiredSize) {
+            if (encodedImage->size() < requiredSize) {
                 // Encoded data > unencoded data. Allocate required bytes.
                 LOG_WARNING(
                         "Encoding produced more bytes than the original image data! Original: %zd, encoded: %zd",
-                        encodedImage->_size,
+                        encodedImage->size(),
                         requiredSize);
-                encodedImage->_size = requiredSize;
+                encodedImage->set_size(requiredSize);
             }
-            encodedImage->_buffer = new uint8_t[encodedImage->_size];
-            encodedImageBuffer->reset(encodedImage->_buffer);
+            encodedImage->set_buffer(new uint8_t[encodedImage->size()], encodedImage->size());
+            encodedImageBuffer->reset(encodedImage->buffer());
         }
 
         // Iterate layers and NAL units, note each NAL unit as a fragment and copy
-        // the data to |encodedImage->_buffer|.
+        // the data to |encodedImage->buffer()|.
         // Because x264 generates both 4 and 3 byte start code, we need to prepend 00
         // in the case where only a 3 byte start code is generated since WebRTC H.264
         // decoder requires 4 byte start codes only. For simplicity, we will just
@@ -102,7 +102,8 @@ namespace caff {
         const uint8_t startCode[4] = { 0, 0, 0, 1 };
         fragHeader->VerifyAndAllocateFragmentationHeader(fragmentsCount);
         size_t frag = 0;
-        encodedImage->_length = 0;
+        size_t length = 0;
+        length = 0;
 
         for (uint32_t idx = 0; idx < numNals; ++idx, ++frag) {
             CAFF_CHECK(nal[idx].i_payload >= 4);
@@ -111,15 +112,15 @@ namespace caff {
             uint32_t naluSize = nal[idx].i_payload - offset;
 
             // copy the start code first
-            memcpy(encodedImage->_buffer + encodedImage->_length, startCode, sizeof(startCode));
-            encodedImage->_length += sizeof(startCode);
+            memcpy(encodedImage->buffer() + length, startCode, sizeof(startCode));
+            length += sizeof(startCode);
 
             // copy the data without start code
-            memcpy(encodedImage->_buffer + encodedImage->_length, nal[idx].p_payload + offset, naluSize);
-            encodedImage->_length += naluSize;
+            memcpy(encodedImage->buffer() + length, nal[idx].p_payload + offset, naluSize);
+            length += naluSize;
 
             // offset to start of data. length is data without start code.
-            fragHeader->fragmentationOffset[frag] = encodedImage->_length - naluSize;
+            fragHeader->fragmentationOffset[frag] = length - naluSize;
             fragHeader->fragmentationLength[frag] = naluSize;
             fragHeader->fragmentationPlType[frag] = 0;
             fragHeader->fragmentationTimeDiff[frag] = 0;
@@ -217,6 +218,7 @@ namespace caff {
         encoderParams.rc.i_vbv_max_bitrate = targetKbps;
         encoderParams.rc.f_vbv_buffer_init = 0.5;
 
+
         // if using single NALU, need to limit slice size.
         if (packetizationMode == webrtc::H264PacketizationMode::SingleNalUnit) {
             encoderParams.i_slice_max_size = static_cast<unsigned int>(maxPayloadSize);
@@ -246,14 +248,14 @@ namespace caff {
         }
 
         // Initialize encoded image. Default buffer size: size of unencoded data.
-        encodedImage._size =
-                webrtc::CalcBufferSize(webrtc::VideoType::kI420, codecSettings->width, codecSettings->height);
-        encodedImage._buffer = new uint8_t[encodedImage._size];
-        encodedImageBuffer.reset(encodedImage._buffer);
+        encodedImage.set_size(
+                webrtc::CalcBufferSize(webrtc::VideoType::kI420, codecSettings->width, codecSettings->height));
+        encodedImage.set_buffer(new uint8_t[encodedImage.size()], encodedImage.size());
+        encodedImageBuffer.reset(encodedImage.buffer());
         encodedImage._completeFrame = true;
         encodedImage._encodedWidth = 0;
         encodedImage._encodedHeight = 0;
-        encodedImage._length = 0;
+        encodedImage.set_size(0);
 
         frameCount = 0;
         return WEBRTC_VIDEO_CODEC_OK;
@@ -265,7 +267,7 @@ namespace caff {
             encoder = nullptr;
         }
 
-        encodedImage._buffer = nullptr;
+        encodedImage.set_buffer(nullptr, 0);
         encodedImageBuffer.reset();
 
         frameCount = 0;
@@ -277,7 +279,8 @@ namespace caff {
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    int32_t X264Encoder::SetRateAllocation(const webrtc::BitrateAllocation & bitrateAllocation, uint32_t framerate) {
+    int32_t X264Encoder::SetRateAllocation(
+            const webrtc::VideoBitrateAllocation & bitrateAllocation, uint32_t framerate) {
         if (bitrateAllocation.get_sum_bps() <= 0 || framerate <= 0) {
             return WEBRTC_VIDEO_CODEC_ERR_PARAMETER;
         }
@@ -290,9 +293,7 @@ namespace caff {
     }
 
     int32_t X264Encoder::Encode(
-            const webrtc::VideoFrame & inputFrame,
-            const webrtc::CodecSpecificInfo * codecSpecificInfo,
-            const std::vector<webrtc::FrameType> * frameTypes) {
+            const webrtc::VideoFrame & inputFrame, const std::vector<webrtc::VideoFrameType> * frameTypes) {
         if (!isInitialized()) {
             reportError();
             return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
@@ -327,11 +328,11 @@ namespace caff {
             // We only support a single stream.
             CAFF_CHECK(frameTypes->size() == 1);
             // Skip frame?
-            if ((*frameTypes)[0] == webrtc::kEmptyFrame) {
+            if ((*frameTypes)[0] == webrtc::VideoFrameType::kEmptyFrame) {
                 return WEBRTC_VIDEO_CODEC_OK;
             }
             // Force key frame?
-            forceKeyFrame = (*frameTypes)[0] == webrtc::kVideoFrameKey;
+            forceKeyFrame = (*frameTypes)[0] == webrtc::VideoFrameType::kVideoFrameKey;
         }
 
         x264_picture_t pictureOut = { 0 };
@@ -360,7 +361,7 @@ namespace caff {
 
         encodedImage._encodedWidth = frameBuffer->width();
         encodedImage._encodedHeight = frameBuffer->height();
-        encodedImage._timeStamp = inputFrame.timestamp();
+        encodedImage.SetTimestamp(inputFrame.timestamp());
         encodedImage.ntp_time_ms_ = inputFrame.ntp_time_ms();
         encodedImage.capture_time_ms_ = inputFrame.render_time_ms();
         encodedImage.rotation_ = inputFrame.rotation();
@@ -375,10 +376,10 @@ namespace caff {
         rtpFragmentize(&encodedImage, &encodedImageBuffer, *frameBuffer, numNals, nal, &fragHeader);
 
         // Encoder can skip frames to save bandwidth in which case
-        // |encodedImage._length| == 0.
-        if (encodedImage._length > 0) {
+        // |encodedImage.size()| == 0.
+        if (encodedImage.size() > 0) {
             // Parse QP.
-            bitstreamParser.ParseBitstream(encodedImage._buffer, encodedImage._length);
+            bitstreamParser.ParseBitstream(encodedImage.buffer(), encodedImage.size());
             bitstreamParser.GetLastSliceQp(&encodedImage.qp_);
 
             // Deliver encoded image.
@@ -392,9 +393,11 @@ namespace caff {
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    const char * X264Encoder::ImplementationName() const {
-        // implementation name.
-        return "libx264";
+    X264Encoder::EncoderInfo X264Encoder::GetEncoderInfo() const {
+        EncoderInfo info{};
+        info.implementation_name = "libx264";
+        info.scaling_settings = ScalingSettings::kOff;
+        return info;
     }
 
     bool X264Encoder::isInitialized() const {
@@ -416,11 +419,5 @@ namespace caff {
         }
         RTC_HISTOGRAM_ENUMERATION("WebRTC.Video.X264Encoder.Event", kX264EncoderEventError, kX264EncoderEventMax);
         hasReportedError = true;
-    }
-
-    int32_t X264Encoder::SetChannelParameters(uint32_t packetLoss, int64_t rtt) { return WEBRTC_VIDEO_CODEC_OK; }
-
-    webrtc::VideoEncoder::ScalingSettings X264Encoder::GetScalingSettings() const {
-        return webrtc::VideoEncoder::ScalingSettings::kOff;
     }
 } // namespace caff
