@@ -77,19 +77,18 @@ namespace caff {
             // should be more than enough to hold any encoded data of future frames of
             // the same size (avoiding possible future reallocation due to variations in
             // required size).
-            encodedImage->set_size(
-                    webrtc::CalcBufferSize(webrtc::VideoType::kI420, frameBuffer.width(), frameBuffer.height()));
+            size_t newSize =
+                    webrtc::CalcBufferSize(webrtc::VideoType::kI420, frameBuffer.width(), frameBuffer.height());
 
-            if (encodedImage->size() < requiredSize) {
+            if (newSize < requiredSize) {
                 // Encoded data > unencoded data. Allocate required bytes.
                 LOG_WARNING(
                         "Encoding produced more bytes than the original image data! Original: %zd, encoded: %zd",
-                        encodedImage->size(),
+                        newSize,
                         requiredSize);
-                encodedImage->set_size(requiredSize);
+                newSize = requiredSize;
             }
-            encodedImage->set_buffer(new uint8_t[encodedImage->size()], encodedImage->size());
-            encodedImageBuffer->reset(encodedImage->buffer());
+            encodedImage->Allocate(newSize);
         }
 
         // Iterate layers and NAL units, note each NAL unit as a fragment and copy
@@ -112,11 +111,11 @@ namespace caff {
             uint32_t naluSize = nal[idx].i_payload - offset;
 
             // copy the start code first
-            memcpy(encodedImage->buffer() + length, startCode, sizeof(startCode));
+            memcpy(encodedImage->mutable_data() + length, startCode, sizeof(startCode));
             length += sizeof(startCode);
 
             // copy the data without start code
-            memcpy(encodedImage->buffer() + length, nal[idx].p_payload + offset, naluSize);
+            memcpy(encodedImage->mutable_data() + length, nal[idx].p_payload + offset, naluSize);
             length += naluSize;
 
             // offset to start of data. length is data without start code.
@@ -248,10 +247,10 @@ namespace caff {
         }
 
         // Initialize encoded image. Default buffer size: size of unencoded data.
-        encodedImage.set_size(
-                webrtc::CalcBufferSize(webrtc::VideoType::kI420, codecSettings->width, codecSettings->height));
-        encodedImage.set_buffer(new uint8_t[encodedImage.size()], encodedImage.size());
-        encodedImageBuffer.reset(encodedImage.buffer());
+        size_t const newCapacity =
+            webrtc::CalcBufferSize(webrtc::VideoType::kI420, codecSettings->width, codecSettings->height);
+        encodedImage.Allocate(newCapacity);
+        encodedImageBuffer.reset(encodedImage.mutable_data());
         encodedImage._completeFrame = true;
         encodedImage._encodedWidth = 0;
         encodedImage._encodedHeight = 0;
@@ -379,7 +378,7 @@ namespace caff {
         // |encodedImage.size()| == 0.
         if (encodedImage.size() > 0) {
             // Parse QP.
-            bitstreamParser.ParseBitstream(encodedImage.buffer(), encodedImage.size());
+            bitstreamParser.ParseBitstream(encodedImage.data(), encodedImage.size());
             bitstreamParser.GetLastSliceQp(&encodedImage.qp_);
 
             // Deliver encoded image.
