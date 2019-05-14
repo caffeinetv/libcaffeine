@@ -8,6 +8,7 @@
 #include "libyuv.h"
 
 namespace caff {
+    using namespace std::chrono_literals;
 
     // Copied from old version of libwebrtc
     static libyuv::RotationMode convertRotationMode(webrtc::VideoRotation rotation) {
@@ -69,18 +70,23 @@ namespace caff {
     static int32_t const maxHeight = 720;
     static int32_t const minDimension = 360;
 
-    // FPS limit is 30 (fudged a bit for variance)
-    static int64_t const minFrameMicros = (1000000 / 32);
+    // Caffeine platform only supports up to 30 fps. Frames that come in too quickly will be dropped
+    // This value is fudged a bit (/32 instead of /30) to allow for minor variance between frames
+    static auto const minInterframe = 1000000us / 32;
 
     rtc::scoped_refptr<webrtc::I420Buffer> VideoCapturer::sendVideo(
-            uint8_t const * frameData, size_t frameByteCount, int32_t width, int32_t height, webrtc::VideoType format) {
-        auto const now = rtc::TimeMicros();
-        auto span = now - lastFrameMicros;
-        if (span < minFrameMicros) {
-            LOG_DEBUG("Dropping frame");
+            webrtc::VideoType format,
+            uint8_t const * frameData,
+            size_t frameByteCount,
+            int32_t width,
+            int32_t height,
+            std::chrono::microseconds timestamp) {
+        auto span = timestamp - lastTimestamp;
+        if (span < minInterframe) {
+            LOG_DEBUG("Dropping frame > 30fps");
             return nullptr;
         }
-        lastFrameMicros = now;
+        lastTimestamp = timestamp;
 
         int32_t adaptedWidth = minDimension;
         int32_t adaptedHeight = minDimension;
@@ -93,8 +99,8 @@ namespace caff {
         if (!AdaptFrame(
                     width,
                     height,
-                    now,
-                    now,
+                    timestamp.count(),
+                    rtc::TimeMicros(),
                     &adaptedWidth,
                     &adaptedHeight,
                     &cropWidth,

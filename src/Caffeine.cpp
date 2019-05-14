@@ -320,21 +320,27 @@ CATCHALL
 
 CAFFEINE_API void caff_sendVideo(
         caff_InstanceHandle instanceHandle,
+        caff_VideoFormat format,
         uint8_t const * frameData,
         size_t frameBytes,
         int32_t width,
         int32_t height,
-        caff_VideoFormat format) try {
+        int64_t timestampMicros) try {
     CHECK_PTR(frameData);
     CHECK_POSITIVE(frameBytes);
     CHECK_POSITIVE(width);
     CHECK_POSITIVE(height);
     CHECK_ENUM(caff_VideoFormat, format);
 
+    if (timestampMicros == caff_TimestampGenerate) {
+        timestampMicros = rtc::TimeMicros();
+    }
+    auto timestamp = std::chrono::microseconds(timestampMicros);
+
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
-        broadcast->sendVideo(frameData, frameBytes, width, height, format);
+        broadcast->sendVideo(format, frameData, frameBytes, width, height, timestamp);
     } else {
         LOG_DEBUG("Sending video without an active broadcast. (This is probably OK if the stream just ended)");
     }

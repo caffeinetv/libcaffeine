@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include "api/video/i420_buffer.h"
 #include "common_types.h"
 #include "media/base/videocapturer.h"
@@ -17,7 +19,12 @@ namespace caff {
         virtual ~VideoCapturer() {}
 
         rtc::scoped_refptr<webrtc::I420Buffer> sendVideo(
-                uint8_t const * frame, size_t frameBytes, int32_t width, int32_t height, webrtc::VideoType format);
+                webrtc::VideoType format,
+                uint8_t const * frame,
+                size_t frameBytes,
+                int32_t width,
+                int32_t height,
+                std::chrono::microseconds timestamp);
 
         virtual cricket::CaptureState Start(cricket::VideoFormat const & format) override;
         virtual void Stop() override;
@@ -26,7 +33,7 @@ namespace caff {
         virtual bool GetPreferredFourccs(std::vector<uint32_t> * fourccs) override;
 
     private:
-        int64_t lastFrameMicros = 0;
+        std::chrono::microseconds lastTimestamp;
     };
 
 }  // namespace caff

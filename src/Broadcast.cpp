@@ -652,13 +652,18 @@ namespace caff {
     }
 
     void Broadcast::sendVideo(
-            uint8_t const * frameData, size_t frameBytes, int32_t width, int32_t height, caff_VideoFormat format) {
+            caff_VideoFormat format,
+            uint8_t const * frameData,
+            size_t frameBytes,
+            int32_t width,
+            int32_t height,
+            std::chrono::microseconds timestamp) {
         if (isOnline()) {
             auto rtcFormat = static_cast<webrtc::VideoType>(format);
-            auto i420frame = videoCapturer->sendVideo(frameData, frameBytes, width, height, rtcFormat);
+            auto i420frame = videoCapturer->sendVideo(rtcFormat, frameData, frameBytes, width, height, timestamp);
 
             bool expected = true;
-            if (isScreenshotNeeded.compare_exchange_strong(expected, false)) {
+            if (i420frame && isScreenshotNeeded.compare_exchange_strong(expected, false)) {
                 try {
                     screenshotPromise.set_value(createScreenshot(i420frame));
                 } catch (std::exception ex) {
@@ -679,6 +684,9 @@ namespace caff {
     }
 
     ScreenshotData Broadcast::createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer) {
+        if (!buffer) {
+            throw std::runtime_error("No buffer for screenshot");
+        }
         auto const width = buffer->width();
         auto const height = buffer->height();
         auto constexpr channels = 3;

@@ -14,7 +14,7 @@ var searchData=
   ['caff_5frefreshauth',['caff_refreshAuth',['../d6/db0/caffeine_8h.html#ac66593c062348ca99835daa79606dc56',1,'caffeine.h']]],
   ['caff_5fresultstring',['caff_resultString',['../d6/db0/caffeine_8h.html#a094d91259057fe29557c9b11b038de6b',1,'caffeine.h']]],
   ['caff_5fsendaudio',['caff_sendAudio',['../d6/db0/caffeine_8h.html#a2f89d2bd5cb8e2cb815f26aa60fd0a97',1,'caffeine.h']]],
-  ['caff_5fsendvideo',['caff_sendVideo',['../d6/db0/caffeine_8h.html#a9c0304fafccd7bf6f260c66e3f5b4c16',1,'caffeine.h']]],
+  ['caff_5fsendvideo',['caff_sendVideo',['../d6/db0/caffeine_8h.html#aa13bf87c470879a1c1335399f50b667b',1,'caffeine.h']]],
   ['caff_5fsetgameid',['caff_setGameId',['../d6/db0/caffeine_8h.html#a647f0b6978023394d20fc84b3ef8c06d',1,'caffeine.h']]],
   ['caff_5fsetrating',['caff_setRating',['../d6/db0/caffeine_8h.html#a63acc8b9a5b9daba7b4e47020b3f11b5',1,'caffeine.h']]],
   ['caff_5fsettitle',['caff_setTitle',['../d6/db0/caffeine_8h.html#a1ed7854dfa20e28476d39f29fd3822eb',1,'caffeine.h']]],
