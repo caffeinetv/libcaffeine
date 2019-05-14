@@ -31,7 +31,7 @@ result = caff_startBroadcast(
 
 // In your video/audio capture thread:
 caff_sendVideo(
-    instance, pixels, pixelBytes, width, height, caff_VideoFormatNv12);
+    instance, caff_VideoFormatNv12, pixels, pixelBytes, width, height, caff_TimestampGenerate);
 caff_sendAudio(instance, samples, 2);
 
 

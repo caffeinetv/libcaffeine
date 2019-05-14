@@ -196,6 +196,9 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:ae269711e1ae6aa68dabc0528aac9b2ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicator of connection quality, reported by Caffeine's back-end.  <a href="../../d6/db0/caffeine_8h.html#ae269711e1ae6aa68dabc0528aac9b2ac">More...</a><br /></td></tr>
 <tr class="separator:ae269711e1ae6aa68dabc0528aac9b2ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06fc87d81c62e9abb8790b6e5713c55b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="../../d6/db0/caffeine_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba378bc51796f635e5b22c694e14ff5fe0">caff_TimestampGenerate</a> = -1ll
+ }</td></tr>
+<tr class="separator:a06fc87d81c62e9abb8790b6e5713c55b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -235,9 +238,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a2f89d2bd5cb8e2cb815f26aa60fd0a97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a2f89d2bd5cb8e2cb815f26aa60fd0a97">caff_sendAudio</a> (<a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a> instanceHandle, uint8_t *samples, size_t samplesPerChannel)</td></tr>
 <tr class="memdesc:a2f89d2bd5cb8e2cb815f26aa60fd0a97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Broadcasts a frame of audio.  <a href="#a2f89d2bd5cb8e2cb815f26aa60fd0a97">More...</a><br /></td></tr>
 <tr class="separator:a2f89d2bd5cb8e2cb815f26aa60fd0a97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c0304fafccd7bf6f260c66e3f5b4c16"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a9c0304fafccd7bf6f260c66e3f5b4c16">caff_sendVideo</a> (<a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a> instanceHandle, uint8_t const *framePixels, size_t frameTotalBytes, int32_t width, int32_t height, <a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1">caff_VideoFormat</a> format)</td></tr>
-<tr class="memdesc:a9c0304fafccd7bf6f260c66e3f5b4c16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Broadcasts a frame of video.  <a href="#a9c0304fafccd7bf6f260c66e3f5b4c16">More...</a><br /></td></tr>
-<tr class="separator:a9c0304fafccd7bf6f260c66e3f5b4c16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa13bf87c470879a1c1335399f50b667b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#aa13bf87c470879a1c1335399f50b667b">caff_sendVideo</a> (<a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a> instanceHandle, <a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1">caff_VideoFormat</a> format, uint8_t const *framePixels, size_t frameTotalBytes, int32_t width, int32_t height, int64_t timestampMicros)</td></tr>
+<tr class="memdesc:aa13bf87c470879a1c1335399f50b667b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Broadcasts a frame of video.  <a href="#aa13bf87c470879a1c1335399f50b667b">More...</a><br /></td></tr>
+<tr class="separator:aa13bf87c470879a1c1335399f50b667b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a647f0b6978023394d20fc84b3ef8c06d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a647f0b6978023394d20fc84b3ef8c06d">caff_setGameId</a> (<a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a> instanceHandle, char const *gameId)</td></tr>
 <tr class="memdesc:a647f0b6978023394d20fc84b3ef8c06d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the game ID for the broadcast.  <a href="#a647f0b6978023394d20fc84b3ef8c06d">More...</a><br /></td></tr>
 <tr class="separator:a647f0b6978023394d20fc84b3ef8c06d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -257,7 +260,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:a94aae87d606b52686531297d3cd1c7bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sign out of caffeine.  <a href="#a94aae87d606b52686531297d3cd1c7bf">More...</a><br /></td></tr>
 <tr class="separator:a94aae87d606b52686531297d3cd1c7bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae986eac16f4cb9b8158e0d9a91d89101"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#ae986eac16f4cb9b8158e0d9a91d89101">caff_freeInstance</a> (<a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a> *instanceHandle)</td></tr>
-<tr class="memdesc:ae986eac16f4cb9b8158e0d9a91d89101"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deinitialize Caffeine library.  <a href="#ae986eac16f4cb9b8158e0d9a91d89101">More...</a><br /></td></tr>
+<tr class="memdesc:ae986eac16f4cb9b8158e0d9a91d89101"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free the Caffeine instance.  <a href="#ae986eac16f4cb9b8158e0d9a91d89101">More...</a><br /></td></tr>
 <tr class="separator:ae986eac16f4cb9b8158e0d9a91d89101"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -277,7 +280,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00028">28</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00030">30</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -321,7 +324,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#acd9abde3d6cf3193dc98752d28ea9e4f" title="Start a broadcast on Caffeine.">caff_startBroadcast()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00189">189</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00197">197</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -347,7 +350,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#acd9abde3d6cf3193dc98752d28ea9e4f" title="Start a broadcast on Caffeine.">caff_startBroadcast()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00177">177</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00185">185</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -395,7 +398,7 @@ Functions</h2></td></tr>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#a647f0b6978023394d20fc84b3ef8c06d" title="Set the game ID for the broadcast.">caff_setGameId()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00165">165</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00173">173</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -415,7 +418,7 @@ Functions</h2></td></tr>
 <p>This is passed into most libcaffeine API functions</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a0d87a43948e50bcf83a35a8684f142d5" title="Initialize the Caffeine library.">caff_initialize()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00137">137</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00145">145</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -442,7 +445,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a0d87a43948e50bcf83a35a8684f142d5" title="Initialize the Caffeine library.">caff_initialize()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00149">149</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00157">157</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -515,11 +518,31 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Raw pixel formats supported by WebRTC. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a9c0304fafccd7bf6f260c66e3f5b4c16" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa13bf87c470879a1c1335399f50b667b" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd></dl>
 
 </div>
 </div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="a06fc87d81c62e9abb8790b6e5713c55b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06fc87d81c62e9abb8790b6e5713c55b">&#9670;&nbsp;</a></span>anonymous enum</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">anonymous enum</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a06fc87d81c62e9abb8790b6e5713c55ba378bc51796f635e5b22c694e14ff5fe0"></a>caff_TimestampGenerate&#160;</td><td class="fielddoc"><p>Tells <a class="el" href="../../d6/db0/caffeine_8h.html#aa13bf87c470879a1c1335399f50b667b" title="Broadcasts a frame of video.">caff_sendVideo()</a> to generate a frame timestamp from the current system time. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00133">133</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+
+</div>
+</div>
 <a id="ae269711e1ae6aa68dabc0528aac9b2ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae269711e1ae6aa68dabc0528aac9b2ac">&#9670;&nbsp;</a></span>caff_ConnectionQuality</h2>
 
@@ -543,7 +566,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00124">124</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00126">126</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -573,7 +596,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00111">111</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00113">113</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -623,7 +646,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00078">78</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00080">80</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -659,7 +682,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00038">38</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00040">40</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -676,7 +699,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Raw pixel formats supported by WebRTC. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a9c0304fafccd7bf6f260c66e3f5b4c16" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa13bf87c470879a1c1335399f50b667b" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd></dl>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="abccd23e587f5586811151391fb4cbbc1a3ffe00ccc73981d723d835c91dbc550b"></a>caff_VideoFormatUnknown&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="abccd23e587f5586811151391fb4cbbc1a55de5019ef5df9fd209623bcaa9233bc"></a>caff_VideoFormatI420&#160;</td><td class="fielddoc"></td></tr>
@@ -698,7 +721,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00054">54</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00056">56</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -720,7 +743,13 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Determine if the user is allowed to broadcast. </p>
-<dl class="section return"><dt>Returns</dt><dd>false if the user's account is flagged as unable to broadcast. Otherwise true </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">instanceHandle</td><td>the handle returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>false</code> if the user's account is flagged as unable to broadcast. Otherwise <code>true</code> </dd></dl>
 
 </div>
 </div>
@@ -741,9 +770,9 @@ Functions</h2></td></tr>
 
 <p>Create a Caffeine instance. </p>
 <p>The instance manages authentication and the state of the broadcast, and is passed into most other API functions. An application usually only needs a single instance, but more than one can be created and will not interfere.</p>
-<p>When the application no longer needs the instance (e.g. on shutdown), call <a class="el" href="../../d6/db0/caffeine_8h.html#ae986eac16f4cb9b8158e0d9a91d89101" title="Deinitialize Caffeine library.">caff_freeInstance()</a>.</p>
+<p>When the application no longer needs the instance (e.g. on shutdown), call <a class="el" href="../../d6/db0/caffeine_8h.html#ae986eac16f4cb9b8158e0d9a91d89101" title="Free the Caffeine instance.">caff_freeInstance()</a>.</p>
 <dl class="section return"><dt>Returns</dt><dd>an opaque handle to the instance</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#ae986eac16f4cb9b8158e0d9a91d89101" title="Deinitialize Caffeine library.">caff_freeInstance()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#ae986eac16f4cb9b8158e0d9a91d89101" title="Free the Caffeine instance.">caff_freeInstance()</a> </dd></dl>
 
 </div>
 </div>
@@ -765,7 +794,7 @@ Functions</h2></td></tr>
 
 <p>End a Caffeine broadcast. </p>
 <p>This signals the server to end the broadcast and closes the RTC connection.</p>
-<p>If the broadcast failed to start or ended in failure the application does not need to call this.</p>
+<p>If the broadcast failed to start or ended in failure, the application does not need to call this.</p>
 <p>Calling this while the broadcast is offline will have no effect.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -819,7 +848,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>caff_ResultFailure if the game list failed to download, otherwise caff_ResultSuccess</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a> if the game list failed to download, otherwise <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a></dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#acd9abde3d6cf3193dc98752d28ea9e4f" title="Start a broadcast on Caffeine.">caff_startBroadcast()</a> </dd>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#a647f0b6978023394d20fc84b3ef8c06d" title="Set the game ID for the broadcast.">caff_setGameId()</a> </dd></dl>
@@ -842,11 +871,11 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Deinitialize Caffeine library. </p>
+<p>Free the Caffeine instance. </p>
 <p>This destroys the internal factory objects, shuts down worker threads, etc.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">instanceHandle</td><td>the instance handle received from caff_createInstance. This handle will no longer be valid after the function returns. Sets the pointer to null to prevent the caller from reusing it. </td></tr>
+    <tr><td class="paramname">instanceHandle</td><td>pointer to the instance handle received from caff_createInstance. Since this handle will no longer be valid after the function returns, the pointed-to handle will be set to NULL. </td></tr>
   </table>
   </dd>
 </dl>
@@ -879,7 +908,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>- caff_ConnectionQualityGood if network conditions are acceptable<ul>
 <li>caff_ConnectionQualityPoor if there is a significant amount of packet loss</li>
-<li>caff_ConnectionQualityUnknown if there is no broadcast or the server has not responded with a reading yet </li>
+<li>caff_ConnectionQualityUnknown if the broadcast is offline or the server has not responded with a reading yet </li>
 </ul>
 </dd></dl>
 
@@ -909,7 +938,8 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>the refresh token if signed in, otherwise NULL </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the refresh token if signed in, otherwise NULL</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#ac66593c062348ca99835daa79606dc56" title="Sign in with refresh token.">caff_refreshAuth()</a> </dd></dl>
 
 </div>
 </div>
@@ -930,7 +960,13 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get the signed-in username. </p>
-<dl class="section return"><dt>Returns</dt><dd>the username if signed in, otherwise NULL </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">instanceHandle</td><td>the handle returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the username if signed in, otherwise <code>NULL</code> </dd></dl>
 
 </div>
 </div>
@@ -961,7 +997,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Initialize the Caffeine library. </p>
-<p>This should be called exactly once during application startup. Subsequent calls will be ignored and return the same result as the first call.</p>
+<p>This should be called exactly once during application startup. Subsequent calls will be ignored and return the same <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c" title="Status results and errors returned by libcaffeine API functions.">caff_Result</a> as the first call.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">minSeverity</td><td>sets the minimum severity for log messages to be reported </td></tr>
@@ -969,7 +1005,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess()</a> or <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure()</a></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> or <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a></dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48" title="Log level severities.">caff_Severity</a> </dd>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#a91fb1802381fe556ba5b9355322a8564" title="Log message callback.">caff_LogCallback</a> </dd></dl>
@@ -993,6 +1029,13 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Determine if the instance is signed in. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">instanceHandle</td><td>the handle returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the instance has successfully been signed in with either <a class="el" href="../../d6/db0/caffeine_8h.html#a16b8229c9279479f7949b1540a584a03" title="First-time sign-in with username and password.">caff_signIn()</a> or <a class="el" href="../../d6/db0/caffeine_8h.html#ac66593c062348ca99835daa79606dc56" title="Sign in with refresh token.">caff_refreshAuth()</a>, otherwise <code>false</code> </dd></dl>
 
 </div>
 </div>
@@ -1023,7 +1066,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Sign in with refresh token. </p>
-<p>This attempts to authenticate using the provided refresh token. If this fails, the user will need to sign in again with username and password.</p>
+<p>This attempts to authenticate using the provided refresh token. If this fails, the user will need to sign in again with username and password via <a class="el" href="../../d6/db0/caffeine_8h.html#a16b8229c9279479f7949b1540a584a03" title="First-time sign-in with username and password.">caff_signIn()</a>.</p>
 <p>TODO: Return a different error if the authentication actually failed vs. some other failure in the request</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -1032,7 +1075,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>caff_ResultSuccess or caff_ResultFailure</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> or <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a></dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a16b8229c9279479f7949b1540a584a03" title="First-time sign-in with username and password.">caff_signIn()</a> </dd>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa8dd76f6b6076d1d8e045a1dbfcdf915" title="Get an authentication refresh token.">caff_getRefreshToken()</a> </dd></dl>
@@ -1099,7 +1142,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Broadcasts a frame of audio. </p>
-<p>This should be called by the application's audio output thread as long as the broadcast is online (after broadcastStartedCallback has been called, and before either <a class="el" href="../../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2" title="End a Caffeine broadcast.">caff_endBroadcast()</a> or broadcastFailedCallback).</p>
+<p>This should be called by the application's audio output thread as long as the broadcast is online (after <code>broadcastStartedCallback</code> has been called, and before either <a class="el" href="../../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2" title="End a Caffeine broadcast.">caff_endBroadcast()</a> or <code>broadcastFailedCallback</code>).</p>
 <p>Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have to be strictly synchronized.</p>
 <p>TODO**: accept audio in different formats and transcode (with a warning log message)</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -1112,12 +1155,12 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#acd9abde3d6cf3193dc98752d28ea9e4f" title="Start a broadcast on Caffeine.">caff_startBroadcast()</a> </dd>
 <dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#a9c0304fafccd7bf6f260c66e3f5b4c16" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd></dl>
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa13bf87c470879a1c1335399f50b667b" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd></dl>
 
 </div>
 </div>
-<a id="a9c0304fafccd7bf6f260c66e3f5b4c16"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c0304fafccd7bf6f260c66e3f5b4c16">&#9670;&nbsp;</a></span>caff_sendVideo()</h2>
+<a id="aa13bf87c470879a1c1335399f50b667b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa13bf87c470879a1c1335399f50b667b">&#9670;&nbsp;</a></span>caff_sendVideo()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1127,6 +1170,12 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a>&#160;</td>
           <td class="paramname"><em>instanceHandle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1">caff_VideoFormat</a>&#160;</td>
+          <td class="paramname"><em>format</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1155,8 +1204,8 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1">caff_VideoFormat</a>&#160;</td>
-          <td class="paramname"><em>format</em>&#160;</td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>timestampMicros</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1167,18 +1216,19 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Broadcasts a frame of video. </p>
-<p>This should be called by the application's video output thread as long as the broadcast is online (after broadcastStartedCallback has been called, and before either <a class="el" href="../../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2" title="End a Caffeine broadcast.">caff_endBroadcast()</a> or broadcastFailedCallback).</p>
+<p>This should be called by the application's video output thread as long as the broadcast is online (after <code>broadcastStartedCallback</code> has been called, and before either <a class="el" href="../../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2" title="End a Caffeine broadcast.">caff_endBroadcast()</a> or <code>broadcastFailedCallback</code>).</p>
 <p>The first frame of video sent after starting a broadcast will be used as the screenshot in the Caffeine.tv lobby.</p>
 <p>Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have to be strictly synchronized.</p>
-<p>For best results, height should be 720 and format should be caff_VideoFormatI420. This will avoid costs of rescaling and reformatting by WebRTC.</p>
+<p>For best results, <code>height</code> should be <code>720</code> and <code>format</code> should be <a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1a55de5019ef5df9fd209623bcaa9233bc">caff_VideoFormatI420</a>. This will avoid costs of rescaling and reformatting by WebRTC.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the instance returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>
+    <tr><td class="paramname">format</td><td>the format of the raw pixel data </td></tr>
     <tr><td class="paramname">framePixels</td><td>the raw pixel data </td></tr>
     <tr><td class="paramname">frameTotalBytes</td><td>the number of bytes of pixel data </td></tr>
     <tr><td class="paramname">width</td><td>the frame width </td></tr>
     <tr><td class="paramname">height</td><td>the frame height </td></tr>
-    <tr><td class="paramname">format</td><td>the format of the raw pixel data</td></tr>
+    <tr><td class="paramname">timestampMicros</td><td>the timestamp for the video frame. You can pass <a class="el" href="../../d6/db0/caffeine_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba378bc51796f635e5b22c694e14ff5fe0" title="Tells caff_sendVideo() to generate a frame timestamp from the current system time.">caff_TimestampGenerate</a> to use the current system time</td></tr>
   </table>
   </dd>
 </dl>
@@ -1216,11 +1266,12 @@ Functions</h2></td></tr>
 
 <p>Set the game ID for the broadcast. </p>
 <p>This should be called during an active broadcast to update the user's stage with a new game ID (or none, if no longer capturing a supported game).</p>
-<p>Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.</p>
+<p>Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-game-monitoring do not have to be strictly synchronized.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the instance returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>
-    <tr><td class="paramname">gameId</td><td>- a known game ID that the application acquires from <a class="el" href="../../d6/db0/caffeine_8h.html#a86f66db7e414f901d5ba4d3b8d3bed46" title="Enumerate the supported games list.">caff_enumerateGames()</a><ul>
+    <tr><td class="paramname">gameId</td><td><ul>
+<li>a known game ID that the application acquires from <a class="el" href="../../d6/db0/caffeine_8h.html#a86f66db7e414f901d5ba4d3b8d3bed46" title="Enumerate the supported games list.">caff_enumerateGames()</a></li>
 <li>NULL to indicate that there is no supported game being captured </li>
 </ul>
 </td></tr>
@@ -1297,11 +1348,11 @@ Functions</h2></td></tr>
 
 <p>Set the title of the broadcast. </p>
 <p>This should be called during an active broadcast to update the user's stage with a broadcast title.</p>
-<p>Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-game-monitoring do not have to be strictly synchronized.</p>
+<p>Calling this while the broadcast is offline will have no effect.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the instance returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>
-    <tr><td class="paramname">title</td><td>the user's desired broadcast title, max 60 characters. If null or empty, the default title "LIVE on Caffeine!" will be used </td></tr>
+    <tr><td class="paramname">title</td><td>the user's desired broadcast title, max 60 characters. If <code>NULL</code> or empty, the default title "LIVE on Caffeine!" will be used </td></tr>
   </table>
   </dd>
 </dl>
@@ -1347,8 +1398,8 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>First-time sign-in with username and password. </p>
-<p>This will attempt to authenticate the user. The status result indicates further actions the user must take, if possible.</p>
-<p>The first time this function is called, otp should be NULL. If the user has 2-factor authentication enabled, an e-mail will be sent to the user with a one-time password. To finish signing in, call caff_signIn again with the same username, password, and the new one-time password.</p>
+<p>This will attempt to authenticate the user. The result indicates further actions the user must take, if possible.</p>
+<p>The first time this function is called, <code>otp</code> should be <code>NULL</code>. If the user has 2-factor authentication enabled, an e-mail will be sent to the user with a one-time password. To finish signing in, call <a class="el" href="../../d6/db0/caffeine_8h.html#a16b8229c9279479f7949b1540a584a03" title="First-time sign-in with username and password.">caff_signIn()</a> again with the same <code>username</code>, <code>password</code>, and <code>otp</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the handle returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>
@@ -1358,14 +1409,15 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- caff_ResultSuccess upon successful sign-in<ul>
-<li>caff_ResultFailure for unknown/unexpected errors</li>
-<li>caff_ResultOldVersion</li>
-<li>caff_ResultInfoIncorrect</li>
-<li>caff_ResultLegalAcceptanceRequired</li>
-<li>caff_ResultEmailVerificationRequired</li>
-<li>caff_ResultMfaOtpRequired</li>
-<li>caff_ResultMfaOtpIncorrect</li>
+<dl class="section return"><dt>Returns</dt><dd><ul>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> upon successful sign-in</li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a> for unknown/unexpected errors</li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82" title="libcaffeine version is too old">caff_ResultOldVersion</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cad4f7139542d462e3e733dbeb4df37709" title="Username/password or refresh token are incorrect.">caff_ResultInfoIncorrect</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cab66ee5c495b9911b4255d3cdbe40c0da" title="User must accept Caffeine Terms of Use.">caff_ResultLegalAcceptanceRequired</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca8658d77cadd927cb00fec87e19ebbd75" title="User must verify email address.">caff_ResultEmailVerificationRequired</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae3f30c26ee2fe7192aab9f8eacf7ba43" title="User must enter a 2-factor one-time-password sent to their email.">caff_ResultMfaOtpRequired</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caea27df736d87c51750b4c434264cd9c5" title="The one-time-password provided was incorrect.">caff_ResultMfaOtpIncorrect</a></li>
 </ul>
 </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c" title="Status results and errors returned by libcaffeine API functions.">caff_Result</a> </dd>
@@ -1460,8 +1512,8 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Start a broadcast on Caffeine. </p>
-<p>This will initiate the broadcast startup process on a new thread as long as the instance is signed in and there isn't already a broadcast in progress. When the broadcast has started, broadcastStartedCallback will be called from that thread, signalling that the application should start sending audio &amp; video frames.</p>
-<p>If there is an error that either prevents the broadcast from starting or interrupts a broadcast in progress, then broadcastFailedCallback will be called instead.</p>
+<p>This will initiate the broadcast startup process on a new thread as long as the instance is signed in and there isn't already a broadcast in progress. When the broadcast has started, <code>broadcastStartedCallback</code> will be called from that thread, signalling that the application should start sending audio &amp; video frames.</p>
+<p>If there is an error that either prevents the broadcast from starting or interrupts a broadcast in progress, then <code>broadcastFailedCallback</code> will be called instead.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">instanceHandle</td><td>the handle returned by <a class="el" href="../../d6/db0/caffeine_8h.html#a3f446ab5605f1d7450579144d91efa57" title="Create a Caffeine instance.">caff_createInstance()</a> </td></tr>
@@ -1474,9 +1526,10 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- caff_ResultAlreadyBroadcasting if the instance already has a broadcast in progress<ul>
-<li>caff_ResultNotSignedIn if the instance has not been authenticated</li>
-<li>caff_ResultSuccess if the broadcast thread has started</li>
+<dl class="section return"><dt>Returns</dt><dd><ul>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cafb17c0ca2a182f300f747738821fe579" title="A broadcast is already online.">caff_ResultAlreadyBroadcasting</a> if the instance already has a broadcast in progress</li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca1833fd25cf329c388435c189bd8866a0" title="The instance must be signed in.">caff_ResultNotSignedIn</a> if the instance has not been authenticated</li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> if the broadcast thread has started</li>
 </ul>
 </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a1ed7854dfa20e28476d39f29fd3822eb" title="Set the title of the broadcast.">caff_setTitle()</a> </dd>
@@ -1487,7 +1540,7 @@ Functions</h2></td></tr>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#a2f89d2bd5cb8e2cb815f26aa60fd0a97" title="Broadcasts a frame of audio.">caff_sendAudio()</a> </dd>
 <dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#a9c0304fafccd7bf6f260c66e3f5b4c16" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd>
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa13bf87c470879a1c1335399f50b667b" title="Broadcasts a frame of video.">caff_sendVideo()</a> </dd>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#ab35439bbb6cdb925bd07a729aa3b0ef2" title="End a Caffeine broadcast.">caff_endBroadcast()</a> </dd></dl>
 

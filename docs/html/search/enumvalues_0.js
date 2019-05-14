@@ -27,6 +27,7 @@ var searchData=
   ['caff_5fseveritylast',['caff_SeverityLast',['../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48a9cbe1b379009bc757c8f2b24d22d1f9b',1,'caffeine.h']]],
   ['caff_5fseveritynone',['caff_SeverityNone',['../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48ad2b35e801c467a3804462632fec3e021',1,'caffeine.h']]],
   ['caff_5fseveritywarning',['caff_SeverityWarning',['../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48aea0813811d2b754df200e381f87dee6c',1,'caffeine.h']]],
+  ['caff_5ftimestampgenerate',['caff_TimestampGenerate',['../d6/db0/caffeine_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba378bc51796f635e5b22c694e14ff5fe0',1,'caffeine.h']]],
   ['caff_5fvideoformatabgr',['caff_VideoFormatAbgr',['../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1a0d9c28f228c8dc9d9d504f70ca20997f',1,'caffeine.h']]],
   ['caff_5fvideoformatargb',['caff_VideoFormatArgb',['../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1a5366db322cb317922223e60b32d6cf10',1,'caffeine.h']]],
   ['caff_5fvideoformatargb1555',['caff_VideoFormatArgb1555',['../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1a163eb6a0a521d201a4b3a2f1b31e3898',1,'caffeine.h']]],

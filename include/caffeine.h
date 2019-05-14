@@ -130,6 +130,12 @@ typedef enum caff_ConnectionQuality {
 } caff_ConnectionQuality;
 
 
+enum {
+    //! Tells caff_sendVideo() to generate a frame timestamp from the current system time
+    caff_TimestampGenerate = -1ll
+};
+
+
 //! Opaque handle to libcaffeine instance.
 /*!
 This is passed into most libcaffeine API functions
@@ -203,12 +209,12 @@ CAFFEINE_API char const * caff_resultString(caff_Result result);
 //! Initialize the Caffeine library
 /*!
 This should be called exactly once during application startup. Subsequent calls will be ignored and return the same
-result as the first call.
+::caff_Result as the first call.
 
 \param minSeverity sets the minimum severity for log messages to be reported
 \param logCallback if provided, this function will be called with all log messages _instead of_ outputing to stderr
 
-\return caff_ResultSuccess() or caff_ResultFailure()
+\return ::caff_ResultSuccess or ::caff_ResultFailure
 
 \see caff_Severity
 \see caff_LogCallback
@@ -242,7 +248,7 @@ determining what game is running, e.g. by monitoring the foreground window proce
 \param userData an arbitrary pointer passed unmodified to the enumerator for context
 \param enumerator the enumerator callback
 
-\return caff_ResultFailure if the game list failed to download, otherwise caff_ResultSuccess
+\return ::caff_ResultFailure if the game list failed to download, otherwise ::caff_ResultSuccess
 
 \see caff_startBroadcast()
 \see caff_setGameId()
@@ -253,25 +259,26 @@ CAFFEINE_API caff_Result
 
 //! First-time sign-in with username and password
 /*!
-This will attempt to authenticate the user. The status result indicates further actions the user must take, if possible.
+This will attempt to authenticate the user. The result indicates further actions the user must take, if possible.
 
-The first time this function is called, otp should be NULL. If the user has 2-factor authentication enabled, an e-mail
-will be sent to the user with a one-time password. To finish signing in, call caff_signIn again with the same username,
-password, and the new one-time password.
+The first time this function is called, \p otp should be `NULL`. If the user has 2-factor authentication enabled, an
+e-mail will be sent to the user with a one-time password. To finish signing in, call caff_signIn() again with the same
+\p username, \p password, and \p otp.
 
 \param instanceHandle the handle returned by caff_createInstance()
 \param username the username attempting to sign in
 \param password the user's password
 \param otp (optional) one-time-password for 2-factor authentication enabled
 
-\return - caff_ResultSuccess upon successful sign-in
-        - caff_ResultFailure for unknown/unexpected errors
-        - caff_ResultOldVersion
-        - caff_ResultInfoIncorrect
-        - caff_ResultLegalAcceptanceRequired
-        - caff_ResultEmailVerificationRequired
-        - caff_ResultMfaOtpRequired
-        - caff_ResultMfaOtpIncorrect
+\return
+        - ::caff_ResultSuccess upon successful sign-in
+        - ::caff_ResultFailure for unknown/unexpected errors
+        - ::caff_ResultOldVersion
+        - ::caff_ResultInfoIncorrect
+        - ::caff_ResultLegalAcceptanceRequired
+        - ::caff_ResultEmailVerificationRequired
+        - ::caff_ResultMfaOtpRequired
+        - ::caff_ResultMfaOtpIncorrect
 
 \see caff_Result
 \see caff_getRefreshToken()
@@ -289,6 +296,8 @@ authentications. This token is intended to be stored by the application to provi
 \param instanceHandle the handle returned by caff_createInstance()
 
 \return the refresh token if signed in, otherwise NULL
+
+\see caff_refreshAuth()
 */
 CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle);
 
@@ -296,14 +305,14 @@ CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandl
 //! Sign in with refresh token
 /*!
 This attempts to authenticate using the provided refresh token. If this fails, the user will need to sign in again with
-username and password.
+username and password via caff_signIn().
 
 TODO: Return a different error if the authentication actually failed vs. some other failure in the request
 
 \param instanceHandle the handle returned by caff_createInstance()
 \param refreshToken the refresh token returned by caff_getRefreshToken() after a previous sign-in
 
-\return caff_ResultSuccess or caff_ResultFailure
+\return ::caff_ResultSuccess or ::caff_ResultFailure
 
 \see caff_signIn()
 \see caff_getRefreshToken()
@@ -312,19 +321,29 @@ CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, ch
 
 
 //! Determine if the instance is signed in
+/*!
+\param instanceHandle the handle returned by caff_createInstance()
+
+\return `true` if the instance has successfully been signed in with either caff_signIn() or caff_refreshAuth(),
+        otherwise `false`
+*/
 CAFFEINE_API bool caff_isSignedIn(caff_InstanceHandle instanceHandle);
 
 
 //! Get the signed-in username
 /*!
-\return the username if signed in, otherwise NULL
+\param instanceHandle the handle returned by caff_createInstance()
+
+\return the username if signed in, otherwise `NULL`
 */
 CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle);
 
 
 //! Determine if the user is allowed to broadcast
 /*!
-\return false if the user's account is flagged as unable to broadcast. Otherwise true
+\param instanceHandle the handle returned by caff_createInstance()
+
+\return `false` if the user's account is flagged as unable to broadcast. Otherwise `true`
 */
 CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle);
 
@@ -332,11 +351,11 @@ CAFFEINE_API bool caff_canBroadcast(caff_InstanceHandle instanceHandle);
 //! Start a broadcast on Caffeine
 /*!
 This will initiate the broadcast startup process on a new thread as long as the instance is signed in and there isn't
-already a broadcast in progress. When the broadcast has started, broadcastStartedCallback will be called from that
+already a broadcast in progress. When the broadcast has started, \p broadcastStartedCallback will be called from that
 thread, signalling that the application should start sending audio & video frames.
 
 If there is an error that either prevents the broadcast from starting or interrupts a broadcast in progress, then
-broadcastFailedCallback will be called instead.
+\p broadcastFailedCallback will be called instead.
 
 \param instanceHandle the handle returned by caff_createInstance()
 \param userData an optional pointer passed unmodified to the callbacks
@@ -346,9 +365,10 @@ broadcastFailedCallback will be called instead.
 \param broadcastStartedCallback called when broadcast successfully starts
 \param broadcastFailedCallback called when broadcast fails
 
-\return - caff_ResultAlreadyBroadcasting if the instance already has a broadcast in progress
-        - caff_ResultNotSignedIn if the instance has not been authenticated
-        - caff_ResultSuccess if the broadcast thread has started
+\return
+        - ::caff_ResultAlreadyBroadcasting if the instance already has a broadcast in progress
+        - ::caff_ResultNotSignedIn if the instance has not been authenticated
+        - ::caff_ResultSuccess if the broadcast thread has started
 
 \see caff_setTitle()
 \see caff_setRating()
@@ -366,10 +386,11 @@ CAFFEINE_API caff_Result caff_startBroadcast(
         caff_BroadcastStartedCallback broadcastStartedCallback,
         caff_BroadcastFailedCallback broadcastFailedCallback);
 
+
 //! Broadcasts a frame of audio
 /*!
 This should be called by the application's audio output thread as long as the broadcast is online (after
-broadcastStartedCallback has been called, and before either caff_endBroadcast() or broadcastFailedCallback).
+`broadcastStartedCallback` has been called, and before either caff_endBroadcast() or `broadcastFailedCallback`).
 
 Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have
 to be strictly synchronized.
@@ -389,33 +410,36 @@ CAFFEINE_API void caff_sendAudio(caff_InstanceHandle instanceHandle, uint8_t * s
 //! Broadcasts a frame of video
 /*!
 This should be called by the application's video output thread as long as the broadcast is online (after
-broadcastStartedCallback has been called, and before either caff_endBroadcast() or broadcastFailedCallback).
+`broadcastStartedCallback` has been called, and before either caff_endBroadcast() or `broadcastFailedCallback`).
 
 The first frame of video sent after starting a broadcast will be used as the screenshot in the Caffeine.tv lobby.
 
 Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-capture do not have
 to be strictly synchronized.
 
-For best results, height should be 720 and format should be caff_VideoFormatI420. This will avoid costs of rescaling and
-reformatting by WebRTC.
+For best results, \p height should be `720` and \p format should be ::caff_VideoFormatI420. This will avoid costs of
+rescaling and reformatting by WebRTC.
 
 \param instanceHandle the instance returned by caff_createInstance()
+\param format the format of the raw pixel data
 \param framePixels the raw pixel data
 \param frameTotalBytes the number of bytes of pixel data
 \param width the frame width
 \param height the frame height
-\param format the format of the raw pixel data
+\param timestampMicros the timestamp for the video frame. You can pass ::caff_TimestampGenerate to use the current
+    system time
 
 \see caff_startBroadcast()
 \see caff_sendAudio()
 */
 CAFFEINE_API void caff_sendVideo(
         caff_InstanceHandle instanceHandle,
+        caff_VideoFormat format,
         uint8_t const * framePixels,
         size_t frameTotalBytes,
         int32_t width,
         int32_t height,
-        caff_VideoFormat format);
+        int64_t timestampMicros);
 
 
 //! Set the game ID for the broadcast
@@ -423,10 +447,12 @@ CAFFEINE_API void caff_sendVideo(
 This should be called during an active broadcast to update the user's stage with a new game ID (or none, if no longer
 capturing a supported game).
 
-Calling this while the broadcast is offline will have no effect, simplifying some asynchronous operations.
+Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-game-monitoring do
+not have to be strictly synchronized.
 
 \param instanceHandle the instance returned by caff_createInstance()
-\param gameId - a known game ID that the application acquires from caff_enumerateGames()
+\param gameId
+              - a known game ID that the application acquires from caff_enumerateGames()
               - NULL to indicate that there is no supported game being captured
 */
 CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const * gameId);
@@ -436,11 +462,10 @@ CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const 
 /*!
 This should be called during an active broadcast to update the user's stage with a broadcast title.
 
-Calling this while the broadcast is offline will have no effect, so the end-of-broadcast and end-of-game-monitoring do
-not have to be strictly synchronized.
+Calling this while the broadcast is offline will have no effect.
 
 \param instanceHandle the instance returned by caff_createInstance()
-\param title the user's desired broadcast title, max 60 characters. If null or empty, the default title
+\param title the user's desired broadcast title, max 60 characters. If `NULL` or empty, the default title
         "LIVE on Caffeine!" will be used
 */
 CAFFEINE_API void caff_setTitle(caff_InstanceHandle instanceHandle, char const * title);
@@ -467,7 +492,7 @@ broadcaster and the Caffeine servers.
 
 \return - caff_ConnectionQualityGood if network conditions are acceptable
         - caff_ConnectionQualityPoor if there is a significant amount of packet loss
-        - caff_ConnectionQualityUnknown if there is no broadcast or the server has not responded with a reading yet
+        - caff_ConnectionQualityUnknown if the broadcast is offline or the server has not responded with a reading yet
 */
 CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandle instanceHandle);
 
@@ -476,7 +501,7 @@ CAFFEINE_API caff_ConnectionQuality caff_getConnectionQuality(caff_InstanceHandl
 /*!
 This signals the server to end the broadcast and closes the RTC connection.
 
-If the broadcast failed to start or ended in failure the application does not need to call this.
+If the broadcast failed to start or ended in failure, the application does not need to call this.
 
 Calling this while the broadcast is offline will have no effect.
 
@@ -495,12 +520,12 @@ CAFFEINE_API void caff_signOut(caff_InstanceHandle instanceHandle);
 
 
 
-//! Deinitialize Caffeine library
+//! Free the Caffeine instance
 /*!
 This destroys the internal factory objects, shuts down worker threads, etc.
 
-\param instanceHandle the instance handle received from caff_createInstance. This handle will no longer be valid after
-    the function returns. Sets the pointer to null to prevent the caller from reusing it.
+\param instanceHandle pointer to the instance handle received from caff_createInstance. Since this handle will no longer
+    be valid after the function returns, the pointed-to handle will be set to NULL.
 */
 CAFFEINE_API void caff_freeInstance(caff_InstanceHandle * instanceHandle);
 
