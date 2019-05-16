@@ -248,7 +248,7 @@ namespace caff {
 
         // Initialize encoded image. Default buffer size: size of unencoded data.
         size_t const newCapacity =
-            webrtc::CalcBufferSize(webrtc::VideoType::kI420, codecSettings->width, codecSettings->height);
+                webrtc::CalcBufferSize(webrtc::VideoType::kI420, codecSettings->width, codecSettings->height);
         encodedImage.Allocate(newCapacity);
         encodedImageBuffer.reset(encodedImage.mutable_data());
         encodedImage._completeFrame = true;

@@ -6,21 +6,19 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
+#include <variant>
 #include <vector>
 
 #include "caffeine.h"
 
-#include "absl/types/optional.h"
-#include "absl/types/variant.h"
-
 namespace caff {
-    // TODO: Get C++17 working and use standard versions
-    using absl::get;
-    using absl::get_if;
-    using absl::optional;
-    using absl::variant;
+    using std::get;
+    using std::get_if;
+    using std::optional;
+    using std::variant;
 
     struct Credentials {
         std::string accessToken;

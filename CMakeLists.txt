@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.11)
 
 ################################################################################
 # Setup / Bootstrap
@@ -16,7 +16,8 @@ math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
 # CMake / Compiler
 ################################################################################
 # C++ Standard and Extensions
-SET(CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## Disable nonstandard extensions
 SET(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -74,7 +75,7 @@ endif()
 
 if(MSVC)
     add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
-    add_compile_options("/MP" "/WX" "/EHa")
+    add_compile_options("/MP" "/WX" "/EHa" "/std:c++17")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
 
