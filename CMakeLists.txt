@@ -141,8 +141,9 @@ function(set_output_name project_name)
     )
 endfunction(set_output_name)
 
-add_library(${STATIC_NAME} STATIC $<TARGET_OBJECTS:${OBJLIB_NAME}>)
-add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:${OBJLIB_NAME}>)
+# Add dummy file to library sources to workaround Xcode project generation issues
+add_library(${STATIC_NAME} STATIC $<TARGET_OBJECTS:${OBJLIB_NAME}> src/Dummy.cpp)
+add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:${OBJLIB_NAME}> src/Dummy.cpp)
 
 function(set_target_link_libraries project_name)
     target_link_libraries(${project_name} PRIVATE
