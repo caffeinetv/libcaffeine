@@ -62,6 +62,8 @@ set(libcaffeine_SOURCES
     src/Serialization.hpp
     src/SessionDescriptionObserver.cpp
     src/SessionDescriptionObserver.hpp
+    src/StatsObserver.cpp
+    src/StatsObserver.hpp
     src/VideoCapturer.cpp
     src/VideoCapturer.hpp
     src/X264Encoder.cpp

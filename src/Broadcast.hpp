@@ -9,6 +9,7 @@
 
 #include "Api.hpp"
 #include "ErrorLogging.hpp"
+#include "StatsObserver.hpp"
 
 #include "absl/types/optional.h"
 #include "api/video/i420_buffer.h"
@@ -93,6 +94,7 @@ namespace caff {
         VideoCapturer * videoCapturer;
         webrtc::PeerConnectionFactoryInterface * factory;
         rtc::scoped_refptr<webrtc::PeerConnectionInterface> peerConnection;
+        rtc::scoped_refptr<StatsObserver> statsObserver;
 
         std::string streamUrl;
         std::string feedId;

@@ -14,6 +14,7 @@
 
 #include "absl/types/optional.h"
 #include "absl/types/variant.h"
+#include "nlohmann/json.hpp"
 
 namespace caff {
     // TODO: Get C++17 working and use standard versions
@@ -21,6 +22,8 @@ namespace caff {
     using absl::get_if;
     using absl::optional;
     using absl::variant;
+
+    using Json = nlohmann::json;
 
     struct Credentials {
         std::string accessToken;
@@ -190,5 +193,7 @@ namespace caff {
             SharedCredentials & creds,
             std::chrono::milliseconds * retryIn,
             bool * isOutOfCapacity);
+
+    void sendWebrtcStats(SharedCredentials & creds, Json const & report);
 
 }  // namespace caff
