@@ -165,4 +165,102 @@ namespace caff {
         get_value_to(json, "reason", response.reason);
         get_value_to(json, "display_message", response.displayMessage);
     };
+
+    static bool isWhitelistedReportType(webrtc::StatsReport::StatsType type) {
+        switch (type) {
+        case webrtc::StatsReport::kStatsReportTypeSsrc:
+        case webrtc::StatsReport::kStatsReportTypeBwe:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    static bool isWhitelistedStat(webrtc::StatsReport::StatsValueName stat) {
+        using Stat = webrtc::StatsReport;
+
+        switch (stat) {
+        // standard common
+        case Stat::kStatsValueNameBytesSent:
+        case Stat::kStatsValueNameMediaType:
+        case Stat::kStatsValueNamePacketsLost:
+        case Stat::kStatsValueNamePacketsSent:
+
+        // goog prefixed common
+        case Stat::kStatsValueNameEncodeUsagePercent:
+        case Stat::kStatsValueNameAvgEncodeMs:
+        case Stat::kStatsValueNameRtt:
+        case Stat::kStatsValueNameNacksReceived:
+
+        // video
+        case Stat::kStatsValueNameFrameRateInput:
+        case Stat::kStatsValueNameFrameRateSent:
+        case Stat::kStatsValueNameFrameHeightInput:
+        case Stat::kStatsValueNameFrameHeightSent:
+        case Stat::kStatsValueNameFrameWidthInput:
+        case Stat::kStatsValueNameFrameWidthSent:
+        case Stat::kStatsValueNameCpuLimitedResolution:
+        case Stat::kStatsValueNameFirsReceived:
+
+        // audio
+        case Stat::kStatsValueNameAudioInputLevel:
+
+        // videobwe stats
+        case Stat::kStatsValueNameAvailableSendBandwidth:
+        case Stat::kStatsValueNameTargetEncBitrate:
+        case Stat::kStatsValueNameActualEncBitrate:
+        case Stat::kStatsValueNameTransmitBitrate:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    static void addStat(Json & json, webrtc::StatsReport::Value const & stat) {
+        using Type = webrtc::StatsReport::Value;
+        switch (stat.type()) {
+        case Type::kBool:
+            json[stat.display_name()] = stat.bool_val();
+            break;
+        case Type::kFloat:
+            json[stat.display_name()] = stat.float_val();
+            break;
+        case Type::kId:
+            // id_val() is declared in statstypes.h but there is no implementation
+            LOG_DEBUG("Unexpected ID stat: %s", stat.display_name());
+            break;
+        case Type::kInt:
+            json[stat.display_name()] = stat.int_val();
+            break;
+        case Type::kInt64:
+            json[stat.display_name()] = stat.int64_val();
+            break;
+        case Type::kStaticString:
+            json[stat.display_name()] = stat.static_string_val();
+            break;
+        case Type::kString:
+            json[stat.display_name()] = stat.string_val();
+            break;
+        }
+    }
+
+    Json serializeWebrtcStats(webrtc::StatsReports const & reports) {
+        auto serialized = Json::array();
+        for (auto const * report : reports) {
+            if (isWhitelistedReportType(report->type())) {
+                serialized.push_back({
+                        { "caffeineUnixTimestamp", report->timestamp() },
+                        { "caffeineReportType", report->TypeToString() },
+                });
+
+                for (auto const & entry : report->values()) {
+                    if (isWhitelistedStat(entry.first)) {
+                        addStat(serialized.back(), *entry.second);
+                    }
+                }
+            }
+        }
+        return serialized;
+    }
+
 } // namespace caff

@@ -360,10 +360,14 @@ namespace caff {
                 return;
             }
 
+            statsObserver = new rtc::RefCountedObject<StatsObserver>(sharedCredentials);
+
             state.store(State::Online);
             startedCallback();
 
             startHeartbeat();
+
+            statsObserver.release()->Release();
 
             if (longpollThread.joinable()) {
                 longpollThread.join();
@@ -478,6 +482,11 @@ namespace caff {
                 continue;
 
             interval = 0ms;
+
+            peerConnection->GetStats(
+                    statsObserver,
+                    nullptr,
+                    webrtc::PeerConnectionInterface::StatsOutputLevel::kStatsOutputLevelStandard);
 
             {
                 std::lock_guard<std::mutex> lock(mutex);
