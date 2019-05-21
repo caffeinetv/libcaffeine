@@ -22,6 +22,7 @@
 
 #define API_ENDPOINT "https://api." CAFFEINE_DOMAIN
 #define REALTIME_ENDPOINT "https://realtime." CAFFEINE_DOMAIN
+#define EVENTS_ENDPOINT "https://events." CAFFEINE_DOMAIN
 
 // TODO: some of these are deprecated
 #define VERSION_CHECK_URL API_ENDPOINT "v1/version-check"
@@ -33,6 +34,8 @@
 
 #define STAGE_UPDATE_URL(username) (std::string(REALTIME_ENDPOINT "v4/stage/") + (username))
 #define STREAM_HEARTBEAT_URL(streamUrl) (std::string((streamUrl)) + "/heartbeat")
+
+#define BROADCAST_METRICS_URL EVENTS_ENDPOINT "v1/broadcast_metrics"
 
 #define CONTENT_TYPE_JSON "Content-Type: application/json"
 #define CONTENT_TYPE_FORM "Content-Type: multipart/form-data"
@@ -568,7 +571,7 @@ namespace caff {
             curl_formadd(
                     &post.head,
                     &post.tail,
-                    CURLFORM_COPYNAME,
+                    CURLFORM_PTRNAME,
                     "broadcast[game_image]",
                     CURLFORM_BUFFER,
                     "game_image.jpg",
@@ -720,4 +723,54 @@ namespace caff {
             return false;
         }
     }
+
+    void sendWebrtcStats(SharedCredentials & sharedCreds, Json const & stats) {
+        // TODO: should this retry?
+        ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
+
+        ScopedPost post;
+
+        auto statsString = stats.dump();
+
+        curl_formadd(
+                &post.head,
+                &post.tail,
+                CURLFORM_PTRNAME,
+                "primary",
+                CURLFORM_PTRCONTENTS,
+                statsString.c_str(),
+                CURLFORM_CONTENTTYPE,
+                "application/json",
+                CURLFORM_END);
+
+        curl_easy_setopt(curl, CURLOPT_HTTPPOST, post.head);
+
+        curl_easy_setopt(curl, CURLOPT_URL, BROADCAST_METRICS_URL);
+
+        std::string responseStr;
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
+
+        char curlError[CURL_ERROR_SIZE];
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
+
+        CURLcode curlResult = curl_easy_perform(curl);
+        if (curlResult != CURLE_OK) {
+            LOG_ERROR("HTTP failure sending webrtc metrics: [%d] %s", curlResult, curlError);
+            return;
+        }
+
+        long responseCode;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+
+        LOG_DEBUG("Http response code [%ld]", responseCode);
+
+        bool result = responseCode / 100 == 2;
+
+        if (!result) {
+            LOG_ERROR("Failed to send webrtc metrics");
+        }
+    }
+
 } // namespace caff
