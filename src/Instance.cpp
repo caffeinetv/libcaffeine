@@ -106,9 +106,6 @@ namespace caff {
             LOG_WARNING("Attempting to authenticate while broadcast is already active");
             return caff_ResultAlreadyBroadcasting;
         }
-        if (!isSupportedVersion()) {
-            return caff_ResultOldVersion;
-        }
         auto response = authFunc();
         if (!response.credentials) {
             return response.result;
@@ -147,6 +144,9 @@ namespace caff {
             std::function<void(caff_Result)> failedCallback) {
         if (!isSignedIn()) {
             return caff_ResultNotSignedIn;
+        }
+        if (!isSupportedVersion()) {
+            return caff_ResultOldVersion;
         }
 
         std::lock_guard<std::mutex> lock(broadcastMutex);

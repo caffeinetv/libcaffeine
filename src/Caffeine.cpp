@@ -70,11 +70,27 @@ CAFFEINE_API char const * caff_resultString(caff_Result result) try {
 CATCHALL_RETURN(nullptr)
 
 
-CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback) try {
+CAFFEINE_API caff_Result caff_initialize(
+        char const * clientType,
+        char const * clientVersion,
+        caff_Severity minSeverity,
+        caff_LogCallback logCallback) try {
     CHECK_ENUM(caff_Severity, minSeverity);
 
     // Thread-safe single-init
     static caff_Result result = ([=] {
+        if (!clientType || !clientType[0]) {
+            LOG_ERROR("Missing clientType");
+            return caff_ResultFailure;
+        }
+        caff::clientType = clientType;
+
+        if (!clientVersion || !clientVersion[0]) {
+            LOG_ERROR("Missing clientVersion");
+            return caff_ResultFailure;
+        }
+        caff::clientVersion = clientVersion;
+
         // Set up logging
         rtc::LogMessage::LogThreads(true);
         rtc::LogMessage::LogTimestamps(true);

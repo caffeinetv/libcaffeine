@@ -205,6 +205,8 @@ CAFFEINE_API char const * caff_resultString(caff_Result result);
 This should be called exactly once during application startup. Subsequent calls will be ignored and return the same
 result as the first call.
 
+\param clientType a simple identifier for the application. E.g. `"obs"` for OBS Studio
+\param clientVersion the version string for the application. E.g. `"1.2.3"`
 \param minSeverity sets the minimum severity for log messages to be reported
 \param logCallback if provided, this function will be called with all log messages _instead of_ outputing to stderr
 
@@ -213,7 +215,8 @@ result as the first call.
 \see caff_Severity
 \see caff_LogCallback
 */
-CAFFEINE_API caff_Result caff_initialize(caff_Severity minSeverity, caff_LogCallback logCallback);
+CAFFEINE_API caff_Result caff_initialize(
+        char const * clientType, char const * clientVersion, caff_Severity minSeverity, caff_LogCallback logCallback);
 
 
 //! Create a Caffeine instance
@@ -266,7 +269,6 @@ password, and the new one-time password.
 
 \return - caff_ResultSuccess upon successful sign-in
         - caff_ResultFailure for unknown/unexpected errors
-        - caff_ResultOldVersion
         - caff_ResultInfoIncorrect
         - caff_ResultLegalAcceptanceRequired
         - caff_ResultEmailVerificationRequired
@@ -348,6 +350,7 @@ broadcastFailedCallback will be called instead.
 
 \return - caff_ResultAlreadyBroadcasting if the instance already has a broadcast in progress
         - caff_ResultNotSignedIn if the instance has not been authenticated
+        - caff_ResultOldVersion if the version of libcaffeine or the application are no longer supported
         - caff_ResultSuccess if the broadcast thread has started
 
 \see caff_setTitle()
