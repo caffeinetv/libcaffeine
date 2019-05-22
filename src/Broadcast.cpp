@@ -250,11 +250,24 @@ namespace caff {
             webrtc::PeerConnectionInterface::RTCOfferAnswerOptions answerOptions;
             peerConnection->CreateOffer(creationObserver, answerOptions);
 
-            auto offer = creationObserver->getFuture().get();
+            std::future_status status;
+
+            auto creationFuture = creationObserver->getFuture();
+            status = creationFuture.wait_for(std::chrono::seconds(1));
+            if (status == std::future_status::timeout) {
+                LOG_ERROR("Timeout Error: creationObserver");
+                failedCallback(caff_ResultFailure);
+                return;
+            } else if (status != std::future_status::ready) {
+                LOG_ERROR("Error: creationObserver");
+                failedCallback(caff_ResultFailure);
+                return;
+            }
+
+            auto offer = creationFuture.get();
             if (!offer) {
                 // Logged by the observer
                 failedCallback(caff_ResultFailure);
-                state.store(State::Offline);
                 return;
             }
 
@@ -283,7 +296,20 @@ namespace caff {
                     new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
-            auto setLocalSuccess = setLocalObserver->getFuture().get();
+
+            auto setLocalFuture = setLocalObserver->getFuture();
+            status = setLocalFuture.wait_for(std::chrono::seconds(1));
+            if (status == std::future_status::timeout) {
+                LOG_ERROR("Timeout Error: setLocalObserver");
+                failedCallback(caff_ResultFailure);
+                return;
+            } else if (status != std::future_status::ready) {
+                LOG_ERROR("Error: setLocalObserver");
+                failedCallback(caff_ResultFailure);
+                return;
+            }
+
+            auto setLocalSuccess = setLocalFuture.get();
             if (!setLocalSuccess) {
                 failedCallback(caff_ResultFailure);
                 return;
@@ -306,7 +332,19 @@ namespace caff {
                 return;
             }
 
-            auto & candidates = observer->getFuture().get();
+            auto observerFuture = observer->getFuture();
+            status = observerFuture.wait_for(std::chrono::seconds(1));
+            if (status == std::future_status::timeout) {
+                LOG_ERROR("Timeout Error: observer");
+                failedCallback(caff_ResultFailure);
+                return;
+            } else if (status != std::future_status::ready) {
+                LOG_ERROR("Error: observer");
+                failedCallback(caff_ResultFailure);
+                return;
+            }
+
+            auto & candidates = observerFuture.get();
             if (!trickleCandidates(candidates, streamUrl, sharedCredentials)) {
                 LOG_ERROR("Failed to negotiate ICE");
                 failedCallback(caff_ResultFailure);
@@ -317,7 +355,20 @@ namespace caff {
                     new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
             peerConnection->SetRemoteDescription(setRemoteObserver, remoteDesc.release());
-            auto setRemoteSuccess = setRemoteObserver->getFuture().get();
+
+            auto setRemoteFuture = setRemoteObserver->getFuture();
+            status = setRemoteFuture.wait_for(std::chrono::seconds(1));
+            if (status == std::future_status::timeout) {
+                LOG_ERROR("Timeout Error: setRemoteObserver");
+                failedCallback(caff_ResultFailure);
+                return;
+            } else if (status != std::future_status::ready) {
+                LOG_ERROR("Error: setRemoteObserver");
+                failedCallback(caff_ResultFailure);
+                return;
+            }
+
+            auto setRemoteSuccess = setRemoteFuture.get();
             if (!setRemoteSuccess) {
                 // Logged by the observer
                 failedCallback(caff_ResultFailure);
@@ -381,8 +432,20 @@ namespace caff {
             return;
         }
 
+        std::future_status status;
         auto screenshotFuture = screenshotPromise.get_future();
         try {
+            status = screenshotFuture.wait_for(std::chrono::seconds(1));
+            if (status == std::future_status::timeout) {
+                LOG_ERROR("Timeout Error: screenshotPromise");
+                failedCallback(caff_ResultFailure);
+                return;
+            } else if (status != std::future_status::ready) {
+                LOG_ERROR("Error: screenshotPromise");
+                failedCallback(caff_ResultFailure);
+                return;
+            }
+
             auto screenshotData = screenshotFuture.get();
             if (!updateScreenshot(*broadcastId, screenshotData, sharedCredentials)) {
                 LOG_ERROR("Failed to send screenshot");
