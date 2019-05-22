@@ -121,7 +121,7 @@ namespace caff {
     }
 
 #define RETRY_MAX 3
-
+#define TIMEOUT_LENGTH 10
 /* TODO: this is not very robust or intelligent. Some kinds of failure will
  * never be recoverable and should not be retried
  */
@@ -149,6 +149,10 @@ namespace caff {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, VERSION_CHECK_URL);
+
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
 
         std::string responseStr;
 
@@ -211,6 +215,10 @@ namespace caff {
 
         curl_easy_setopt(curl, CURLOPT_URL, SIGNIN_URL);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
+
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
 
         std::string responseStr;
 
@@ -292,6 +300,10 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_URL, REFRESH_TOKEN_URL);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
 
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
+
         std::string responseStr;
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
@@ -356,6 +368,10 @@ namespace caff {
         auto urlStr = GETUSER_URL(creds.lock().credentials.caid);
         curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
 
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
+
         std::string responseStr;
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
@@ -404,6 +420,10 @@ namespace caff {
 
         curl_easy_setopt(curl, CURLOPT_URL, GETGAMES_URL);
 
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
+
         std::string responseStr;
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
@@ -448,6 +468,10 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_URL, streamUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
 
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
@@ -501,6 +525,10 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{}"); // TODO: is this necessary?
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
 
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
+
         std::string responseStr;
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
@@ -552,6 +580,10 @@ namespace caff {
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
         ScopedPost post;
+
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
 
         if (!screenshotData.empty()) {
             curl_formadd(
@@ -622,6 +654,10 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, TIMEOUT_LENGTH);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, TIMEOUT_LENGTH);
 
         std::string responseStr;
 

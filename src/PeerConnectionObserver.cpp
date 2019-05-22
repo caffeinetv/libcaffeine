@@ -7,8 +7,7 @@
 namespace caff {
 
     PeerConnectionObserver::PeerConnectionObserver(std::function<void(caff_Result)> failedCallback)
-		: failedCallback(failedCallback)
-	{}
+        : failedCallback(failedCallback) {}
 
     std::future<PeerConnectionObserver::Candidates const &> PeerConnectionObserver::getFuture() {
         return promise.get_future();
