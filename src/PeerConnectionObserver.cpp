@@ -23,7 +23,7 @@ namespace caff {
         switch (newState) {
         case State::kIceConnectionFailed:
             LOG_ERROR("ICE connection: failed");
-            failedCallback(caff_ResultDisconnected);
+            failedCallback(caff_ResultFailure);
             break;
         case State::kIceConnectionDisconnected:
             LOG_WARNING("ICE connection: disconnected");
@@ -39,6 +39,9 @@ namespace caff {
             break;
         case State::kIceConnectionCompleted:
             LOG_DEBUG("ICE connection: completed");
+            break;
+        case State::kIceConnectionConnected:
+            LOG_DEBUG("ICE connection: connected");
             break;
         default:
             LOG_WARNING("ICE connection: invalid state (%i)", (int)newState);
