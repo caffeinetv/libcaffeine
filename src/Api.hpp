@@ -22,6 +22,9 @@ namespace caff {
     using absl::optional;
     using absl::variant;
 
+    extern std::string clientType;
+    extern std::string clientVersion;
+
     struct Credentials {
         std::string accessToken;
         std::string refreshToken;
