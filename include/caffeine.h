@@ -202,8 +202,8 @@ CAFFEINE_API char const * caff_resultString(caff_Result result);
 
 //! Initialize the Caffeine library
 /*!
-This should be called exactly once during application startup. Subsequent calls will be ignored and return the same
-result as the first call.
+This should be called exactly once during application startup, before calling any other libcaffeine functions.
+Subsequent calls will be ignored and return the same result as the first call.
 
 \param clientType a simple identifier for the application. E.g. `"obs"` for OBS Studio
 \param clientVersion the version string for the application. E.g. `"1.2.3"`
@@ -217,6 +217,21 @@ result as the first call.
 */
 CAFFEINE_API caff_Result caff_initialize(
         char const * clientType, char const * clientVersion, caff_Severity minSeverity, caff_LogCallback logCallback);
+
+
+//! Check if this version of the application and libcaffeine are still supported
+/*!
+This will send a request to Caffeine with the client type, client version, and libcaffeine version. An application can
+use this to prompt the user to update.
+
+TODO: differentiate request failure from out-of-date version
+TODO: differentiate clientVersion failure from libcaffeine version failure
+
+\return
+    - ::caff_ResultSuccess if the check succeeds
+    - ::caff_ResultOldVersion if the check fails
+*/
+CAFFEINE_API caff_Result caff_checkVersion();
 
 
 //! Create a Caffeine instance

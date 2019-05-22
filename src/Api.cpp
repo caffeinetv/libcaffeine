@@ -187,7 +187,13 @@ namespace caff {
         return true;
     }
 
-    bool isSupportedVersion() { RETRY_REQUEST(bool, doIsSupportedVersion()); }
+    bool isSupportedVersion() {
+        if (clientType.empty() || clientVersion.empty()) {
+            LOG_ERROR("Libcaffeine has not been initialized with client version info");
+            return false;
+        }
+        RETRY_REQUEST(bool, doIsSupportedVersion());
+    }
 
     /* TODO: refactor this - lots of dupe code between request types
      * TODO: reuse curl handle across requests

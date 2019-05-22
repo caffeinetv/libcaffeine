@@ -126,6 +126,12 @@ CAFFEINE_API caff_Result caff_initialize(
 CATCHALL_RETURN(caff_ResultFailure)
 
 
+CAFFEINE_API caff_Result caff_checkVersion() try {
+    return isSupportedVersion() ? caff_ResultSuccess : caff_ResultOldVersion;
+}
+CATCHALL_RETURN(caff_ResultFailure)
+
+
 CAFFEINE_API caff_InstanceHandle caff_createInstance() try {
     auto instance = new Instance;
     return reinterpret_cast<caff_InstanceHandle>(instance);
