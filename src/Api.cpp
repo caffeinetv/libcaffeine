@@ -10,7 +10,7 @@
 #include <thread>
 
 // TODO: should backend differentiate client from libcaffeine version?
-#define API_VERSION "0.1"
+#define LIBCAFFEINE_VERSION "0.1"
 
 #define UNUSED_PARAMETER(p) ((void)p)
 
@@ -56,6 +56,9 @@
  */
 
 namespace caff {
+    extern std::string clientType;
+    extern std::string clientVersion;
+
     class ScopedCurl final {
     public:
         explicit ScopedCurl(char const * contentType) : curl(curl_easy_init()), headers(basicHeaders(contentType)) {
@@ -83,8 +86,9 @@ namespace caff {
         static curl_slist * basicHeaders(char const * contentType) {
             curl_slist * headers = nullptr;
             headers = curl_slist_append(headers, contentType);
-            headers = curl_slist_append(headers, "X-Client-Type: libcaffeine");
-            headers = curl_slist_append(headers, "X-Client-Version: " API_VERSION);
+            headers = curl_slist_append(headers, ("X-Client-Type: " + clientType).c_str());
+            headers = curl_slist_append(headers, ("X-Client-Version: " + clientVersion).c_str());
+            headers = curl_slist_append(headers, "X-Libcaffeine-Version: " LIBCAFFEINE_VERSION);
             return headers;
         }
 
