@@ -37,16 +37,16 @@ These are used to filter out log messages based on their severity
 \see caff_initialize()
 \see caff_LogCallback
 */
-typedef enum caff_Severity {
-    caff_SeverityAll,     //!< Extremely verbose, potentially containing sensitive information
-    caff_SeverityDebug,   //!< Verbose logging for debug purposes
-    caff_SeverityWarning, //!< Messages that may indicate a problem but are tolerable failures
-    caff_SeverityError,   //!< Messages indicating a failure state
-    caff_SeverityNone,    //!< Do not log any messages
+typedef enum caff_LogLevel {
+    caff_LogLevelAll,     //!< Extremely verbose, potentially containing sensitive information
+    caff_LogLevelDebug,   //!< Verbose logging for debug purposes
+    caff_LogLevelWarning, //!< Messages that may indicate a problem but are tolerable failures
+    caff_LogLevelError,   //!< Messages indicating a failure state
+    caff_LogLevelNone,    //!< Do not log any messages
 
     //! Used for bounds checking
-    caff_SeverityLast = caff_SeverityNone
-} caff_Severity;
+    caff_LogLevelLast = caff_LogLevelNone
+} caff_LogLevel;
 
 
 //! Raw pixel formats supported by WebRTC
@@ -82,7 +82,9 @@ typedef enum caff_Result {
     caff_ResultFailure,     //!< General failure result
 
     // Auth
-    caff_ResultOldVersion,                //!< libcaffeine version is too old
+    caff_ResultUsernameRequired,          //!< Username is missing
+    caff_ResultPasswordRequired,          //!< Password is missing
+    caff_ResultRefreshTokenRequired,      //!< Refresh token is missing
     caff_ResultInfoIncorrect,             //!< Username/password or refresh token are incorrect
     caff_ResultLegalAcceptanceRequired,   //!< User must accept Caffeine Terms of Use
     caff_ResultEmailVerificationRequired, //!< User must verify email address
@@ -90,6 +92,7 @@ typedef enum caff_Result {
     caff_ResultMfaOtpIncorrect,           //!< The one-time-password provided was incorrect
 
     // Broadcast
+    caff_ResultOldVersion,          //!< libcaffeine or client version is too old to broadcast successfully
     caff_ResultNotSignedIn,         //!< The instance must be signed in
     caff_ResultOutOfCapacity,       //!< Could not find capacity on the server to start a broadcast
     caff_ResultTakeover,            //!< The user ended the broadcast from another device or instance
@@ -148,7 +151,7 @@ This callback is used to pass log messages from libcaffeine into the application
 
 \see caff_initialize()
 */
-typedef void (*caff_LogCallback)(caff_Severity severity, char const * message);
+typedef void (*caff_LogCallback)(caff_LogLevel severity, char const * message);
 
 
 //! Game enumeration callback
@@ -207,16 +210,16 @@ Subsequent calls will be ignored and return the same result as the first call.
 
 \param clientType a simple identifier for the application. E.g. `"obs"` for OBS Studio
 \param clientVersion the version string for the application. E.g. `"1.2.3"`
-\param minSeverity sets the minimum severity for log messages to be reported
+\param minLogLevel sets the minimum level for log messages to be reported
 \param logCallback if provided, this function will be called with all log messages _instead of_ outputing to stderr
 
-\return caff_ResultSuccess() or caff_ResultFailure()
+\return ::caff_ResultSuccess or ::caff_ResultFailure
 
-\see caff_Severity
+\see caff_LogLevel
 \see caff_LogCallback
 */
 CAFFEINE_API caff_Result caff_initialize(
-        char const * clientType, char const * clientVersion, caff_Severity minSeverity, caff_LogCallback logCallback);
+        char const * clientType, char const * clientVersion, caff_LogLevel minLogLevel, caff_LogCallback logCallback);
 
 
 //! Check if this version of the application and libcaffeine are still supported
@@ -230,6 +233,7 @@ TODO: differentiate clientVersion failure from libcaffeine version failure
 \return
     - ::caff_ResultSuccess if the check succeeds
     - ::caff_ResultOldVersion if the check fails
+    - ::caff_ResultFailure if the check could not complete
 */
 CAFFEINE_API caff_Result caff_checkVersion();
 
@@ -282,13 +286,16 @@ password, and the new one-time password.
 \param password the user's password
 \param otp (optional) one-time-password for 2-factor authentication enabled
 
-\return - caff_ResultSuccess upon successful sign-in
-        - caff_ResultFailure for unknown/unexpected errors
-        - caff_ResultInfoIncorrect
-        - caff_ResultLegalAcceptanceRequired
-        - caff_ResultEmailVerificationRequired
-        - caff_ResultMfaOtpRequired
-        - caff_ResultMfaOtpIncorrect
+\return - ::caff_ResultSuccess upon successful sign-in
+        - ::caff_ResultFailure for unknown/unexpected errors
+        - ::caff_ResultUsernameRequired
+        - ::caff_ResultPasswordRequired
+        - ::caff_ResultInfoIncorrect
+        - ::caff_ResultLegalAcceptanceRequired
+        - ::caff_ResultEmailVerificationRequired
+        - ::caff_ResultMfaOtpRequired
+        - ::caff_ResultMfaOtpIncorrect
+        - ::caff_ResultAlreadyBroadcasting
 
 \see caff_Result
 \see caff_getRefreshToken()
@@ -320,7 +327,12 @@ TODO: Return a different error if the authentication actually failed vs. some ot
 \param instanceHandle the handle returned by caff_createInstance()
 \param refreshToken the refresh token returned by caff_getRefreshToken() after a previous sign-in
 
-\return caff_ResultSuccess or caff_ResultFailure
+\return
+    - ::caff_ResultSuccess
+    - ::caff_ResultInfoIncorrect
+    - ::caff_ResultRefreshTokenRequired
+    - ::caff_ResultFailure
+    - ::caff_ResultAlreadyBroadcasting
 
 \see caff_signIn()
 \see caff_getRefreshToken()

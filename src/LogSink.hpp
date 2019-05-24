@@ -8,8 +8,8 @@
 
 namespace caff {
 
-    caff_Severity rtcToCaffSeverity(rtc::LoggingSeverity rtcSeverity);
-    rtc::LoggingSeverity caffToRtcSeverity(caff_Severity caffSeverity);
+    caff_LogLevel rtcToCaffLogLevel(rtc::LoggingSeverity rtcSeverity);
+    rtc::LoggingSeverity caffToRtcSeverity(caff_LogLevel caffLogLevel);
 
     // Basic log sink class to call up into C clients
     class LogSink : public rtc::LogSink {

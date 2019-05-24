@@ -11,6 +11,7 @@
 #include "AudioDevice.hpp"
 #include "PeerConnectionObserver.hpp"
 #include "SessionDescriptionObserver.hpp"
+#include "Utils.hpp"
 #include "VideoCapturer.hpp"
 #include "caffeine.h"
 
@@ -103,8 +104,13 @@ namespace caff {
     bool Broadcast::isOnline() const { return state == State::Online; }
 
     static std::string annotateTitle(std::string title, caff_Rating rating) {
-        size_t const maxTitleLength = 60;                            // TODO: policy- should be somewhere else
-        static std::string const ratingStrings[] = { "", "[17+] " }; // TODO maybe same here
+        // TODO: move these defaults somewhere sane
+        trim(title);
+        if (title.empty()) {
+            title = "LIVE on Caffeine!";
+        }
+        size_t const maxTitleLength = 60;
+        static std::string const ratingStrings[] = { "", "[17+] " };
 
         auto fullTitle = ratingStrings[rating] + title;
         if (fullTitle.length() > maxTitleLength)
