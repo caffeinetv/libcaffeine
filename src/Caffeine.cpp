@@ -10,6 +10,7 @@
 #include "ErrorLogging.hpp"
 #include "Instance.hpp"
 #include "LogSink.hpp"
+#include "Utils.hpp"
 
 #include "rtc_base/ssladapter.h"
 
@@ -40,8 +41,12 @@ CAFFEINE_API char const * caff_resultString(caff_Result result) try {
     case caff_ResultFailure:
         return "Failure";
 
-    case caff_ResultOldVersion:
-        return "Old version";
+    case caff_ResultUsernameRequired:
+        return "Username required";
+    case caff_ResultPasswordRequired:
+        return "Password required";
+    case caff_ResultRefreshTokenRequired:
+        return "Refresh token required";
     case caff_ResultInfoIncorrect:
         return "Incorrect signin info";
     case caff_ResultLegalAcceptanceRequired:
@@ -53,6 +58,8 @@ CAFFEINE_API char const * caff_resultString(caff_Result result) try {
     case caff_ResultMfaOtpIncorrect:
         return "One-time password incorrect";
 
+    case caff_ResultOldVersion:
+        return "Old version";
     case caff_ResultNotSignedIn:
         return "Not signed in";
     case caff_ResultOutOfCapacity:
@@ -73,9 +80,9 @@ CATCHALL_RETURN(nullptr)
 CAFFEINE_API caff_Result caff_initialize(
         char const * clientType,
         char const * clientVersion,
-        caff_Severity minSeverity,
+        caff_LogLevel minLogLevel,
         caff_LogCallback logCallback) try {
-    CHECK_ENUM(caff_Severity, minSeverity);
+    CHECK_ENUM(caff_LogLevel, minLogLevel);
 
     // Thread-safe single-init
     static caff_Result result = ([=] {
@@ -99,7 +106,7 @@ CAFFEINE_API caff_Result caff_initialize(
             // Only send logs to the given callback
             rtc::LogMessage::LogToDebug(rtc::LS_NONE);
             rtc::LogMessage::SetLogToStderr(false);
-            rtc::LogMessage::AddLogToStream(new LogSink(logCallback), caffToRtcSeverity(minSeverity));
+            rtc::LogMessage::AddLogToStream(new LogSink(logCallback), caffToRtcSeverity(minLogLevel));
         } else {
 #ifdef NDEBUG
             rtc::LogMessage::LogToDebug(rtc::LS_NONE);
@@ -126,9 +133,7 @@ CAFFEINE_API caff_Result caff_initialize(
 CATCHALL_RETURN(caff_ResultFailure)
 
 
-CAFFEINE_API caff_Result caff_checkVersion() try {
-    return isSupportedVersion() ? caff_ResultSuccess : caff_ResultOldVersion;
-}
+CAFFEINE_API caff_Result caff_checkVersion() try { return checkVersion(); }
 CATCHALL_RETURN(caff_ResultFailure)
 
 
@@ -142,8 +147,12 @@ CATCHALL_RETURN(nullptr)
 CAFFEINE_API caff_Result caff_signIn(
         caff_InstanceHandle instanceHandle, char const * username, char const * password, char const * otp) try {
     CHECK_PTR(instanceHandle);
-    CHECK_CSTR(username);
-    CHECK_CSTR(password);
+    if (isEmpty(username)) {
+        return caff_ResultUsernameRequired;
+    }
+    if (isEmpty(password)) {
+        return caff_ResultPasswordRequired;
+    }
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->signIn(username, password, otp);
@@ -153,7 +162,9 @@ CATCHALL_RETURN(caff_ResultFailure)
 
 CAFFEINE_API caff_Result caff_refreshAuth(caff_InstanceHandle instanceHandle, char const * refreshToken) try {
     CHECK_PTR(instanceHandle);
-    CHECK_CSTR(refreshToken);
+    if (isEmpty(refreshToken)) {
+        return caff_ResultRefreshTokenRequired;
+    }
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->refreshAuth(refreshToken);
@@ -253,11 +264,11 @@ CAFFEINE_API caff_Result caff_startBroadcast(
 CATCHALL_RETURN(caff_ResultBroadcastFailed)
 
 
-CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const * id) try {
+CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const * gameId) try {
     CHECK_PTR(instanceHandle);
     std::string idStr;
-    if (id) {
-        idStr = id;
+    if (gameId) {
+        idStr = gameId;
     }
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
@@ -271,17 +282,17 @@ CAFFEINE_API void caff_setGameId(caff_InstanceHandle instanceHandle, char const 
 CATCHALL
 
 
-CAFFEINE_API void caff_setTitle(caff_InstanceHandle instanceHandle, char const * id) try {
+CAFFEINE_API void caff_setTitle(caff_InstanceHandle instanceHandle, char const * title) try {
     CHECK_PTR(instanceHandle);
-    std::string idStr;
-    if (id) {
-        idStr = id;
+    std::string titleStr;
+    if (title) {
+        titleStr = title;
     }
 
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     auto broadcast = instance->getBroadcast();
     if (broadcast) {
-        broadcast->setTitle(std::move(idStr));
+        broadcast->setTitle(std::move(titleStr));
     } else {
         LOG_DEBUG("Setting title without an active broadcast. (This is probably OK if the stream just ended)");
     }

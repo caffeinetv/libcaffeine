@@ -145,7 +145,7 @@ namespace caff {
         if (!isSignedIn()) {
             return caff_ResultNotSignedIn;
         }
-        if (!isSupportedVersion()) {
+        if (checkVersion() == caff_ResultOldVersion) {
             return caff_ResultOldVersion;
         }
 

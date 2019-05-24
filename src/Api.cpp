@@ -11,8 +11,6 @@
 
 #define LIBCAFFEINE_VERSION "0.1"
 
-#define UNUSED_PARAMETER(p) ((void)p)
-
 // TODO: load these from config? environment?
 #if CAFFEINE_STAGING
 #    define CAFFEINE_DOMAIN "staging.caffeine.tv/"
@@ -56,6 +54,8 @@
  *
  * Error type: (various Json formats, occasionally HTML e.g. for 502)
  */
+
+using namespace std::chrono_literals;
 
 namespace caff {
     std::string clientType;
@@ -120,8 +120,7 @@ namespace caff {
         curl_httppost * tail = nullptr;
     };
 
-    static size_t curlWriteCallback(char * ptr, size_t size, size_t nmemb, void * userData) {
-        UNUSED_PARAMETER(size);
+    static size_t curlWriteCallback(char * ptr, size_t, size_t nmemb, void * userData) {
         if (nmemb > 0) {
             std::string & resultStr = *(reinterpret_cast<std::string *>(userData));
             resultStr.append(ptr, nmemb);
@@ -129,19 +128,48 @@ namespace caff {
         return nmemb;
     }
 
-#define RETRY_MAX 3
-/* TODO: this is not very robust or intelligent. Some kinds of failure will
- * never be recoverable and should not be retried
- */
-#define RETRY_REQUEST(ResultT, request)                                                                                \
-    for (int tryNum = 0; tryNum < RETRY_MAX; ++tryNum) {                                                               \
-        ResultT result = request;                                                                                      \
-        if (result) {                                                                                                  \
-            return result;                                                                                             \
-        }                                                                                                              \
-        std::this_thread::sleep_for(std::chrono::seconds(1 + 1 * tryNum));                                             \
-    }                                                                                                                  \
-    return {}
+    template <typename T> struct Retryable {
+        enum Desire { Retry, Complete } desire = Retry;
+        T result;
+
+        Retryable(Desire desire, T result) : desire(desire), result(std::move(result)) {}
+        Retryable(T result) : Retryable(Complete, std::move(result)) {}
+    };
+
+    template <typename T> Retryable<T> retry(T result) {
+        return Retryable<T>{ Retryable<T>::Retry, std::move(result) };
+    }
+
+    template <typename T> bool isRetry(Retryable<T> const & retryable) {
+        return retryable.desire == Retryable<T>::Retry;
+    }
+
+    template <typename T> bool isComplete(Retryable<T> const & retryable) {
+        return retryable.desire == Retryable<T>::Complete;
+    }
+
+    // TODO: put in configuration header or something
+    int constexpr numRetries = 3;
+    template <typename T> T retryRequest(std::function<Retryable<T>()> requestFunction) {
+        Retryable<T> retryable{ Retryable<T>::Retry, {} };
+        for (int tryNum = 0; tryNum < numRetries; ++tryNum) {
+            if (tryNum > 0) {
+                auto sleepFor = 1s + 1s * tryNum;
+                LOG_DEBUG("Retrying in %lld seconds", sleepFor.count());
+                std::this_thread::sleep_for(sleepFor);
+            }
+            retryable = requestFunction();
+            if (isComplete(retryable)) {
+                break;
+            }
+        }
+        if (isRetry(retryable)) {
+            LOG_ERROR("Request failed after %d retries", numRetries);
+        } else {
+            LOG_DEBUG("Request complete");
+        }
+        return std::move(retryable.result);
+    }
 
     SharedCredentials::SharedCredentials(Credentials credentials) : credentials(std::move(credentials)) {}
 
@@ -153,7 +181,7 @@ namespace caff {
     LockedCredentials::LockedCredentials(SharedCredentials & sharedCredentials)
         : credentials(sharedCredentials.credentials), lock(sharedCredentials.mutex, std::adopt_lock) {}
 
-    static bool doIsSupportedVersion() {
+    static Retryable<caff_Result> doCheckVersion() {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, VERSION_CHECK_URL);
@@ -169,7 +197,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure checking version: [%d] %s", curlResult, curlError);
-            return false;
+            return retry(caff_ResultFailure);
         }
 
         Json responseJson;
@@ -177,31 +205,31 @@ namespace caff {
             responseJson = Json::parse(responseStr);
         } catch (...) {
             LOG_ERROR("Failed to parse version check response");
-            return false;
+            return retry(caff_ResultFailure);
         }
 
         auto errors = responseJson.find("errors");
         if (errors != responseJson.end()) {
             auto errorText = errors->at("_expired").at(0).get<std::string>();
             LOG_ERROR("%s", errorText.c_str());
-            return false;
+            return caff_ResultOldVersion;
         }
 
-        return true;
+        return caff_ResultSuccess;
     }
 
-    bool isSupportedVersion() {
+    caff_Result checkVersion() {
         if (clientType.empty() || clientVersion.empty()) {
             LOG_ERROR("Libcaffeine has not been initialized with client version info");
-            return false;
+            return caff_ResultFailure;
         }
-        RETRY_REQUEST(bool, doIsSupportedVersion());
+        return retryRequest<caff_Result>(doCheckVersion);
     }
 
     /* TODO: refactor this - lots of dupe code between request types
      * TODO: reuse curl handle across requests
      */
-    static AuthResponse doSignin(char const * username, char const * password, char const * otp) {
+    static Retryable<AuthResponse> doSignIn(char const * username, char const * password, char const * otp) {
         Json requestJson;
 
         try {
@@ -216,7 +244,7 @@ namespace caff {
             }
         } catch (...) {
             LOG_ERROR("Failed to create request JSON");
-            return {};
+            return { {} };
         }
 
         auto requestBody = requestJson.dump();
@@ -237,7 +265,15 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure signing in: [%d] %s", curlResult, curlError);
-            return {};
+            return { {} };
+        }
+
+        long responseCode;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+        LOG_DEBUG("Http response [%ld]", responseCode);
+
+        if (responseCode == 401) {
+            return { { caff_ResultInfoIncorrect, {} } };
         }
 
         Json responseJson;
@@ -245,7 +281,7 @@ namespace caff {
             responseJson = Json::parse(responseStr);
         } catch (...) {
             LOG_ERROR("Failed to parse signin response");
-            return {};
+            return { {} };
         }
 
         auto errors = responseJson.find("errors");
@@ -255,20 +291,20 @@ namespace caff {
                 auto errorText = otpError->at(0).get<std::string>();
                 LOG_ERROR("One time password error: %s", errorText.c_str());
                 if (otp && *otp) {
-                    return { caff_ResultMfaOtpIncorrect };
+                    return { { caff_ResultMfaOtpIncorrect } };
                 } else {
-                    return { caff_ResultMfaOtpRequired };
+                    return { { caff_ResultMfaOtpRequired } };
                 }
             }
             auto errorText = errors->at("_error").at(0).get<std::string>();
             LOG_ERROR("Error logging in: %s", errorText.c_str());
-            return {};
+            return { {} };
         }
 
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
             LOG_DEBUG("Sign-in complete");
-            return { caff_ResultSuccess, *credsIt };
+            return { { caff_ResultSuccess, *credsIt } };
         }
 
         std::string mfaOtpMethod;
@@ -277,26 +313,26 @@ namespace caff {
         if (nextIt != responseJson.end()) {
             auto & next = nextIt->get_ref<std::string const &>();
             if (next == "mfa_otp_required") {
-                return { caff_ResultMfaOtpRequired };
+                return { { caff_ResultMfaOtpRequired } };
             } else if (next == "legal_acceptance_required") {
-                return { caff_ResultLegalAcceptanceRequired };
+                return { { caff_ResultLegalAcceptanceRequired } };
             } else if (next == "email_verification") {
-                return { caff_ResultEmailVerificationRequired };
+                return { { caff_ResultEmailVerificationRequired } };
             } else {
                 LOG_ERROR("Unrecognized auth next step %s", next.c_str());
-                return {};
+                return { {} };
             }
         }
 
         LOG_ERROR("Sign-in response missing");
-        return {};
+        return { {} };
     }
 
     AuthResponse signIn(char const * username, char const * password, char const * otp) {
-        RETRY_REQUEST(AuthResponse, doSignin(username, password, otp));
+        return retryRequest<AuthResponse>(std::bind(doSignIn, username, password, otp));
     }
 
-    static AuthResponse doRefreshAuth(char const * refreshToken) {
+    static Retryable<AuthResponse> doRefreshAuth(char const * refreshToken) {
         Json requestJson = { { "refresh_token", refreshToken } };
 
         auto requestBody = requestJson.dump();
@@ -316,55 +352,59 @@ namespace caff {
 
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
-            LOG_ERROR("HTTP failure refreshing tokens: [%d] %s", curlResult, curlError);
-            return {};
+            LOG_ERROR("HTTP failure refreshing credentials: [%d] %s", curlResult, curlError);
+            return { {} };
         }
 
         long responseCode;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
         LOG_DEBUG("Http response [%ld]", responseCode);
 
+        if (responseCode == 401) {
+            LOG_ERROR("Invalid refresh token");
+            return { { caff_ResultInfoIncorrect } };
+        }
+
         Json responseJson;
         try {
             responseJson = Json::parse(responseStr);
         } catch (...) {
             LOG_ERROR("Failed to parse refresh response");
-            return {};
+            return { {} };
         }
 
         auto errorsIt = responseJson.find("errors");
         if (errorsIt != responseJson.end()) {
             auto errorText = errorsIt->at("_error").at(0).get<std::string>();
-            LOG_ERROR("Error refreshing tokens: %s", errorText.c_str());
-            return {};
+            LOG_ERROR("Error refreshing credentials: %s", errorText.c_str());
+            return { {} };
         }
 
         auto credsIt = responseJson.find("credentials");
         if (credsIt != responseJson.end()) {
-            LOG_DEBUG("Sign-in complete");
-            return { caff_ResultSuccess, *credsIt };
+            LOG_DEBUG("Credentials refresh complete");
+            return { { caff_ResultSuccess, *credsIt } };
         }
 
         LOG_ERROR("Failed to extract response info");
-        return {};
+        return { {} };
     }
 
-    AuthResponse refreshAuth(char const * refreshToken) { RETRY_REQUEST(AuthResponse, doRefreshAuth(refreshToken)); }
+    AuthResponse refreshAuth(char const * refreshToken) {
+        return retryRequest<AuthResponse>(std::bind(doRefreshAuth, refreshToken));
+    }
 
-    static bool doRefreshCredentials(SharedCredentials & creds) {
+    static bool refreshCredentials(SharedCredentials & creds) {
         auto refreshToken = creds.lock().credentials.refreshToken;
-        auto response = doRefreshAuth(refreshToken.c_str());
+        auto response = refreshAuth(refreshToken.c_str());
         if (response.credentials) {
             creds.lock().credentials = std::move(*response.credentials);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
-    static bool refreshCredentials(SharedCredentials & creds) { RETRY_REQUEST(bool, doRefreshCredentials(creds)); }
-
-    static optional<UserInfo> doGetUserInfo(SharedCredentials & creds) {
+    static Retryable<optional<UserInfo>> doGetUserInfo(SharedCredentials & creds) {
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
         auto urlStr = GETUSER_URL(creds.lock().credentials.caid);
@@ -381,7 +421,19 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure fetching user: [%d] %s", curlResult, curlError);
-            return {};
+            return { {} };
+        }
+
+        long responseCode;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+
+        // TODO: duplicate logic; maybe move to ScopedCurl?
+        if (responseCode == 401) {
+            if (refreshCredentials(creds)) {
+                return doGetUserInfo(creds);
+            } else {
+                return { {} };
+            }
         }
 
         Json responseJson;
@@ -389,31 +441,31 @@ namespace caff {
             responseJson = Json::parse(responseStr);
         } catch (...) {
             LOG_ERROR("Failed to parse user response");
-            return {};
+            return { {} };
         }
 
         auto errorsIt = responseJson.find("errors");
         if (errorsIt != responseJson.end()) {
             auto errorText = errorsIt->at("_error").at(0).get<std::string>();
             LOG_ERROR("Error fetching user: %s", errorText.c_str());
-            return {};
+            return { {} };
         }
 
         auto userIt = responseJson.find("user");
         if (userIt != responseJson.end()) {
             LOG_DEBUG("Got user details");
-            return UserInfo(*userIt);
+            return { *userIt };
         }
 
         LOG_ERROR("Failed to get user info");
-        return {};
+        return { {} };
     }
 
     optional<UserInfo> getUserInfo(SharedCredentials & creds) {
-        RETRY_REQUEST(optional<UserInfo>, doGetUserInfo(creds));
+        return retryRequest<optional<UserInfo>>(std::bind(doGetUserInfo, std::ref(creds)));
     }
 
-    static optional<GameList> doGetSupportedGames() {
+    static Retryable<optional<GameList>> doGetSupportedGames() {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
         curl_easy_setopt(curl, CURLOPT_URL, GETGAMES_URL);
@@ -429,7 +481,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure fetching supported games: [%d] %s", curlResult, curlError);
-            return {};
+            return { {} };
         }
 
         Json responseJson;
@@ -437,21 +489,20 @@ namespace caff {
             responseJson = Json::parse(responseStr);
         } catch (...) {
             LOG_ERROR("Failed to parse game list response");
-            return {};
+            return { {} };
         }
 
         if (!responseJson.is_array()) {
             LOG_ERROR("Unable to retrieve games list");
-            return {};
+            return { {} };
         }
 
-        GameList games = responseJson;
-        return games;
+        return { responseJson };
     }
 
-    optional<GameList> getSupportedGames() { RETRY_REQUEST(optional<GameList>, doGetSupportedGames()); }
+    optional<GameList> getSupportedGames() { return retryRequest<optional<GameList>>(doGetSupportedGames); }
 
-    static bool doTrickleCandidates(
+    static Retryable<bool> doTrickleCandidates(
             std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds) {
         Json requestJson = { { "ice_candidates", candidates } };
 
@@ -469,43 +520,35 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure negotiating ICE: [%d] %s", curlResult, curlError);
-            return false;
+            return retry(false);
         }
 
         long responseCode;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
 
-        bool response = false;
-
         switch (responseCode) {
         case 200:
-            response = true;
-            break;
+            LOG_DEBUG("ICE candidates trickled");
+            return true;
         case 401:
             LOG_DEBUG("Unauthorized - refreshing credentials");
             if (refreshCredentials(creds)) {
-                response = doTrickleCandidates(candidates, streamUrl, creds);
+                return doTrickleCandidates(candidates, streamUrl, creds);
+            } else {
+                return false;
             }
-            break;
         default:
-            break;
-        }
-
-        if (response) {
-            LOG_DEBUG("ICE candidates trickled");
-        } else {
             LOG_ERROR("Error negotiating ICE candidates");
+            return retry(false);
         }
-
-        return response;
     }
 
     bool trickleCandidates(
             std::vector<IceInfo> const & candidates, std::string const & streamUrl, SharedCredentials & creds) {
-        RETRY_REQUEST(bool, doTrickleCandidates(candidates, streamUrl, creds));
+        return retryRequest<bool>([&] { return doTrickleCandidates(candidates, streamUrl, creds); });
     }
 
-    static optional<HeartbeatResponse> doHeartbeatStream(
+    static Retryable<optional<HeartbeatResponse>> doHeartbeatStream(
             std::string const & streamUrl, SharedCredentials & sharedCreds) {
         ScopedCurl curl(CONTENT_TYPE_JSON, sharedCreds);
 
@@ -526,7 +569,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure hearbeating stream: [%d] %s", curlResult, curlError);
-            return {};
+            return { {} };
         }
 
         long responseCode;
@@ -537,12 +580,12 @@ namespace caff {
             if (refreshCredentials(sharedCreds)) {
                 return doHeartbeatStream(streamUrl, sharedCreds);
             }
-            return {};
+            return { {} };
         }
 
         if (responseCode != 200) {
             LOG_ERROR("Error heartbeating stream: %ld", responseCode);
-            return {};
+            return { {} };
         }
 
         Json responseJson;
@@ -550,18 +593,18 @@ namespace caff {
             responseJson = Json::parse(responseStr);
         } catch (...) {
             LOG_ERROR("Failed to parse refresh response");
-            return {};
+            return { {} };
         }
 
         LOG_DEBUG("Broadcast heartbeat succeeded");
-        return HeartbeatResponse(responseJson);
+        return { responseJson };
     }
 
     optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & sharedCreds) {
-        RETRY_REQUEST(optional<HeartbeatResponse>, doHeartbeatStream(streamUrl, sharedCreds));
+        return retryRequest<optional<HeartbeatResponse>>([&] { return doHeartbeatStream(streamUrl, sharedCreds); });
     }
 
-    static bool doUpdateScreenshot(
+    static Retryable<bool> doUpdateScreenshot(
             std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds) {
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
@@ -596,7 +639,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure updating broadcast screenshot: [%d] %s", curlResult, curlError);
-            return false;
+            return retry(false);
         }
 
         long responseCode;
@@ -604,26 +647,35 @@ namespace caff {
 
         LOG_DEBUG("Http response code [%ld]", responseCode);
 
-        bool result = responseCode / 100 == 2;
-
-        if (!result) {
-            LOG_ERROR("Failed to update broadcast screenshot");
+        if (responseCode == 401) {
+            LOG_DEBUG("Unauthorized - refreshing credentials");
+            if (refreshCredentials(sharedCreds)) {
+                return doUpdateScreenshot(std::move(broadcastId), screenshotData, sharedCreds);
+            }
+            return false;
         }
 
-        return result;
+        bool success = responseCode / 100 == 2;
+        if (success) {
+            return true;
+        } else {
+            LOG_ERROR("Failed to update broadcast screenshot");
+            return retry(false);
+        }
     }
 
     bool updateScreenshot(
             std::string broadcastId, ScreenshotData const & screenshotData, SharedCredentials & sharedCreds) {
-        RETRY_REQUEST(bool, doUpdateScreenshot(broadcastId, screenshotData, sharedCreds));
+        return retryRequest<bool>([&] { return doUpdateScreenshot(broadcastId, screenshotData, sharedCreds); });
     }
 
     static bool isOutOfCapacityFailure(std::string const & type) { return type == "OutOfCapacity"; }
 
-    static optional<StageResponseResult> doStageUpdate(StageRequest const & request, SharedCredentials & creds) {
+    static Retryable<optional<StageResponseResult>> doStageUpdate(
+            StageRequest const & request, SharedCredentials & creds) {
         if (!request.stage || !request.stage->username || request.stage->username->empty()) {
             LOG_ERROR("Did not set request username");
-            return {};
+            return optional<StageResponseResult>{};
         }
 
         Json requestJson = request;
@@ -648,7 +700,7 @@ namespace caff {
         CURLcode curlResult = curl_easy_perform(curl);
         if (curlResult != CURLE_OK) {
             LOG_ERROR("HTTP failure performing stage update: [%d] %s", curlResult, curlError);
-            return {};
+            return { {} };
         }
 
         long responseCode;
@@ -660,7 +712,7 @@ namespace caff {
             if (refreshCredentials(creds)) {
                 return doStageUpdate(request, creds);
             }
-            return {};
+            return optional<StageResponseResult>{};
         }
 
         Json responseJson;
@@ -668,15 +720,15 @@ namespace caff {
             responseJson = Json::parse(responseStr);
         } catch (...) {
             LOG_ERROR("Failed to deserialize stage update response to JSON");
-            return {};
+            return { {} };
         }
 
         if (responseCode == 200) {
             try {
-                return StageResponse(responseJson);
+                return { StageResponse(responseJson) };
             } catch (...) {
                 LOG_ERROR("Failed to unpack stage response");
-                return {};
+                return { {} };
             }
         } else {
             try {
@@ -684,17 +736,17 @@ namespace caff {
 
                 // As of now, the only failure response we want to return and not retry is `OutOfCapacity`
                 if (isOutOfCapacityFailure(type)) {
-                    return FailureResponse(responseJson);
+                    return { FailureResponse(responseJson) };
                 }
             } catch (...) {
                 LOG_ERROR("Failed to unpack failure response");
             }
-            return {};
+            return { {} };
         }
     }
 
     static optional<StageResponseResult> stageUpdate(StageRequest const & request, SharedCredentials & creds) {
-        RETRY_REQUEST(optional<StageResponseResult>, doStageUpdate(request, creds));
+        return retryRequest<optional<StageResponseResult>>([&] { return doStageUpdate(request, creds); });
     }
 
     bool requestStageUpdate(

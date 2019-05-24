@@ -90,9 +90,9 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a69b440d7d9cc4ab3c3ea8fc36a48801d"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a69b440d7d9cc4ab3c3ea8fc36a48801d">caff_Severity</a></td></tr>
-<tr class="memdesc:a69b440d7d9cc4ab3c3ea8fc36a48801d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log level severities.  <a href="#a69b440d7d9cc4ab3c3ea8fc36a48801d">More...</a><br /></td></tr>
-<tr class="separator:a69b440d7d9cc4ab3c3ea8fc36a48801d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec242db9d9f802a7bbb05e1583d47226"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#aec242db9d9f802a7bbb05e1583d47226">caff_LogLevel</a></td></tr>
+<tr class="memdesc:aec242db9d9f802a7bbb05e1583d47226"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log level severities.  <a href="#aec242db9d9f802a7bbb05e1583d47226">More...</a><br /></td></tr>
+<tr class="separator:aec242db9d9f802a7bbb05e1583d47226"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b6bb6ae17625b5c74f61b7b4e1eab5c"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1">caff_VideoFormat</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a9b6bb6ae17625b5c74f61b7b4e1eab5c">caff_VideoFormat</a></td></tr>
 <tr class="memdesc:a9b6bb6ae17625b5c74f61b7b4e1eab5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Raw pixel formats supported by WebRTC.  <a href="#a9b6bb6ae17625b5c74f61b7b4e1eab5c">More...</a><br /></td></tr>
 <tr class="separator:a9b6bb6ae17625b5c74f61b7b4e1eab5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -108,9 +108,9 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a3c1c7c27b0629fc1245e36e3fa71e687"><td class="memItemLeft" align="right" valign="top">typedef struct caff_Instance *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a></td></tr>
 <tr class="memdesc:a3c1c7c27b0629fc1245e36e3fa71e687"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque handle to libcaffeine instance.  <a href="#a3c1c7c27b0629fc1245e36e3fa71e687">More...</a><br /></td></tr>
 <tr class="separator:a3c1c7c27b0629fc1245e36e3fa71e687"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91fb1802381fe556ba5b9355322a8564"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a91fb1802381fe556ba5b9355322a8564">caff_LogCallback</a>) (<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a> severity, char const *message)</td></tr>
-<tr class="memdesc:a91fb1802381fe556ba5b9355322a8564"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log message callback.  <a href="#a91fb1802381fe556ba5b9355322a8564">More...</a><br /></td></tr>
-<tr class="separator:a91fb1802381fe556ba5b9355322a8564"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab81bfd4d5d83eee25958a9c897994c72"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72">caff_LogCallback</a>) (<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> severity, char const *message)</td></tr>
+<tr class="memdesc:ab81bfd4d5d83eee25958a9c897994c72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log message callback.  <a href="#ab81bfd4d5d83eee25958a9c897994c72">More...</a><br /></td></tr>
+<tr class="separator:ab81bfd4d5d83eee25958a9c897994c72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f6ee0eb9a9efa2830cad9c7be738c3b"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a9f6ee0eb9a9efa2830cad9c7be738c3b">caff_GameEnumerator</a>) (void *userData, char const *processName, char const *gameId, char const *gameName)</td></tr>
 <tr class="memdesc:a9f6ee0eb9a9efa2830cad9c7be738c3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Game enumeration callback.  <a href="#a9f6ee0eb9a9efa2830cad9c7be738c3b">More...</a><br /></td></tr>
 <tr class="separator:a9f6ee0eb9a9efa2830cad9c7be738c3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -123,18 +123,18 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a0d064d494a62fd0d9db868a99d4eeb48"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a> { <br />
-&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48ac3a288ce2980267cf5412bede27a180c">caff_SeverityAll</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48a600be8b7128223b7d61e9c88187d17d9">caff_SeverityDebug</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48aea0813811d2b754df200e381f87dee6c">caff_SeverityWarning</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48af8343b1572fec8821f30e449be60580d">caff_SeverityError</a>, 
+<tr class="memitem:a30e91958d94ac5a35bad99bf9c3a76ee"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> { <br />
+&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea61de805b9dfa32683dc459445e6461fb">caff_LogLevelAll</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea2118451e44a0ba363a8418e6313c8fcd">caff_LogLevelDebug</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea2cab3cf5672eff169629c71bd52416ca">caff_LogLevelWarning</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea967d3ee09aedc3308650d5e77ec56e0e">caff_LogLevelError</a>, 
 <br />
-&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48ad2b35e801c467a3804462632fec3e021">caff_SeverityNone</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48a9cbe1b379009bc757c8f2b24d22d1f9b">caff_SeverityLast</a> = caff_SeverityNone
+&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea917deed736084f6168de54f86106c63d">caff_LogLevelNone</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea4dfcfc95247c33d9facb0d16371a7f93">caff_LogLevelLast</a> = caff_LogLevelNone
 <br />
  }</td></tr>
-<tr class="memdesc:a0d064d494a62fd0d9db868a99d4eeb48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log level severities.  <a href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">More...</a><br /></td></tr>
-<tr class="separator:a0d064d494a62fd0d9db868a99d4eeb48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memdesc:a30e91958d94ac5a35bad99bf9c3a76ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log level severities.  <a href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">More...</a><br /></td></tr>
+<tr class="separator:a30e91958d94ac5a35bad99bf9c3a76ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abccd23e587f5586811151391fb4cbbc1"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1">caff_VideoFormat</a> { <br />
 &#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1a3ffe00ccc73981d723d835c91dbc550b">caff_VideoFormatUnknown</a>, 
 <a class="el" href="../../d6/db0/caffeine_8h.html#abccd23e587f5586811151391fb4cbbc1a55de5019ef5df9fd209623bcaa9233bc">caff_VideoFormatI420</a>, 
@@ -164,21 +164,25 @@ Enumerations</h2></td></tr>
 <tr class="memitem:aa9207ae931b8b6d6b9ab6ec29344c65c"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a> { <br />
 &#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6">caff_ResultSuccess</a> = 0, 
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d">caff_ResultFailure</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82">caff_ResultOldVersion</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca16d52e6b98d27a3ac12b852c98020bfc">caff_ResultUsernameRequired</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caf8f53d959fcb0e0d38e6b81854f86636">caff_ResultPasswordRequired</a>, 
+<br />
+&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caafad3634c81d7c4a2a0244f1497f627b">caff_ResultRefreshTokenRequired</a>, 
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cad4f7139542d462e3e733dbeb4df37709">caff_ResultInfoIncorrect</a>, 
-<br />
-&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cab66ee5c495b9911b4255d3cdbe40c0da">caff_ResultLegalAcceptanceRequired</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cab66ee5c495b9911b4255d3cdbe40c0da">caff_ResultLegalAcceptanceRequired</a>, 
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca8658d77cadd927cb00fec87e19ebbd75">caff_ResultEmailVerificationRequired</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae3f30c26ee2fe7192aab9f8eacf7ba43">caff_ResultMfaOtpRequired</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caea27df736d87c51750b4c434264cd9c5">caff_ResultMfaOtpIncorrect</a>, 
 <br />
-&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca1833fd25cf329c388435c189bd8866a0">caff_ResultNotSignedIn</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae1c74345839100d6fcf8c367f30676ce">caff_ResultOutOfCapacity</a>, 
+&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae3f30c26ee2fe7192aab9f8eacf7ba43">caff_ResultMfaOtpRequired</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caea27df736d87c51750b4c434264cd9c5">caff_ResultMfaOtpIncorrect</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82">caff_ResultOldVersion</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca1833fd25cf329c388435c189bd8866a0">caff_ResultNotSignedIn</a>, 
+<br />
+&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae1c74345839100d6fcf8c367f30676ce">caff_ResultOutOfCapacity</a>, 
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca8a90a98ade25a9e01bf0c18d863ab899">caff_ResultTakeover</a>, 
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cafb17c0ca2a182f300f747738821fe579">caff_ResultAlreadyBroadcasting</a>, 
+<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca99addfc671572c86922804d78dc45857">caff_ResultDisconnected</a>, 
 <br />
-&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca99addfc671572c86922804d78dc45857">caff_ResultDisconnected</a>, 
-<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae174e57bb4a7ffbbf89416902edfa4d7">caff_ResultBroadcastFailed</a>, 
+&#160;&#160;<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae174e57bb4a7ffbbf89416902edfa4d7">caff_ResultBroadcastFailed</a>, 
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca666d0d2182be9cb3de1bff8c2c617005">caff_ResultLast</a> = caff_ResultBroadcastFailed
 <br />
  }</td></tr>
@@ -205,9 +209,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a094d91259057fe29557c9b11b038de6b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> char const  *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a094d91259057fe29557c9b11b038de6b">caff_resultString</a> (<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a> result)</td></tr>
 <tr class="memdesc:a094d91259057fe29557c9b11b038de6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a string representation of an error enum.  <a href="#a094d91259057fe29557c9b11b038de6b">More...</a><br /></td></tr>
 <tr class="separator:a094d91259057fe29557c9b11b038de6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21a149371475358ed6c54377d48bc7a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a21a149371475358ed6c54377d48bc7a7">caff_initialize</a> (char const *clientType, char const *clientVersion, <a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a> minSeverity, <a class="el" href="../../d6/db0/caffeine_8h.html#a91fb1802381fe556ba5b9355322a8564">caff_LogCallback</a> logCallback)</td></tr>
-<tr class="memdesc:a21a149371475358ed6c54377d48bc7a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the Caffeine library.  <a href="#a21a149371475358ed6c54377d48bc7a7">More...</a><br /></td></tr>
-<tr class="separator:a21a149371475358ed6c54377d48bc7a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6888ad19f91c55d30532761e56d5467"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467">caff_initialize</a> (char const *clientType, char const *clientVersion, <a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> minLogLevel, <a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72">caff_LogCallback</a> logCallback)</td></tr>
+<tr class="memdesc:af6888ad19f91c55d30532761e56d5467"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the Caffeine library.  <a href="#af6888ad19f91c55d30532761e56d5467">More...</a><br /></td></tr>
+<tr class="separator:af6888ad19f91c55d30532761e56d5467"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b94c597a690dbda931f47b42ddba677"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a3b94c597a690dbda931f47b42ddba677">caff_checkVersion</a> ()</td></tr>
 <tr class="memdesc:a3b94c597a690dbda931f47b42ddba677"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if this version of the application and libcaffeine are still supported.  <a href="#a3b94c597a690dbda931f47b42ddba677">More...</a><br /></td></tr>
 <tr class="separator:a3b94c597a690dbda931f47b42ddba677"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -327,7 +331,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#acd9abde3d6cf3193dc98752d28ea9e4f" title="Start a broadcast on Caffeine.">caff_startBroadcast()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00197">197</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00200">200</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -353,7 +357,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#acd9abde3d6cf3193dc98752d28ea9e4f" title="Start a broadcast on Caffeine.">caff_startBroadcast()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00185">185</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00188">188</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -401,7 +405,7 @@ Functions</h2></td></tr>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#a647f0b6978023394d20fc84b3ef8c06d" title="Set the game ID for the broadcast.">caff_setGameId()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00173">173</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00176">176</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -419,20 +423,20 @@ Functions</h2></td></tr>
 
 <p>Opaque handle to libcaffeine instance. </p>
 <p>This is passed into most libcaffeine API functions</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a21a149371475358ed6c54377d48bc7a7" title="Initialize the Caffeine library.">caff_initialize()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467" title="Initialize the Caffeine library.">caff_initialize()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00145">145</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00148">148</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
-<a id="a91fb1802381fe556ba5b9355322a8564"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91fb1802381fe556ba5b9355322a8564">&#9670;&nbsp;</a></span>caff_LogCallback</h2>
+<a id="ab81bfd4d5d83eee25958a9c897994c72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab81bfd4d5d83eee25958a9c897994c72">&#9670;&nbsp;</a></span>caff_LogCallback</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* caff_LogCallback) (<a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a> severity, char const *message)</td>
+          <td class="memname">typedef void(* caff_LogCallback) (<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> severity, char const *message)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -446,9 +450,29 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a21a149371475358ed6c54377d48bc7a7" title="Initialize the Caffeine library.">caff_initialize()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467" title="Initialize the Caffeine library.">caff_initialize()</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00157">157</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00160">160</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+
+</div>
+</div>
+<a id="aec242db9d9f802a7bbb05e1583d47226"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec242db9d9f802a7bbb05e1583d47226">&#9670;&nbsp;</a></span>caff_LogLevel</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef enum <a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a>  <a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Log level severities. </p>
+<p>These are used to filter out log messages based on their severity</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467" title="Initialize the Caffeine library.">caff_initialize()</a> </dd>
+<dd>
+<a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72" title="Log message callback.">caff_LogCallback</a> </dd></dl>
 
 </div>
 </div>
@@ -488,26 +512,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a69b440d7d9cc4ab3c3ea8fc36a48801d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69b440d7d9cc4ab3c3ea8fc36a48801d">&#9670;&nbsp;</a></span>caff_Severity</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef enum <a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a>  <a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Log level severities. </p>
-<p>These are used to filter out log messages based on their severity</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a21a149371475358ed6c54377d48bc7a7" title="Initialize the Caffeine library.">caff_initialize()</a> </dd>
-<dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#a91fb1802381fe556ba5b9355322a8564" title="Log message callback.">caff_LogCallback</a> </dd></dl>
-
-</div>
-</div>
 <a id="a9b6bb6ae17625b5c74f61b7b4e1eab5c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9b6bb6ae17625b5c74f61b7b4e1eab5c">&#9670;&nbsp;</a></span>caff_VideoFormat</h2>
 
@@ -542,7 +546,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00133">133</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00136">136</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -569,7 +573,43 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00126">126</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00129">129</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+
+</div>
+</div>
+<a id="a30e91958d94ac5a35bad99bf9c3a76ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30e91958d94ac5a35bad99bf9c3a76ee">&#9670;&nbsp;</a></span>caff_LogLevel</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Log level severities. </p>
+<p>These are used to filter out log messages based on their severity</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467" title="Initialize the Caffeine library.">caff_initialize()</a> </dd>
+<dd>
+<a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72" title="Log message callback.">caff_LogCallback</a> </dd></dl>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a30e91958d94ac5a35bad99bf9c3a76eea61de805b9dfa32683dc459445e6461fb"></a>caff_LogLevelAll&#160;</td><td class="fielddoc"><p>Extremely verbose, potentially containing sensitive information. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a30e91958d94ac5a35bad99bf9c3a76eea2118451e44a0ba363a8418e6313c8fcd"></a>caff_LogLevelDebug&#160;</td><td class="fielddoc"><p>Verbose logging for debug purposes. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a30e91958d94ac5a35bad99bf9c3a76eea2cab3cf5672eff169629c71bd52416ca"></a>caff_LogLevelWarning&#160;</td><td class="fielddoc"><p>Messages that may indicate a problem but are tolerable failures. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a30e91958d94ac5a35bad99bf9c3a76eea967d3ee09aedc3308650d5e77ec56e0e"></a>caff_LogLevelError&#160;</td><td class="fielddoc"><p>Messages indicating a failure state. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a30e91958d94ac5a35bad99bf9c3a76eea917deed736084f6168de54f86106c63d"></a>caff_LogLevelNone&#160;</td><td class="fielddoc"><p>Do not log any messages. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a30e91958d94ac5a35bad99bf9c3a76eea4dfcfc95247c33d9facb0d16371a7f93"></a>caff_LogLevelLast&#160;</td><td class="fielddoc"><p>Used for bounds checking. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00040">40</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -599,7 +639,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00113">113</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00116">116</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -621,7 +661,11 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d"></a>caff_ResultFailure&#160;</td><td class="fielddoc"><p>General failure result. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82"></a>caff_ResultOldVersion&#160;</td><td class="fielddoc"><p>libcaffeine version is too old </p>
+<tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65ca16d52e6b98d27a3ac12b852c98020bfc"></a>caff_ResultUsernameRequired&#160;</td><td class="fielddoc"><p>Username is missing. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65caf8f53d959fcb0e0d38e6b81854f86636"></a>caff_ResultPasswordRequired&#160;</td><td class="fielddoc"><p>Password is missing. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65caafad3634c81d7c4a2a0244f1497f627b"></a>caff_ResultRefreshTokenRequired&#160;</td><td class="fielddoc"><p>Refresh token is missing. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65cad4f7139542d462e3e733dbeb4df37709"></a>caff_ResultInfoIncorrect&#160;</td><td class="fielddoc"><p>Username/password or refresh token are incorrect. </p>
 </td></tr>
@@ -632,6 +676,8 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65cae3f30c26ee2fe7192aab9f8eacf7ba43"></a>caff_ResultMfaOtpRequired&#160;</td><td class="fielddoc"><p>User must enter a 2-factor one-time-password sent to their email. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65caea27df736d87c51750b4c434264cd9c5"></a>caff_ResultMfaOtpIncorrect&#160;</td><td class="fielddoc"><p>The one-time-password provided was incorrect. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82"></a>caff_ResultOldVersion&#160;</td><td class="fielddoc"><p>libcaffeine or client version is too old to broadcast successfully </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aa9207ae931b8b6d6b9ab6ec29344c65ca1833fd25cf329c388435c189bd8866a0"></a>caff_ResultNotSignedIn&#160;</td><td class="fielddoc"><p>The instance must be signed in. </p>
 </td></tr>
@@ -650,42 +696,6 @@ Functions</h2></td></tr>
 </table>
 
 <p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00080">80</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
-
-</div>
-</div>
-<a id="a0d064d494a62fd0d9db868a99d4eeb48"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d064d494a62fd0d9db868a99d4eeb48">&#9670;&nbsp;</a></span>caff_Severity</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Log level severities. </p>
-<p>These are used to filter out log messages based on their severity</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a21a149371475358ed6c54377d48bc7a7" title="Initialize the Caffeine library.">caff_initialize()</a> </dd>
-<dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#a91fb1802381fe556ba5b9355322a8564" title="Log message callback.">caff_LogCallback</a> </dd></dl>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0d064d494a62fd0d9db868a99d4eeb48ac3a288ce2980267cf5412bede27a180c"></a>caff_SeverityAll&#160;</td><td class="fielddoc"><p>Extremely verbose, potentially containing sensitive information. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a0d064d494a62fd0d9db868a99d4eeb48a600be8b7128223b7d61e9c88187d17d9"></a>caff_SeverityDebug&#160;</td><td class="fielddoc"><p>Verbose logging for debug purposes. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a0d064d494a62fd0d9db868a99d4eeb48aea0813811d2b754df200e381f87dee6c"></a>caff_SeverityWarning&#160;</td><td class="fielddoc"><p>Messages that may indicate a problem but are tolerable failures. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a0d064d494a62fd0d9db868a99d4eeb48af8343b1572fec8821f30e449be60580d"></a>caff_SeverityError&#160;</td><td class="fielddoc"><p>Messages indicating a failure state. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a0d064d494a62fd0d9db868a99d4eeb48ad2b35e801c467a3804462632fec3e021"></a>caff_SeverityNone&#160;</td><td class="fielddoc"><p>Do not log any messages. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a0d064d494a62fd0d9db868a99d4eeb48a9cbe1b379009bc757c8f2b24d22d1f9b"></a>caff_SeverityLast&#160;</td><td class="fielddoc"><p>Used for bounds checking. </p>
-</td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="../../d6/db0/caffeine_8h_source.html#l00040">40</a> of file <a class="el" href="../../d6/db0/caffeine_8h_source.html">caffeine.h</a>.</p>
 
 </div>
 </div>
@@ -776,7 +786,8 @@ Functions</h2></td></tr>
 <p>TODO: differentiate request failure from out-of-date version TODO: differentiate clientVersion failure from libcaffeine version failure</p>
 <dl class="section return"><dt>Returns</dt><dd><ul>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> if the check succeeds</li>
-<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82" title="libcaffeine version is too old">caff_ResultOldVersion</a> if the check fails </li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82" title="libcaffeine or client version is too old to broadcast successfully">caff_ResultOldVersion</a> if the check fails</li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a> if the check could not complete </li>
 </ul>
 </dd></dl>
 
@@ -999,8 +1010,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a21a149371475358ed6c54377d48bc7a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21a149371475358ed6c54377d48bc7a7">&#9670;&nbsp;</a></span>caff_initialize()</h2>
+<a id="af6888ad19f91c55d30532761e56d5467"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6888ad19f91c55d30532761e56d5467">&#9670;&nbsp;</a></span>caff_initialize()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1020,13 +1031,13 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48">caff_Severity</a>&#160;</td>
-          <td class="paramname"><em>minSeverity</em>, </td>
+          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a>&#160;</td>
+          <td class="paramname"><em>minLogLevel</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#a91fb1802381fe556ba5b9355322a8564">caff_LogCallback</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72">caff_LogCallback</a>&#160;</td>
           <td class="paramname"><em>logCallback</em>&#160;</td>
         </tr>
         <tr>
@@ -1043,15 +1054,15 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">clientType</td><td>a simple identifier for the application. E.g. <code>"obs"</code> for OBS Studio </td></tr>
     <tr><td class="paramname">clientVersion</td><td>the version string for the application. E.g. <code>"1.2.3"</code> </td></tr>
-    <tr><td class="paramname">minSeverity</td><td>sets the minimum severity for log messages to be reported </td></tr>
+    <tr><td class="paramname">minLogLevel</td><td>sets the minimum level for log messages to be reported </td></tr>
     <tr><td class="paramname">logCallback</td><td>if provided, this function will be called with all log messages <em>instead of</em> outputing to stderr</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> or <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a></dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a0d064d494a62fd0d9db868a99d4eeb48" title="Log level severities.">caff_Severity</a> </dd>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee" title="Log level severities.">caff_LogLevel</a> </dd>
 <dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#a91fb1802381fe556ba5b9355322a8564" title="Log message callback.">caff_LogCallback</a> </dd></dl>
+<a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72" title="Log message callback.">caff_LogCallback</a> </dd></dl>
 
 </div>
 </div>
@@ -1118,7 +1129,14 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> or <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><ul>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cad4f7139542d462e3e733dbeb4df37709" title="Username/password or refresh token are incorrect.">caff_ResultInfoIncorrect</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caafad3634c81d7c4a2a0244f1497f627b" title="Refresh token is missing.">caff_ResultRefreshTokenRequired</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cafb17c0ca2a182f300f747738821fe579" title="A broadcast is already online.">caff_ResultAlreadyBroadcasting</a></li>
+</ul>
+</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a16b8229c9279479f7949b1540a584a03" title="First-time sign-in with username and password.">caff_signIn()</a> </dd>
 <dd>
 <a class="el" href="../../d6/db0/caffeine_8h.html#aa8dd76f6b6076d1d8e045a1dbfcdf915" title="Get an authentication refresh token.">caff_getRefreshToken()</a> </dd></dl>
@@ -1455,11 +1473,14 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><ul>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> upon successful sign-in</li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a> for unknown/unexpected errors</li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca16d52e6b98d27a3ac12b852c98020bfc" title="Username is missing.">caff_ResultUsernameRequired</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caf8f53d959fcb0e0d38e6b81854f86636" title="Password is missing.">caff_ResultPasswordRequired</a></li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cad4f7139542d462e3e733dbeb4df37709" title="Username/password or refresh token are incorrect.">caff_ResultInfoIncorrect</a></li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cab66ee5c495b9911b4255d3cdbe40c0da" title="User must accept Caffeine Terms of Use.">caff_ResultLegalAcceptanceRequired</a></li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca8658d77cadd927cb00fec87e19ebbd75" title="User must verify email address.">caff_ResultEmailVerificationRequired</a></li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae3f30c26ee2fe7192aab9f8eacf7ba43" title="User must enter a 2-factor one-time-password sent to their email.">caff_ResultMfaOtpRequired</a></li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caea27df736d87c51750b4c434264cd9c5" title="The one-time-password provided was incorrect.">caff_ResultMfaOtpIncorrect</a></li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cafb17c0ca2a182f300f747738821fe579" title="A broadcast is already online.">caff_ResultAlreadyBroadcasting</a></li>
 </ul>
 </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c" title="Status results and errors returned by libcaffeine API functions.">caff_Result</a> </dd>
@@ -1571,7 +1592,7 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><ul>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cafb17c0ca2a182f300f747738821fe579" title="A broadcast is already online.">caff_ResultAlreadyBroadcasting</a> if the instance already has a broadcast in progress</li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca1833fd25cf329c388435c189bd8866a0" title="The instance must be signed in.">caff_ResultNotSignedIn</a> if the instance has not been authenticated</li>
-<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82" title="libcaffeine version is too old">caff_ResultOldVersion</a> if the version of libcaffeine or the application are no longer supported</li>
+<li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0e0015c171c2ea08597573fa5c2fef82" title="libcaffeine or client version is too old to broadcast successfully">caff_ResultOldVersion</a> if the version of libcaffeine or the application are no longer supported</li>
 <li><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> if the broadcast thread has started</li>
 </ul>
 </dd></dl>

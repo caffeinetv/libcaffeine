@@ -36,9 +36,8 @@ find_package(Libcurl REQUIRED)
 # Code
 ################################################################################
 # External header distributed with compiled libcaffeine
-set(libcaffeine_HEADERS
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/caffeine.h>
-    $<INSTALL_INTERFACE:include/caffeine.h>
+set(libcaffeine_HEADER
+    include/caffeine.h
 )
 
 # Source & internal headers
@@ -64,6 +63,7 @@ set(libcaffeine_SOURCES
     src/SessionDescriptionObserver.hpp
     src/StatsObserver.cpp
     src/StatsObserver.hpp
+    src/Utils.hpp
     src/VideoCapturer.cpp
     src/VideoCapturer.hpp
     src/X264Encoder.cpp
@@ -97,8 +97,9 @@ add_library(${OBJLIB_NAME} OBJECT)
 target_sources(${OBJLIB_NAME}
     PRIVATE
         ${libcaffeine_SOURCES}
+        ${libcaffeine_HEADER}
     INTERFACE
-        ${libcaffeine_HEADERS}
+        ${libcaffeine_HEADER}
 )
 
 if(WIN32)
@@ -127,7 +128,6 @@ set(PUBLIC_INCLUDES
 target_include_directories(${OBJLIB_NAME}
     PRIVATE ${PRIVATE_INCLUDES}
     INTERFACE ${PUBLIC_INCLUDES}
-
 )
 
 set(STATIC_NAME "${PROJECT_NAME}-static")
@@ -162,6 +162,8 @@ set_target_link_libraries(${STATIC_NAME})
 set_output_name(${PROJECT_NAME})
 set_target_link_libraries(${PROJECT_NAME})
 
+set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER ${libcaffeine_HEADER})
+
 ################################################################################
 # Tests
 ################################################################################
@@ -184,15 +186,7 @@ function(do_install)
         RUNTIME DESTINATION "bin${BITS}" COMPONENT Caffeine
         LIBRARY DESTINATION "lib${BITS}" COMPONENT Caffeine
         ARCHIVE DESTINATION "lib${BITS}" COMPONENT Caffeine
-    )
-    install(
-        FILES
-        # FIXME: Use generator expressions instead.
-            ${libcaffeine_HEADERS}
-        DESTINATION
-            "include"
-        COMPONENT
-            Caffeine
+        PUBLIC_HEADER DESTINATION "include" COMPONENT Caffeine
     )
     if(MSVC)
         # Debug Symbols (optional)
