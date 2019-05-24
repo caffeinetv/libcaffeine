@@ -28,6 +28,12 @@
         LOG_IMPL(LS_ERROR, format, ##__VA_ARGS__);                                                                     \
     } while (false)
 
+// Used to protect against changes in the underlying enums
+#define ASSERT_MATCH(left, right)                                                                                      \
+    static_assert((left) == static_cast<decltype(left)>((right)), "Mismatch between " #left " and " #right)
+
+#define IS_VALID_ENUM_VALUE(prefix, value) ((value) >= 0 && (value) <= (prefix##Last))
+
 #define CAFF_CHECK(condition)                                                                                          \
     do {                                                                                                               \
         if (!(condition)) {                                                                                            \
@@ -38,14 +44,6 @@
 
 #define CHECK_PTR(ptr) CAFF_CHECK(ptr != nullptr)
 
-#define CHECK_CSTR(cstr) CAFF_CHECK(cstr != nullptr && cstr[0] != '\0')
-
 #define CHECK_POSITIVE(num) CAFF_CHECK(num > 0)
-
-// Used to protect against changes in the underlying enums
-#define ASSERT_MATCH(left, right)                                                                                      \
-    static_assert((left) == static_cast<decltype(left)>((right)), "Mismatch between " #left " and " #right)
-
-#define IS_VALID_ENUM_VALUE(prefix, value) ((value) >= 0 && (value) <= (prefix##Last))
 
 #define CHECK_ENUM(prefix, value) CAFF_CHECK(IS_VALID_ENUM_VALUE(prefix, value))
