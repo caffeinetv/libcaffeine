@@ -8,33 +8,33 @@
 #include <sstream>
 
 namespace caff {
-    caff_Severity rtcToCaffSeverity(rtc::LoggingSeverity rtcSeverity) {
+    caff_LogLevel rtcToCaffLogLevel(rtc::LoggingSeverity rtcSeverity) {
         switch (rtcSeverity) {
         case rtc::LS_SENSITIVE:
         case rtc::LS_VERBOSE:
-            return caff_SeverityAll;
+            return caff_LogLevelAll;
         case rtc::LS_INFO:
-            return caff_SeverityDebug;
+            return caff_LogLevelDebug;
         case rtc::LS_WARNING:
-            return caff_SeverityWarning;
+            return caff_LogLevelWarning;
         case rtc::LS_ERROR:
-            return caff_SeverityError;
+            return caff_LogLevelError;
         case rtc::LS_NONE:
-            return caff_SeverityNone;
+            return caff_LogLevelNone;
         }
     }
 
-    rtc::LoggingSeverity caffToRtcSeverity(caff_Severity caffSeverity) {
-        switch (caffSeverity) {
-        case caff_SeverityAll:
+    rtc::LoggingSeverity caffToRtcSeverity(caff_LogLevel caffLogLevel) {
+        switch (caffLogLevel) {
+        case caff_LogLevelAll:
             return rtc::LS_SENSITIVE;
-        case caff_SeverityDebug:
+        case caff_LogLevelDebug:
             return rtc::LS_INFO;
-        case caff_SeverityWarning:
+        case caff_LogLevelWarning:
             return rtc::LS_WARNING;
-        case caff_SeverityError:
+        case caff_LogLevelError:
             return rtc::LS_ERROR;
-        case caff_SeverityNone:
+        case caff_LogLevelNone:
             return rtc::LS_NONE;
         }
     }
@@ -55,7 +55,7 @@ namespace caff {
                 std::find_if(messageOut.rbegin(), messageOut.rend(), [](int ch) { return !std::isspace(ch); }).base(),
                 messageOut.end());
 
-        callback(rtcToCaffSeverity(severity), messageOut.c_str());
+        callback(rtcToCaffLogLevel(severity), messageOut.c_str());
     }
 
     void LogSink::OnLogMessage(const std::string & message) { OnLogMessage(message, rtc::LS_INFO, nullptr); }
