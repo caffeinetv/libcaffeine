@@ -22,7 +22,7 @@ namespace caff {
         switch (newState) {
         case State::kIceConnectionFailed:
             LOG_ERROR("ICE connection: failed");
-            failedCallback(caff_ResultFailure);
+            failedCallback(caff_ResultBroadcastFailed);
             break;
         case State::kIceConnectionDisconnected:
             LOG_WARNING("ICE connection: disconnected");
