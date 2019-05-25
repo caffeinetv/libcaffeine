@@ -7,8 +7,7 @@
 namespace caff {
 
     PeerConnectionObserver::PeerConnectionObserver(std::function<void(caff_Result)> failedCallback)
-		: failedCallback(failedCallback)
-	{}
+        : failedCallback(failedCallback) {}
 
     std::future<PeerConnectionObserver::Candidates const &> PeerConnectionObserver::getFuture() {
         return promise.get_future();
@@ -23,7 +22,7 @@ namespace caff {
         switch (newState) {
         case State::kIceConnectionFailed:
             LOG_ERROR("ICE connection: failed");
-            failedCallback(caff_ResultFailure);
+            failedCallback(caff_ResultBroadcastFailed);
             break;
         case State::kIceConnectionDisconnected:
             LOG_WARNING("ICE connection: disconnected");

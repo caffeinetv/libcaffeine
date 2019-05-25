@@ -252,14 +252,11 @@ namespace caff {
 
             std::future_status status;
 
+            auto constexpr futureWait = 1s;
             auto creationFuture = creationObserver->getFuture();
-            status = creationFuture.wait_for(std::chrono::seconds(1));
+            status = creationFuture.wait_for(futureWait);
             if (status == std::future_status::timeout) {
                 LOG_ERROR("Timeout Error: creationObserver");
-                failedCallback(caff_ResultFailure);
-                return;
-            } else if (status != std::future_status::ready) {
-                LOG_ERROR("Error: creationObserver");
                 failedCallback(caff_ResultFailure);
                 return;
             }
@@ -298,13 +295,9 @@ namespace caff {
             peerConnection->SetLocalDescription(setLocalObserver, localDesc.release());
 
             auto setLocalFuture = setLocalObserver->getFuture();
-            status = setLocalFuture.wait_for(std::chrono::seconds(1));
+            status = setLocalFuture.wait_for(futureWait);
             if (status == std::future_status::timeout) {
                 LOG_ERROR("Timeout Error: setLocalObserver");
-                failedCallback(caff_ResultFailure);
-                return;
-            } else if (status != std::future_status::ready) {
-                LOG_ERROR("Error: setLocalObserver");
                 failedCallback(caff_ResultFailure);
                 return;
             }
@@ -333,13 +326,9 @@ namespace caff {
             }
 
             auto observerFuture = observer->getFuture();
-            status = observerFuture.wait_for(std::chrono::seconds(1));
+            status = observerFuture.wait_for(futureWait);
             if (status == std::future_status::timeout) {
                 LOG_ERROR("Timeout Error: observer");
-                failedCallback(caff_ResultFailure);
-                return;
-            } else if (status != std::future_status::ready) {
-                LOG_ERROR("Error: observer");
                 failedCallback(caff_ResultFailure);
                 return;
             }
@@ -357,13 +346,9 @@ namespace caff {
             peerConnection->SetRemoteDescription(setRemoteObserver, remoteDesc.release());
 
             auto setRemoteFuture = setRemoteObserver->getFuture();
-            status = setRemoteFuture.wait_for(std::chrono::seconds(1));
+            status = setRemoteFuture.wait_for(futureWait);
             if (status == std::future_status::timeout) {
                 LOG_ERROR("Timeout Error: setRemoteObserver");
-                failedCallback(caff_ResultFailure);
-                return;
-            } else if (status != std::future_status::ready) {
-                LOG_ERROR("Error: setRemoteObserver");
                 failedCallback(caff_ResultFailure);
                 return;
             }
@@ -435,14 +420,12 @@ namespace caff {
         std::future_status status;
         auto screenshotFuture = screenshotPromise.get_future();
         try {
-            status = screenshotFuture.wait_for(std::chrono::seconds(1));
+            // Since we have to wait for the application to provide the first frame, the timeout is generous
+            auto constexpr screenshotWait = 5s;
+            status = screenshotFuture.wait_for(screenshotWait);
             if (status == std::future_status::timeout) {
-                LOG_ERROR("Timeout Error: screenshotPromise");
-                failedCallback(caff_ResultFailure);
-                return;
-            } else if (status != std::future_status::ready) {
-                LOG_ERROR("Error: screenshotPromise");
-                failedCallback(caff_ResultFailure);
+                LOG_ERROR("No video for screenshot after %lld seconds", screenshotWait.count());
+                failedCallback(caff_ResultBroadcastFailed);
                 return;
             }
 
