@@ -17,38 +17,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
           { caff_ConnectionQualityPoor, "POOR" },
           { caff_ConnectionQualityUnknown, nullptr } })
 
-namespace nlohmann {
-    template <typename T> struct adl_serializer<caff::optional<T>> {
-        static void to_json(json & json, caff::optional<T> const & opt) {
-            if (opt.has_value()) {
-                json = *opt;
-            } else {
-                json = nullptr;
-            }
-        }
-
-        static void from_json(json const & json, caff::optional<T> & opt) {
-            if (json.is_null()) {
-                opt.reset();
-            } else {
-                opt = json.get<T>();
-            }
-        }
-    };
-
-    template <> struct adl_serializer<caff::GameList> {
-        static void from_json(json const & json, caff::GameList & gameList) {
-            for (auto & entry : json) {
-                try {
-                    gameList.emplace_back(entry);
-                } catch (...) {
-                    LOG_DEBUG("Skipping unreadable game info");
-                }
-            }
-        }
-    };
-} // namespace nlohmann
-
 namespace caff {
     using Json = nlohmann::json;
 

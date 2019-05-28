@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "CaffQL.hpp"
+#include "ErrorLogging.hpp"
 #include "caffeine.h"
 
 #include <chrono>
@@ -224,5 +226,43 @@ namespace caff {
             bool * isOutOfCapacity);
 
     void sendWebrtcStats(SharedCredentials & creds, Json const & report);
+
+    optional<Json> graphqlRawRequest(SharedCredentials & creds, Json const & requestJson);
+
+    template <typename OperationField, typename... Args>
+    optional<typename OperationField::ResponseData> graphqlRequest(SharedCredentials & creds, Args const &... args) {
+
+        auto requestJson = OperationField::request(args...);
+        auto rawResponse = graphqlRawRequest(creds, requestJson);
+
+        if (!rawResponse) {
+            return {};
+        }
+
+        caffql::GraphqlResponse<typename OperationField::ResponseData> response;
+
+        try {
+            response = OperationField::response(rawResponse);
+        } catch (...) {
+            LOG_ERROR("Failed to unpack graphql response");
+            return {};
+        }
+
+        if (auto data = get_if<typename OperationField::ResponseData>(&response)) {
+            return *data;
+        } else {
+            auto const & errors = get<1>(response);
+
+            if (errors.empty()) {
+                LOG_ERROR("Empty error list for graphql request");
+            }
+
+            for (auto const & error : errors) {
+                LOG_ERROR("Encountered graphql error with message: %s", error.message.c_str());
+            }
+
+            return {};
+        }
+    }
 
 } // namespace caff
