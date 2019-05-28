@@ -62,7 +62,7 @@ namespace caff {
     std::string clientVersion;
 
     class ScopedCurl final {
-        static auto constexpr timeoutSeconds = 1l;
+        static auto constexpr timeoutSeconds = 10l;
         static auto constexpr lowSpeedBps = 100'000l;
 
     public:
