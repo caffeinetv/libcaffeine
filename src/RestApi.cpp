@@ -1,7 +1,5 @@
 #include "Serialization.hpp"
 
-#include "ErrorLogging.hpp"
-
 #include <curl/curl.h>
 #include <algorithm>
 #include <chrono>
@@ -30,6 +28,7 @@
 #define GETUSER_URL(id) (std::string(API_ENDPOINT "v1/users/") + (id))
 #define BROADCAST_URL(id) (std::string(API_ENDPOINT "v1/broadcasts/") + (id))
 
+#define REALTIME_GRAPHQL_URL REALTIME_ENDPOINT "public/graphql/query"
 #define STAGE_UPDATE_URL(username) (std::string(REALTIME_ENDPOINT "v4/stage/") + (username))
 #define STREAM_HEARTBEAT_URL(streamUrl) (std::string((streamUrl)) + "/heartbeat")
 
@@ -822,6 +821,57 @@ namespace caff {
         if (!result) {
             LOG_ERROR("Failed to send webrtc metrics");
         }
+    }
+
+    static Retryable<optional<Json>> doGraphqlRawRequest(SharedCredentials & creds, Json const & requestJson) {
+        auto url = REALTIME_GRAPHQL_URL;
+        auto requestBody = requestJson.dump();
+
+        ScopedCurl curl(CONTENT_TYPE_JSON, creds);
+
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+
+        std::string responseStr;
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
+
+        char curlError[CURL_ERROR_SIZE];
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
+
+        CURLcode curlResult = curl_easy_perform(curl);
+        if (curlResult != CURLE_OK) {
+            LOG_ERROR("HTTP failure performing graphql request: [%d] %s", curlResult, curlError);
+            return retry(optional<Json>{});
+        }
+
+        long responseCode;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+        LOG_DEBUG("Http response [%ld]", responseCode);
+
+        if (responseCode == 401) {
+            LOG_DEBUG("Unauthorized - refreshing credentials");
+            if (refreshCredentials(creds)) {
+                return doGraphqlRawRequest(creds, requestJson);
+            }
+            return optional<Json>{};
+        } else if (responseCode / 100 != 2) {
+            return retry(optional<Json>{});
+        }
+
+        Json responseJson;
+        try {
+            return { { Json::parse(responseStr) } };
+        } catch (...) {
+            LOG_ERROR("Failed to deserialize graphql response to JSON");
+            return optional<Json>{};
+        }
+    }
+
+    optional<Json> graphqlRawRequest(SharedCredentials & creds, Json const & requestJson) {
+        return retryRequest<optional<Json>>([&] { return doGraphqlRawRequest(creds, requestJson); });
     }
 
 } // namespace caff
