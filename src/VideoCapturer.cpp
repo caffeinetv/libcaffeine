@@ -135,13 +135,25 @@ namespace caff {
         adaptedHeight = (adaptedHeight + 1) & ~1; // round up to even
 
         rtc::scoped_refptr<webrtc::I420Buffer> unscaledBuffer = webrtc::I420Buffer::Create(width, height);
+        if (!unscaledBuffer) {
+            LOG_ERROR("Failed to create unscaled buffer");
+            return nullptr;
+        }
 
-        convertToI420(
+        auto convertResult = convertToI420(
                 format, frameData, 0, 0, width, height, frameByteCount, webrtc::kVideoRotation_0, unscaledBuffer.get());
+        if (convertResult != 0) {
+            LOG_ERROR("Failed to convert i420 frame: %d", convertResult);
+            return nullptr;
+        }
 
         rtc::scoped_refptr<webrtc::I420Buffer> scaledBuffer = unscaledBuffer;
         if (adaptedHeight != height) {
             scaledBuffer = webrtc::I420Buffer::Create(adaptedWidth, adaptedHeight);
+            if (!scaledBuffer) {
+                LOG_ERROR("Failed to create scaled buffer");
+                return nullptr;
+            }
             scaledBuffer->ScaleFrom(*unscaledBuffer);
         }
 

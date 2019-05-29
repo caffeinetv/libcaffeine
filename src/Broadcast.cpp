@@ -681,6 +681,7 @@ namespace caff {
             if (i420frame && isScreenshotNeeded.compare_exchange_strong(expected, false)) {
                 try {
                     screenshotPromise.set_value(createScreenshot(i420frame));
+                    LOG_DEBUG("Screenshot promise set");
                 } catch (std::exception ex) {
                     LOG_ERROR("Failed to create screenshot: %s", ex.what());
                     screenshotPromise.set_exception(std::current_exception());
