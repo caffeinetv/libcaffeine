@@ -33,7 +33,7 @@ namespace caff {
         virtual bool GetPreferredFourccs(std::vector<uint32_t> * fourccs) override;
 
     private:
-        std::chrono::microseconds lastTimestamp{ 0 };
+        std::chrono::microseconds lastTimestamp{ std::chrono::seconds::min() };
     };
 
 }  // namespace caff
