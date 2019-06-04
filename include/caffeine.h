@@ -233,7 +233,6 @@ CAFFEINE_API caff_Result caff_initialize(
 This will send a request to Caffeine with the client type, client version, and libcaffeine version. An application can
 use this to prompt the user to update.
 
-TODO: differentiate request failure from out-of-date version
 TODO: differentiate clientVersion failure from libcaffeine version failure
 
 \return
@@ -330,8 +329,6 @@ CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandl
 /*!
 This attempts to authenticate using the provided refresh token. If this fails, the user will need to sign in again with
 username and password via caff_signIn().
-
-TODO: Return a different error if the authentication actually failed vs. some other failure in the request
 
 \param instanceHandle the handle returned by caff_createInstance()
 \param refreshToken the refresh token returned by caff_getRefreshToken() after a previous sign-in

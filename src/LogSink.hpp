@@ -16,9 +16,8 @@ namespace caff {
     public:
         LogSink(caff_LogCallback cb) : callback(cb) {}
 
-        virtual void OnLogMessage(
-                const std::string & message, rtc::LoggingSeverity severity, const char * tag) override;
-        virtual void OnLogMessage(const std::string & message) override;
+        virtual void OnLogMessage(std::string const & message, rtc::LoggingSeverity severity) override;
+        virtual void OnLogMessage(std::string const & message) override;
 
     private:
         caff_LogCallback callback;

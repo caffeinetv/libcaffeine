@@ -777,7 +777,6 @@ namespace caff {
     }
 
     void sendWebrtcStats(SharedCredentials & sharedCreds, Json const & stats) {
-        // TODO: should this retry?
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
         ScopedPost post;

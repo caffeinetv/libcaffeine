@@ -54,12 +54,15 @@ Steps:
 
 * Follow [Google's instructions](https://webrtc.org/native-code/development/) for checking out webrtc with their tools until you get to the `gn gen ...` command. Instead, do the following:
     * **TODO:** Fuller instruction list, including not doing the sync until checking out the right branch
-    * `git checkout 'branch-heads/70'`
-    * `gclient sync`
-    * `gn gen out\Debug --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
-    * `gn gen out\Release --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
-    * `ninja -C out\Debug webrtc`
-    * `ninja -C out\Release webrtc`
+    * Inside the src directory:
+        * `git remote add caffeine https://github.com/caffeinetv/webrtc`
+        * `git fetch caffeine`
+        * `git checkout caffeine/libcaffeine`
+        * `gclient sync`
+        * `gn gen out\Debug --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
+        * `gn gen out\Release --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
+        * `ninja -C out\Debug webrtc`
+        * `ninja -C out\Release webrtc`
 * Set `WEBRTC_ROOT_DIR` environment variable to the webrtc src/ directory
 * In the libcaffeine root directory:
     * `mkdir build`
@@ -83,7 +86,11 @@ Steps:
     * Checkout `WebRTC`:
         * If you are only doing macOS development, run `fetch --nohooks`
         * If you are also doing iOS development, run `fetch --nohooks webrtc_ios`
-    * Sync to the release we currently support: `gclient sync --revision=branch-heads/70`
+    * Sync to the release we currently support. In the `src` directory:
+        * `git remote add caffeine https://github.com/caffeinetv/webrtc`
+        * `git fetch caffeine`
+        * `git checkout caffeine/libcaffeine`
+        * `gclient sync`
 * Build WebRTC
     * `gn gen out/macOS/Debug --args="use_rtti=true" --ide=xcode`
     * `gn gen out/macOS/Release --args="is_debug=false use_rtti=true" --ide=xcode`

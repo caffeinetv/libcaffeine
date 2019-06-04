@@ -83,7 +83,11 @@ namespace caff {
             std::chrono::microseconds timestamp) {
         auto span = timestamp - lastTimestamp;
         if (span < minInterframe) {
-            LOG_DEBUG("Dropping frame > 30fps");
+            LOG_DEBUG(
+                    "Dropping Frame: timestamp: %lld, lastTimestamp: %lld, span: %lld",
+                    timestamp.count(),
+                    lastTimestamp.count(),
+                    span.count());
             return nullptr;
         }
         lastTimestamp = timestamp;
