@@ -15,7 +15,7 @@ environment:
   - APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2017"
     CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
     CMAKE_TOOLSET: "LLVM"
-    WEBRTC_URL: "https://github.com/caffeinetv/webrtc/releases/download/v70/webrtc-prebuilt.7z"
+    WEBRTC_URL: "https://github.com/caffeinetv/webrtc/releases/download/v70.1-libcaffeine/webrtc-prebuilt-windows.7z"
     WEBRTC_PATH: .cache\\webrtc
     # Used for libcurl only, should be replaced in the future by a proper C++ library.
     OBS_DEPENDENCIES_URL: "https://obsproject.com/downloads/dependencies2017.zip"

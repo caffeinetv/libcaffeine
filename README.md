@@ -60,7 +60,7 @@ Steps:
         * `git checkout caffeine/libcaffeine`
         * `gclient sync`
         * `gn gen out\Debug --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
-        * `gn gen out\Release --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
+        * `gn gen out\Release --args="rtc_include_tests=false is_debug=false rtc_use_h264=true" --ide=vs2017`
         * `ninja -C out\Debug webrtc`
         * `ninja -C out\Release webrtc`
 * Set `WEBRTC_ROOT_DIR` environment variable to the webrtc src/ directory
