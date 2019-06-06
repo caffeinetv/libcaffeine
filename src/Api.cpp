@@ -9,6 +9,9 @@
 #include <sstream>
 #include <thread>
 
+#include "websocketpp/client.hpp"
+#include "websocketpp/config/asio_client.hpp"
+
 #define LIBCAFFEINE_VERSION "0.1"
 
 // TODO: load these from config? environment?
