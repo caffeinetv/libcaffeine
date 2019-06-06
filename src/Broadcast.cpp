@@ -7,7 +7,7 @@
 #include <random>
 #include <thread>
 
-#include "Api.hpp"
+#include "RestApi.hpp"
 #include "AudioDevice.hpp"
 #include "PeerConnectionObserver.hpp"
 #include "SessionDescriptionObserver.hpp"

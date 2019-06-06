@@ -42,8 +42,6 @@ set(libcaffeine_HEADER
 
 # Source & internal headers
 set(libcaffeine_SOURCES
-    src/Api.hpp
-    src/Api.cpp
     src/AudioDevice.cpp
     src/AudioDevice.hpp
     src/AudioDeviceDefaultImpl.hpp
@@ -57,6 +55,8 @@ set(libcaffeine_SOURCES
     src/LogSink.hpp
     src/PeerConnectionObserver.cpp
     src/PeerConnectionObserver.hpp
+    src/RestApi.hpp
+    src/RestApi.cpp
     src/Serialization.cpp
     src/Serialization.hpp
     src/SessionDescriptionObserver.cpp
@@ -66,6 +66,8 @@ set(libcaffeine_SOURCES
     src/Utils.hpp
     src/VideoCapturer.cpp
     src/VideoCapturer.hpp
+    src/WebsocketApi.cpp
+    src/WebsocketApi.hpp
     src/X264Encoder.cpp
     src/X264Encoder.hpp
 )
