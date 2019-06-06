@@ -9,9 +9,6 @@
 #include <sstream>
 #include <thread>
 
-#include "websocketpp/client.hpp"
-#include "websocketpp/config/asio_client.hpp"
-
 #define LIBCAFFEINE_VERSION "0.1"
 
 // TODO: load these from config? environment?
@@ -172,6 +169,110 @@ namespace caff {
             LOG_DEBUG("Request complete");
         }
         return std::move(retryable.result);
+    }
+
+    std::unique_ptr<WebsocketClient> WebsocketClient::shared;
+
+    WebsocketClient::WebsocketClient() {
+        // TODO: Configure logging to work with libcaffeine?
+        client.set_access_channels(websocketpp::log::alevel::all);
+        client.clear_access_channels(websocketpp::log::alevel::frame_payload);
+        client.set_error_channels(websocketpp::log::elevel::all);
+
+        client.set_tls_init_handler(
+                [](websocketpp::connection_hdl connection) -> std::shared_ptr<websocketpp::lib::asio::ssl::context> {
+                    // TODO: Look more into what should be done here
+                    auto context = std::make_shared<asio::ssl::context>(asio::ssl::context::sslv23);
+                    context->set_default_verify_paths();
+                    context->set_verify_mode(asio::ssl::verify_peer);
+                    return context;
+                });
+
+        client.init_asio();
+        client.start_perpetual();
+
+        clientThread = std::thread(&Client::run, &client);
+    }
+
+    WebsocketClient::~WebsocketClient() {
+        client.stop_perpetual();
+        clientThread->join();
+    }
+
+    optional<WebsocketClient::Connection> WebsocketClient::connect(
+            std::string url,
+            std::function<void(Connection)> openedCallback,
+            std::function<void(Connection, ConnectionEndType)> endedCallback,
+            std::function<void(Connection, std::string const &)> messageReceivedCallback) {
+        std::error_code error;
+        auto clientConnection = client.get_connection(url, error);
+
+        if (error) {
+            LOG_ERROR("Websocket connection initialization error: %s", error.message().c_str());
+            return {};
+        }
+
+        clientConnection->set_open_handler([=](websocketpp::connection_hdl handle) {
+            LOG_DEBUG("Websocket opened");
+            if (openedCallback) {
+                openedCallback(handle);
+            }
+        });
+
+        clientConnection->set_close_handler([=](websocketpp::connection_hdl handle) {
+            LOG_DEBUG("Websocket closed");
+            std::error_code error;
+            if (auto connection = client.get_con_from_hdl(handle, error)) {
+                if (auto error = connection->get_ec()) {
+                    LOG_DEBUG("Websocket close reason: %s", error.message().c_str());
+                }
+            }
+
+            if (endedCallback) {
+                endedCallback(handle, ConnectionEndType::Closed);
+            }
+        });
+
+        clientConnection->set_fail_handler([=](websocketpp::connection_hdl handle) {
+            LOG_ERROR("Websocket failed");
+            std::error_code error;
+            if (auto connection = client.get_con_from_hdl(handle, error)) {
+                if (auto error = connection->get_ec()) {
+                    LOG_ERROR("Websocket failure reason: %s", error.message().c_str());
+                }
+            }
+
+            if (endedCallback) {
+                endedCallback(handle, ConnectionEndType::Failed);
+            }
+        });
+
+        clientConnection->set_message_handler([=](websocketpp::connection_hdl handle, Client::message_ptr message) {
+            LOG_DEBUG("Message received: %s", message->get_payload().c_str());
+            if (messageReceivedCallback) {
+                messageReceivedCallback(handle, message->get_payload());
+            }
+        });
+
+        client.connect(clientConnection);
+
+        return clientConnection->get_handle();
+    }
+
+    void WebsocketClient::sendMessage(Connection const & connection, std::string const & message) {
+        std::error_code error;
+        client.send(connection, message, websocketpp::frame::opcode::text, error);
+        if (error) {
+            LOG_ERROR("Websocket send message error: %s", error.message().c_str());
+        }
+    }
+
+    void WebsocketClient::close(Connection const & connection) {
+        std::error_code error;
+        client.close(connection, websocketpp::close::status::normal, "", error);
+        if (error) {
+            LOG_ERROR("Websocket connection close error: %s", error.message().c_str());
+        }
     }
 
     SharedCredentials::SharedCredentials(Credentials credentials) : credentials(std::move(credentials)) {}

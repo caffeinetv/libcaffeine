@@ -124,6 +124,8 @@ CAFFEINE_API caff_Result caff_initialize(
             return caff_ResultFailure;
         }
 
+        WebsocketClient::shared = std::make_unique<WebsocketClient>();
+
         LOG_ERROR("Libcaffeine initialized");
         return caff_ResultSuccess;
     })();

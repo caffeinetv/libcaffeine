@@ -15,6 +15,8 @@
 #include "absl/types/optional.h"
 #include "absl/types/variant.h"
 #include "nlohmann/json.hpp"
+#include "websocketpp/client.hpp"
+#include "websocketpp/config/asio_client.hpp"
 
 namespace caff {
     // TODO: Get C++17 working and use standard versions
@@ -26,6 +28,34 @@ namespace caff {
 
     extern std::string clientType;
     extern std::string clientVersion;
+
+    class WebsocketClient {
+
+    public:
+        WebsocketClient();
+        ~WebsocketClient();
+
+        static std::unique_ptr<WebsocketClient> shared;
+
+        using Connection = websocketpp::connection_hdl;
+
+        enum ConnectionEndType { Failed, Closed };
+
+        optional<Connection> connect(
+                std::string url,
+                std::function<void(Connection)> openedCallback,
+                std::function<void(Connection, ConnectionEndType)> endedCallback,
+                std::function<void(Connection, std::string const &)> messageReceivedCallback);
+
+        void sendMessage(Connection const & connection, std::string const & message);
+
+        void close(Connection const & connection);
+
+    private:
+        using Client = websocketpp::client<websocketpp::config::asio_tls_client>;
+        Client client;
+        optional<std::thread> clientThread;
+    };
 
     struct Credentials {
         std::string accessToken;
