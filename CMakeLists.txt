@@ -70,6 +70,8 @@ set(libcaffeine_SOURCES
     src/X264Encoder.hpp
 )
 
+add_definitions(-DASIO_STANDALONE)
+
 if(WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
 endif()
@@ -112,12 +114,15 @@ set(PRIVATE_INCLUDES
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/third_party/x264/include #TODO find externally
+    ${PROJECT_SOURCE_DIR}/third_party/asio/include
     ${PROJECT_SOURCE_DIR}/third_party/nlohmann_json/single_include
     ${PROJECT_SOURCE_DIR}/third_party/stb
+    ${PROJECT_SOURCE_DIR}/third_party/websocketpp/include
     ${LIBCURL_INCLUDE_DIRS}
     ${WEBRTC_INCLUDE_DIR}
     ${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
     ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
+    ${WEBRTC_INCLUDE_DIR}/third_party/boringssl/src/include
 )
 
 set(PUBLIC_INCLUDES

@@ -195,4 +195,4 @@ namespace caff {
 
     void sendWebrtcStats(SharedCredentials & creds, Json const & report);
 
-}  // namespace caff
+} // namespace caff
