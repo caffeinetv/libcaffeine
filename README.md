@@ -48,22 +48,12 @@ Prereqs:
 
 * Visual Studio 2017 (and [LLVM Compiler Toolchain Extension](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain))
 * LLVM toolchain
-* Google depot tools
 
 Steps:
 
-* Follow [Google's instructions](https://webrtc.org/native-code/development/) for checking out webrtc with their tools until you get to the `gn gen ...` command. Instead, do the following:
-    * **TODO:** Fuller instruction list, including not doing the sync until checking out the right branch
-    * Inside the src directory:
-        * `git remote add caffeine https://github.com/caffeinetv/webrtc`
-        * `git fetch caffeine`
-        * `git checkout caffeine/libcaffeine`
-        * `gclient sync`
-        * `gn gen out\Debug --args="rtc_include_tests=false is_debug=true rtc_use_h264=true" --ide=vs2017`
-        * `gn gen out\Release --args="rtc_include_tests=false is_debug=false rtc_use_h264=true" --ide=vs2017`
-        * `ninja -C out\Debug webrtc`
-        * `ninja -C out\Release webrtc`
-* Set `WEBRTC_ROOT_DIR` environment variable to the webrtc src/ directory
+* Download the latest version of webrtc-prebuilt-windows.7z from https://github.com/caffeinetv/webrtc/releases
+* Extract the file somewhere convenient
+* Set `WEBRTC_ROOT_DIR` environment variable to the directory you extracted the files to
 * In the libcaffeine root directory:
     * `mkdir build`
     * `cd build`
@@ -79,28 +69,12 @@ Prereqs:
 
 Steps:
 
-* Checkout WebRTC
-    * Clone Chrome `depot_tools` into a directory of your choice: `git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git`
-    * Add `depot_tools` to your path
-    * Make and navigate to a `WebRTC` checkout directory
-    * Checkout `WebRTC`:
-        * If you are only doing macOS development, run `fetch --nohooks`
-        * If you are also doing iOS development, run `fetch --nohooks webrtc_ios`
-    * Sync to the release we currently support. In the `src` directory:
-        * `git remote add caffeine https://github.com/caffeinetv/webrtc`
-        * `git fetch caffeine`
-        * `git checkout caffeine/libcaffeine`
-        * `gclient sync`
-* Build WebRTC
-    * `gn gen out/macOS/Debug --args="use_rtti=true" --ide=xcode`
-    * `gn gen out/macOS/Release --args="is_debug=false use_rtti=true" --ide=xcode`
-    * `ninja -C out/macOS/Debug webrtc`
-    * `ninja -C out/macOS/Release webrtc`
-* Build libcaffeine
-    * Navigate to the libcaffeine root directory
+* Download the latest version of webrtc-prebuilt-macos.7z from https://github.com/caffeinetv/webrtc/releases
+* Extract the archive somewhere convenient
+* Set `WEBRTC_ROOT_DIR` environment variable to the directory you extracted the files to
+* In the libcaffeine root directory:
     * `mkdir build`
     * `cd build`
-    * Set `WEBRTC_ROOT_DIR` environment variable to the `WEBRTC` `src` directory
     * `cmake .. -G Xcode`
     * Build the project in Xcode
 
