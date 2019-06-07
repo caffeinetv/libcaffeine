@@ -29,6 +29,8 @@ namespace caff {
     extern std::string clientType;
     extern std::string clientVersion;
 
+    extern std::string const realtimeGraphqlURL;
+
     struct Credentials {
         std::string accessToken;
         std::string refreshToken;
