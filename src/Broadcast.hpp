@@ -7,9 +7,9 @@
 #include <future>
 #include <vector>
 
-#include "RestApi.hpp"
 #include "ErrorLogging.hpp"
 #include "StatsObserver.hpp"
+#include "WebsocketApi.hpp"
 
 #include "absl/types/optional.h"
 #include "api/video/i420_buffer.h"
@@ -37,14 +37,14 @@ namespace webrtc {
     class PeerConnectionFactoryInterface;
     class MediaStreamInterface;
     class PeerConnectionInterface;
-}  // namespace webrtc
+} // namespace webrtc
 
 namespace caff {
     class AudioDevice;
     class VideoCapturer;
 
     // TODO: separate Broadcast & Feed/Stream functionality
-    class Broadcast {
+    class Broadcast : public std::enable_shared_from_this<Broadcast> {
     public:
         Broadcast(
                 SharedCredentials & sharedCredentials,
@@ -73,27 +73,33 @@ namespace caff {
                 int32_t height,
                 std::chrono::microseconds timestamp);
 
-        caff_ConnectionQuality getConnectionQuality() const;
+        caff_ConnectionQuality getConnectionQuality();
 
     private:
         enum class State { Offline, Starting, Online, Stopping };
         std::atomic<State> state{ State::Offline };
         static char const * stateString(State state);
         std::thread broadcastThread;
-        std::thread longpollThread;
+        WebsocketClient websocketClient;
 
         std::promise<ScreenshotData> screenshotPromise;
         std::atomic<bool> isScreenshotNeeded;
-        std::atomic<bool> isMutatingFeed;
         std::mutex mutex;
 
         std::function<void(caff_Result)> failedCallback;
 
         SharedCredentials & sharedCredentials;
+        std::string clientId;
         std::string username;
         std::string title;
         caff_Rating rating;
         std::string gameId;
+        std::string feedId;
+        caff_ConnectionQuality connectionQuality = caff_ConnectionQualityUnknown;
+        optional<std::string> broadcastId;
+        std::string streamUrl;
+        optional<WebsocketClient::Connection> stageSubscription;
+        std::atomic<bool> feedHasAppearedInSubscription;
 
         AudioDevice * audioDevice;
         VideoCapturer * videoCapturer;
@@ -101,20 +107,19 @@ namespace caff {
         rtc::scoped_refptr<webrtc::PeerConnectionInterface> peerConnection;
         rtc::scoped_refptr<StatsObserver> statsObserver;
 
-        std::string streamUrl;
-        std::string feedId;
-        optional<StageRequest> nextRequest;
-
         bool requireState(State expectedState) const;
         bool transitionState(State oldState, State newState);
         bool isOnline() const;
 
         variant<std::string, caff_Result> createFeed(std::string const & offer);
         void startHeartbeat();
-        bool updateTitle(optional<Stage> & stage);
-        bool updateGameId(Feed & feed);
-        void startLongpollThread();
         ScreenshotData createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer);
+        caffql::FeedInput currentFeedInput();
+        std::string fullTitle();
+        bool updateFeed();
+        bool updateTitle();
+        void setupSubscription();
+        void endSubscription();
     };
 
-}  // namespace caff
+} // namespace caff
