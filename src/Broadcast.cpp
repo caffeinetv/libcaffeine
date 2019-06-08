@@ -45,31 +45,16 @@ namespace caff {
             webrtc::PeerConnectionFactoryInterface * factory)
         : isScreenshotNeeded(true)
         , sharedCredentials(sharedCredentials)
+        , clientId(rtc::CreateRandomUuid())
         , username(std::move(username))
         , title(std::move(title))
         , rating(rating)
         , gameId(gameId)
+        , feedId(rtc::CreateRandomUuid())
         , audioDevice(audioDevice)
         , factory(factory) {}
 
-    Broadcast::~Broadcast() {}
-
-    // TODO something better?
-    static std::string createUniqueId() {
-        static char const charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-        size_t const idLength = 12;
-
-        static std::default_random_engine generator(std::time(0));
-        static std::uniform_int_distribution<size_t> distribution(0, sizeof(charset) - 1);
-
-        std::string id;
-
-        for (size_t i = 0; i < idLength; ++i) {
-            id += charset[distribution(generator)];
-        }
-
-        return id;
-    }
+    Broadcast::~Broadcast() { endSubscription(); }
 
     char const * Broadcast::stateString(Broadcast::State state) {
         switch (state) {
@@ -121,92 +106,44 @@ namespace caff {
     }
 
     variant<std::string, caff_Result> Broadcast::createFeed(std::string const & offer) {
-        feedId = createUniqueId();
-
         if (!requireState(State::Starting)) {
             return caff_ResultBroadcastFailed;
         }
 
-        auto fullTitle = annotateTitle(title, rating);
-        auto clientId = createUniqueId();
+        auto feed = currentFeedInput();
+        feed.sdpOffer = offer;
 
-        // Make initial stage request to get a cursor
-
-        StageRequest request(username, clientId);
-
-        if (!requestStageUpdate(request, sharedCredentials, NULL, NULL)) {
+        auto payload = graphqlRequest<caffql::Mutation::AddFeedField>(
+                sharedCredentials, clientId, caffql::ClientType::Capture, feed);
+        if (!payload) {
             return caff_ResultBroadcastFailed;
         }
 
-        // Make request to add our feed and get a new broadcast id
-        request.stage->title = std::move(fullTitle);
-        request.stage->upsertBroadcast = true;
-        request.stage->broadcastId.reset();
-        request.stage->live = false;
-
-        FeedStream stream{};
-        stream.sdpOffer = offer;
-
-        Feed feed{};
-        feed.id = feedId;
-        feed.clientId = clientId;
-        feed.role = "primary";
-        feed.volume = 1.0;
-        feed.capabilities = { true, true };
-        feed.stream = std::move(stream);
-
-        request.stage->feeds = { { feedId, std::move(feed) } };
-
-        bool isOutOfCapacity = false;
-        if (!requestStageUpdate(request, sharedCredentials, NULL, &isOutOfCapacity)) {
-            if (isOutOfCapacity) {
+        if (payload->error) {
+            if (holds_alternative<caffql::OutOfCapacityError>(payload->error->implementation)) {
                 return caff_ResultOutOfCapacity;
             } else {
+                LOG_ERROR("Error adding feed: %s", payload->error->message().c_str());
                 return caff_ResultBroadcastFailed;
             }
         }
 
-        // Get broadcast details
-        auto feedIt = request.stage->feeds->find(feedId);
-        if (feedIt == request.stage->feeds->end()) {
+        if (!payload->stage.broadcastId) {
+            LOG_ERROR("Expected broadcast id in AddFeedPayload");
             return caff_ResultBroadcastFailed;
         }
 
-        auto & responseStream = feedIt->second.stream;
+        broadcastId = payload->stage.broadcastId;
 
-        if (!responseStream || !responseStream->sdpAnswer || responseStream->sdpAnswer->empty() ||
-            !responseStream->url || responseStream->url->empty()) {
-            return caff_ResultFailure;
+        auto stream = get_if<caffql::BroadcasterStream>(&payload->feed.stream.implementation);
+        if (!stream) {
+            LOG_ERROR("Expected broadcaster stream in AddFeedPayload");
+            return caff_ResultBroadcastFailed;
         }
 
-        streamUrl = *responseStream->url;
-        nextRequest = std::move(request);
+        streamUrl = stream->url;
 
-        return *responseStream->sdpAnswer;
-    }
-
-    // Returns `true` if the feed's game id changed
-    bool Broadcast::updateGameId(Feed & feed) {
-        std::lock_guard<std::mutex> lock(mutex);
-
-        if (!gameId.empty()) {
-            if (!feed.content) {
-                feed.content = FeedContent{};
-            }
-
-            if (feed.content->id != gameId) {
-                feed.content->id = gameId;
-                feed.content->type = ContentType::Game;
-                return true;
-            } else {
-                return false;
-            }
-        } else if (feed.content) {
-            feed.content = {};
-            return true;
-        } else {
-            return false;
-        }
+        return stream->sdpAnswer;
     }
 
     void Broadcast::start(std::function<void()> startedCallback, std::function<void(caff_Result)> failedCallback) {
@@ -214,6 +151,8 @@ namespace caff {
         transitionState(State::Offline, State::Starting);
 
         broadcastThread = std::thread([=] {
+            setupSubscription();
+
             videoCapturer = new VideoCapturer;
             auto videoSource = factory->CreateVideoSource(videoCapturer);
             auto videoTrack = factory->CreateVideoTrack("external_video", videoSource);
@@ -375,56 +314,56 @@ namespace caff {
             startHeartbeat();
 
             statsObserver.release()->Release();
-
-            if (longpollThread.joinable()) {
-                longpollThread.join();
-            }
         });
     }
 
     void Broadcast::setTitle(std::string title) {
-        std::lock_guard<std::mutex> lock(mutex);
-        this->title = title;
+        bool titleChanged = false;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (title != this->title) {
+                this->title = title;
+                titleChanged = true;
+            }
+        }
+
+        if (titleChanged && isOnline()) {
+            updateTitle();
+        }
     }
 
     void Broadcast::setRating(caff_Rating rating) {
-        std::lock_guard<std::mutex> lock(mutex);
-        this->rating = rating;
+        bool ratingChanged = false;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (rating != this->rating) {
+                this->rating = rating;
+                ratingChanged = true;
+            }
+        }
+
+        if (ratingChanged && isOnline()) {
+            updateTitle();
+        }
     }
 
     void Broadcast::setGameId(std::string id) {
-        std::lock_guard<std::mutex> lock(mutex);
-        this->gameId = id;
+        bool gameIdChanged = false;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (this->gameId != id) {
+                this->gameId = id;
+                gameIdChanged = true;
+            }
+        }
+
+        if (gameIdChanged) {
+            updateFeed();
+        }
     }
 
     void Broadcast::startHeartbeat() {
         if (!requireState(State::Online)) {
-            return;
-        }
-
-        optional<StageRequest> request{};
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            std::swap(request, nextRequest);
-        }
-
-        // Obtain broadcast id
-
-        auto broadcastId = request->stage->broadcastId;
-
-        for (int broadcastIdRetryCount = 0; !broadcastId && broadcastIdRetryCount < 3; ++broadcastIdRetryCount) {
-            request->stage->upsertBroadcast = true;
-            if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL) || !request->stage->feeds ||
-                request->stage->feeds->find(feedId) == request->stage->feeds->end()) {
-                failedCallback(caff_ResultBroadcastFailed);
-                return;
-            }
-
-            broadcastId = request->stage->broadcastId;
-        }
-
-        if (!broadcastId) {
-            failedCallback(caff_ResultBroadcastFailed);
             return;
         }
 
@@ -441,7 +380,7 @@ namespace caff {
             }
 
             auto screenshotData = screenshotFuture.get();
-            if (!updateScreenshot(*broadcastId, screenshotData, sharedCredentials)) {
+            if (!updateScreenshot(broadcastId.value(), screenshotData, sharedCredentials)) {
                 LOG_ERROR("Failed to send screenshot");
                 failedCallback(caff_ResultBroadcastFailed);
                 return;
@@ -452,27 +391,16 @@ namespace caff {
             return;
         }
 
-        // Set stage live with current game content
+        // Set stage live
 
-        auto feedIt = request->stage->feeds->find(feedId);
-        if (feedIt != request->stage->feeds->end()) {
-            updateGameId(feedIt->second);
-        }
-
-        request->stage->live = true;
-
-        if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL) || !request->stage->live ||
-            !request->stage->feeds || request->stage->feeds->find(feedId) == request->stage->feeds->end()) {
+        auto startPayload = graphqlRequest<caffql::Mutation::StartBroadcastField>(
+                sharedCredentials, clientId, caffql::ClientType::Capture, fullTitle());
+        if (!startPayload || startPayload->error) {
+            if (startPayload) {
+                LOG_ERROR("Error starting broadcast: %s", startPayload->error->message().c_str());
+            }
             failedCallback(caff_ResultBroadcastFailed);
-            return;
         }
-
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            std::swap(request, nextRequest);
-        }
-
-        startLongpollThread();
 
         auto constexpr heartbeatInterval = 5000ms;
         auto constexpr checkInterval = 100ms;
@@ -495,35 +423,27 @@ namespace caff {
                     nullptr,
                     webrtc::PeerConnectionInterface::StatsOutputLevel::kStatsOutputLevelStandard);
 
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                request = nextRequest;
-            }
-
-            if (!request || !request->stage || !request->stage->feeds) {
-                failedCallback(caff_ResultBroadcastFailed);
-                return;
-            }
-
-            auto feedIt = request->stage->feeds->find(feedId);
-            if (feedIt == request->stage->feeds->end()) {
-                failedCallback(caff_ResultTakeover);
-                return;
-            }
-
-            bool shouldMutateFeed = false;
-
             // Heartbeat broadcast
 
             auto heartbeatResponse = heartbeatStream(streamUrl, sharedCredentials);
 
-            auto & feed = feedIt->second;
             if (heartbeatResponse) {
-                if (feed.sourceConnectionQuality != heartbeatResponse->connectionQuality) {
-                    shouldMutateFeed = true;
-                    feed.sourceConnectionQuality = heartbeatResponse->connectionQuality;
-                }
                 failures = 0;
+
+                // Update the feed's connection quality if it has changed
+                bool shouldMutateFeed = false;
+                {
+                    std::lock_guard<std::mutex> lock(mutex);
+                    if (heartbeatResponse->connectionQuality != connectionQuality) {
+                        connectionQuality = heartbeatResponse->connectionQuality;
+                        shouldMutateFeed = true;
+                    }
+                }
+
+                if (shouldMutateFeed && !updateFeed()) {
+                    failedCallback(caff_ResultBroadcastFailed);
+                    return;
+                }
             } else {
                 LOG_ERROR("Heartbeat failed");
                 ++failures;
@@ -533,128 +453,16 @@ namespace caff {
                     break;
                 }
             }
-
-            shouldMutateFeed = updateGameId(feed) || updateTitle(request->stage) || shouldMutateFeed;
-
-            if (!shouldMutateFeed) {
-                continue;
-            }
-
-            // Mutate the feed
-
-            isMutatingFeed = true;
-
-            if (!requestStageUpdate(*request, sharedCredentials, NULL, NULL)) {
-                isMutatingFeed = false;
-                // If we have a broadcast going but can't talk to
-                // the stage endpoint, retry the mutation next loop
-                continue;
-            }
-
-            if (!request->stage->live || !request->stage->feeds ||
-                request->stage->feeds->find(feedId) == request->stage->feeds->end()) {
-                failedCallback(caff_ResultTakeover);
-                return;
-            }
-
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                std::swap(request, nextRequest);
-            }
-            isMutatingFeed = false;
         }
 
-        isMutatingFeed = true;
-
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            request.reset();
-            std::swap(request, nextRequest);
+        if (state == State::Stopping) {
+            graphqlRequest<caffql::Mutation::StopBroadcastField>(sharedCredentials, clientId, nullopt);
         }
-
-        // Only set the stage offline if it contains our feed
-        if (request && request->stage && request->stage->feeds) {
-            auto feedIt = request->stage->feeds->find(feedId);
-            if (feedIt != request->stage->feeds->end()) {
-                request->stage->live = false;
-                request->stage->feeds->clear();
-
-                // If this fails, the broadcast is either offline or failing anyway. Ignore result
-                requestStageUpdate(*request, sharedCredentials, NULL, NULL);
-            }
-        }
-    }
-
-    bool Broadcast::updateTitle(optional<Stage> & stage) {
-        std::lock_guard<std::mutex> lock(mutex);
-
-        auto fullTitle = annotateTitle(this->title, this->rating);
-
-        if (!stage) {
-            return false;
-        } else if (this->title.empty()) {
-            return false;
-        } else if (stage->title == fullTitle) {
-            return false;
-        }
-
-        stage->title = fullTitle;
-        return true;
-    }
-
-    void Broadcast::startLongpollThread() {
-        longpollThread = std::thread([=] {
-            // This thread is purely for hearbeating our feed.
-            // If the broadcast thread is making a mutation, this thread waits.
-            auto retryInterval = 0ms;
-            auto const checkInterval = 100ms;
-
-            auto interval = retryInterval;
-
-            for (; state == State::Online; std::this_thread::sleep_for(checkInterval)) {
-                interval += checkInterval;
-                if (interval < retryInterval || isMutatingFeed)
-                    continue;
-
-                optional<StageRequest> request{};
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
-                    request = nextRequest;
-                }
-
-                if (!request) {
-                    break;
-                }
-
-                auto retryIn = 0ms;
-
-                if (!requestStageUpdate(*request, sharedCredentials, &retryIn, NULL)) {
-                    // If we have a broadcast going but can't talk to the stage endpoint,
-                    // just continually retry with some waiting
-                    retryInterval = 5000ms;
-                    continue;
-                }
-
-                bool isLiveFeedPresent = request->stage->live && request->stage->feeds &&
-                                         request->stage->feeds->find(feedId) != request->stage->feeds->end();
-
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
-                    std::swap(nextRequest, request);
-                }
-
-                if (!isLiveFeedPresent) {
-                    break;
-                }
-
-                interval = 0ms;
-                retryInterval = retryIn;
-            }
-        });
     }
 
     void Broadcast::stop() {
         state = State::Stopping;
+        endSubscription();
         if (broadcastThread.joinable()) {
             broadcastThread.join();
         }
@@ -743,15 +551,125 @@ namespace caff {
         return screenshot;
     }
 
-    caff_ConnectionQuality Broadcast::getConnectionQuality() const {
-        if (nextRequest && nextRequest->stage->feeds) {
-            auto feedIt = nextRequest->stage->feeds->find(feedId);
-            if (feedIt != nextRequest->stage->feeds->end() && feedIt->second.sourceConnectionQuality) {
-                return *feedIt->second.sourceConnectionQuality;
-            }
+    caff_ConnectionQuality Broadcast::getConnectionQuality() {
+        std::lock_guard<std::mutex> lock(mutex);
+        return connectionQuality;
+    }
+
+    caffql::FeedInput Broadcast::currentFeedInput() {
+        std::lock_guard<std::mutex> lock(mutex);
+        caffql::FeedInput feed{};
+        feed.id = feedId;
+        if (!gameId.empty()) {
+            feed.gameId = gameId;
+        }
+        switch (connectionQuality) {
+        case caff_ConnectionQualityGood:
+            feed.sourceConnectionQuality = caffql::SourceConnectionQuality::Good;
+            break;
+        case caff_ConnectionQualityPoor:
+            feed.sourceConnectionQuality = caffql::SourceConnectionQuality::Poor;
+            break;
+        case caff_ConnectionQualityUnknown:
+            break;
+        }
+        return feed;
+    }
+
+    std::string Broadcast::fullTitle() {
+        std::lock_guard<std::mutex> lock(mutex);
+        return annotateTitle(title, rating);
+    }
+
+    bool Broadcast::updateFeed() {
+        auto feed = currentFeedInput();
+        auto payload = graphqlRequest<caffql::Mutation::UpdateFeedField>(
+                sharedCredentials, clientId, caffql::ClientType::Capture, feed);
+        if (payload && payload->error) {
+            LOG_ERROR("Error updating feed: %s", payload->error->message().c_str());
+        }
+        return payload && !payload->error;
+    }
+
+    bool Broadcast::updateTitle() {
+        auto payload = graphqlRequest<caffql::Mutation::ChangeStageTitleField>(
+                sharedCredentials, clientId, caffql::ClientType::Capture, fullTitle());
+        if (payload && payload->error) {
+            LOG_ERROR("Error updating title: %s", payload->error->message().c_str());
+        }
+        return payload && !payload->error;
+    }
+
+    void Broadcast::setupSubscription() {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        if (stageSubscription) {
+            websocketClient.close(std::move(*stageSubscription));
+            stageSubscription.reset();
         }
 
-        return caff_ConnectionQualityUnknown;
+        std::weak_ptr<Broadcast> weakThis = shared_from_this();
+
+        auto messageHandler = [weakThis](caffql::GraphqlResponse<caffql::StageSubscriptionPayload> update) mutable {
+            auto strongThis = weakThis.lock();
+            if (!strongThis) {
+                return;
+            }
+
+            if (auto payload = get_if<caffql::StageSubscriptionPayload>(&update)) {
+                // TODO: Check for error messages to display to the user
+
+                auto const & feeds = payload->stage.feeds;
+                auto feedIt = std::find_if(
+                        feeds.begin(), feeds.end(), [&](auto const & feed) { return feed.id == strongThis->feedId; });
+                if (feedIt != feeds.end()) {
+                    strongThis->feedHasAppearedInSubscription = true;
+                } else if (strongThis->feedHasAppearedInSubscription && strongThis->isOnline()) {
+                    strongThis->failedCallback(caff_ResultTakeover);
+                }
+            } else if (auto errors = get_if<std::vector<caffql::GraphqlError>>(&update)) {
+                // TODO: Refresh credentials if needed
+                strongThis->failedCallback(caff_ResultBroadcastFailed);
+            }
+        };
+
+        auto endedHandler = [weakThis](WebsocketClient::ConnectionEndType endType) {
+            if (auto strongThis = weakThis.lock()) {
+                switch (strongThis->state) {
+                case State::Starting:
+                case State::Online:
+                    // TODO: Backoff?
+                    strongThis->setupSubscription();
+                    break;
+                case State::Offline:
+                case State::Stopping:
+                    break;
+                }
+            }
+        };
+
+        stageSubscription = graphqlSubscription<caffql::Subscription::StageField>(
+                websocketClient,
+                "stage " + username,
+                messageHandler,
+                endedHandler,
+                sharedCredentials,
+                clientId,
+                caffql::ClientType::Capture,
+                username,
+                nullopt,
+                nullopt,
+                false);
+    }
+
+    void Broadcast::endSubscription() {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (!stageSubscription) {
+            return;
+        }
+
+        websocketClient.close(std::move(*stageSubscription));
+        stageSubscription.reset();
     }
 
 } // namespace caff

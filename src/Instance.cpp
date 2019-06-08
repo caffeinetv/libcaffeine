@@ -166,8 +166,8 @@ namespace caff {
 
         auto dispatchFailure = [=](caff_Result error) {
             taskQueue.PostTask([=] {
-                failedCallback(error);
                 endBroadcast();
+                failedCallback(error);
             });
         };
 
@@ -191,8 +191,8 @@ namespace caff {
     void Instance::endBroadcast() {
         std::lock_guard<std::mutex> lock(broadcastMutex);
         if (broadcast) {
-            broadcast->stop();
-            broadcast.reset();
+            // Asynchronously end the broadcast so we don't block this thread
+            std::thread([broadcast = std::move(broadcast)] { broadcast->stop(); }).detach();
         }
     }
 
