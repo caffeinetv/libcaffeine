@@ -22,6 +22,8 @@ namespace caff {
     // TODO: Get C++17 working and use standard versions
     using absl::get;
     using absl::get_if;
+    using absl::holds_alternative;
+    using absl::nullopt;
     using absl::optional;
     using absl::variant;
     using Json = nlohmann::json;
