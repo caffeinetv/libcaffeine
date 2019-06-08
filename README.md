@@ -80,6 +80,17 @@ Steps:
 
 **TODO:** Linux
 
+### Linux
+
+Prereqs:
+
+* clang
+* libc++
+
+Steps:
+
+* TODO: Probably build webrtc manually?
+
 ## Code style
 
 `.clang-format` is the source of truth. Ignore anything here that conflicts.

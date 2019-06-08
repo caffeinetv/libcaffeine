@@ -223,6 +223,8 @@ namespace caff {
             json[stat.display_name()] = stat.bool_val();
             break;
         case Type::kFloat:
+            // TODO: remove printfs... trying to figure out why no floats on linux
+            printf("Added float");
             json[stat.display_name()] = stat.float_val();
             break;
         case Type::kId:
@@ -231,9 +233,11 @@ namespace caff {
             break;
         case Type::kInt:
             json[stat.display_name()] = stat.int_val();
+            printf("Added int");
             break;
         case Type::kInt64:
             json[stat.display_name()] = stat.int64_val();
+            printf("Added int64");
             break;
         case Type::kStaticString:
             json[stat.display_name()] = stat.static_string_val();
