@@ -76,7 +76,7 @@ namespace caff {
         caff_ConnectionQuality getConnectionQuality();
 
     private:
-        enum class State { Offline, Starting, Online, Stopping };
+        enum class State { Offline, Starting, Streaming, Live, Stopping };
         std::atomic<State> state{ State::Offline };
         static char const * stateString(State state);
         std::thread broadcastThread;
@@ -100,6 +100,7 @@ namespace caff {
         std::string streamUrl;
         optional<WebsocketClient::Connection> stageSubscription;
         std::atomic<bool> feedHasAppearedInSubscription;
+        std::atomic<bool> stageHasGoneLiveInSubscription;
 
         AudioDevice * audioDevice;
         VideoCapturer * videoCapturer;
