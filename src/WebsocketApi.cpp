@@ -36,9 +36,9 @@ namespace caff {
     optional<WebsocketClient::Connection> WebsocketClient::connect(
             std::string url,
             std::string name,
-            std::function<void()> openedCallback,
-            std::function<void(ConnectionEndType)> endedCallback,
-            std::function<void(std::string const &)> messageReceivedCallback) {
+            std::function<void(Connection)> openedCallback,
+            std::function<void(Connection, ConnectionEndType)> endedCallback,
+            std::function<void(Connection, std::string const &)> messageReceivedCallback) {
         std::error_code error;
         auto clientConnection = client.get_connection(url, error);
 
@@ -52,7 +52,7 @@ namespace caff {
         clientConnection->set_open_handler([=](websocketpp::connection_hdl handle) {
             LOG_DEBUG("%s opened", logPrefix.c_str());
             if (openedCallback) {
-                openedCallback();
+                openedCallback({ name, handle });
             }
         });
 
@@ -66,7 +66,7 @@ namespace caff {
             }
 
             if (endedCallback) {
-                endedCallback(ConnectionEndType::Closed);
+                endedCallback({ name, handle }, ConnectionEndType::Closed);
             }
         });
 
@@ -80,14 +80,14 @@ namespace caff {
             }
 
             if (endedCallback) {
-                endedCallback(ConnectionEndType::Failed);
+                endedCallback({ name, handle }, ConnectionEndType::Failed);
             }
         });
 
         clientConnection->set_message_handler([=](websocketpp::connection_hdl handle, Client::message_ptr message) {
             LOG_DEBUG("%s message received: %s", logPrefix.c_str(), message->get_payload().c_str());
             if (messageReceivedCallback) {
-                messageReceivedCallback(message->get_payload());
+                messageReceivedCallback({ name, handle }, message->get_payload());
             }
         });
 

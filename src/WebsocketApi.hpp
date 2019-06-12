@@ -24,9 +24,9 @@ namespace caff {
         optional<Connection> connect(
                 std::string url,
                 std::string name,
-                std::function<void()> openedCallback,
-                std::function<void(ConnectionEndType)> endedCallback,
-                std::function<void(std::string const &)> messageReceivedCallback);
+                std::function<void(Connection)> openedCallback,
+                std::function<void(Connection, ConnectionEndType)> endedCallback,
+                std::function<void(Connection, std::string const &)> messageReceivedCallback);
 
         void sendMessage(Connection const & connection, std::string const & message);
 
