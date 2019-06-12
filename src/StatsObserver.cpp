@@ -2,7 +2,7 @@
 
 #include "StatsObserver.hpp"
 
-#include "Api.hpp"
+#include "RestApi.hpp"
 #include "Serialization.hpp"
 
 namespace caff {

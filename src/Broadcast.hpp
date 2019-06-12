@@ -7,7 +7,7 @@
 #include <future>
 #include <vector>
 
-#include "Api.hpp"
+#include "RestApi.hpp"
 #include "ErrorLogging.hpp"
 #include "StatsObserver.hpp"
 

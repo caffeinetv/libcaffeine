@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Api.hpp"
+#include "RestApi.hpp"
 #include "caffeine.h"
 
 #include <functional>
