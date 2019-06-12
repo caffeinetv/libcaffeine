@@ -62,8 +62,10 @@ namespace caff {
             return "Offline";
         case State::Starting:
             return "Starting";
-        case State::Online:
-            return "Online";
+        case State::Streaming:
+            return "Streaming";
+        case State::Live:
+            return "Live";
         case State::Stopping:
             return "Stopping";
         default:
@@ -87,7 +89,17 @@ namespace caff {
         return result;
     }
 
-    bool Broadcast::isOnline() const { return state == State::Online; }
+    bool Broadcast::isOnline() const {
+        switch (state) {
+        case State::Offline:
+        case State::Starting:
+        case State::Stopping:
+            return false;
+        case State::Streaming:
+        case State::Live:
+            return true;
+        }
+    }
 
     static std::string annotateTitle(std::string title, caff_Rating rating) {
         // TODO: move these defaults somewhere sane
@@ -308,7 +320,7 @@ namespace caff {
 
             statsObserver = new rtc::RefCountedObject<StatsObserver>(sharedCredentials);
 
-            state.store(State::Online);
+            state.store(State::Streaming);
             startedCallback();
 
             startHeartbeat();
@@ -363,7 +375,7 @@ namespace caff {
     }
 
     void Broadcast::startHeartbeat() {
-        if (!requireState(State::Online)) {
+        if (!requireState(State::Streaming)) {
             return;
         }
 
@@ -395,12 +407,14 @@ namespace caff {
 
         auto startPayload = graphqlRequest<caffql::Mutation::StartBroadcastField>(
                 sharedCredentials, clientId, caffql::ClientType::Capture, fullTitle());
-        if (!startPayload || startPayload->error) {
+        if (!startPayload || startPayload->error || !startPayload->stage.live) {
             if (startPayload) {
                 LOG_ERROR("Error starting broadcast: %s", startPayload->error->message().c_str());
             }
             failedCallback(caff_ResultBroadcastFailed);
         }
+
+        state = State::Live;
 
         auto constexpr heartbeatInterval = 5000ms;
         auto constexpr checkInterval = 100ms;
@@ -410,7 +424,7 @@ namespace caff {
         int const max_failures = 5;
         int failures = 0;
 
-        for (; state == State::Online; std::this_thread::sleep_for(checkInterval)) {
+        for (; state == State::Live; std::this_thread::sleep_for(checkInterval)) {
             // TODO: use wall time?
             interval += checkInterval;
             if (interval < heartbeatInterval)
@@ -622,9 +636,24 @@ namespace caff {
                 auto const & feeds = payload->stage.feeds;
                 auto feedIt = std::find_if(
                         feeds.begin(), feeds.end(), [&](auto const & feed) { return feed.id == strongThis->feedId; });
-                if (feedIt != feeds.end()) {
+                bool feedIsOnStage = feedIt != feeds.end();
+
+                if (feedIsOnStage) {
                     strongThis->feedHasAppearedInSubscription = true;
+
+                    if (payload->stage.live) {
+                        strongThis->stageHasGoneLiveInSubscription = true;
+                    }
                 } else if (strongThis->feedHasAppearedInSubscription && strongThis->isOnline()) {
+                    // If our feed has appeared in the subscription and is no longer there
+                    // while we think we're online, then we've failed.
+                    strongThis->failedCallback(caff_ResultTakeover);
+                    return;
+                }
+
+                if (!payload->stage.live && strongThis->stageHasGoneLiveInSubscription &&
+                    strongThis->state == State::Live) {
+                    // If the stage is no longer live after we've gone live with our feed, then we've failed.
                     strongThis->failedCallback(caff_ResultTakeover);
                 }
             } else if (auto errors = get_if<std::vector<caffql::GraphqlError>>(&update)) {
@@ -637,7 +666,8 @@ namespace caff {
             if (auto strongThis = weakThis.lock()) {
                 switch (strongThis->state) {
                 case State::Starting:
-                case State::Online:
+                case State::Streaming:
+                case State::Live:
                     // TODO: Backoff?
                     strongThis->setupSubscription();
                     break;
