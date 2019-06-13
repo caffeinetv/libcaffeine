@@ -7,9 +7,10 @@
 #include <random>
 #include <thread>
 
-#include "RestApi.hpp"
 #include "AudioDevice.hpp"
 #include "PeerConnectionObserver.hpp"
+#include "Policy.hpp"
+#include "RestApi.hpp"
 #include "SessionDescriptionObserver.hpp"
 #include "Utils.hpp"
 #include "VideoCapturer.hpp"
@@ -673,22 +674,27 @@ namespace caff {
             int32_t width,
             int32_t height,
             std::chrono::microseconds timestamp) {
-        if (isOnline()) {
-            auto rtcFormat = static_cast<webrtc::VideoType>(format);
-            auto i420frame = videoCapturer->sendVideo(rtcFormat, frameData, frameBytes, width, height, timestamp);
+        if (!isOnline()) {
+            return;
+        }
+        if (auto result = checkAspectRatio(width, height)) {
+            failedCallback(result);
+            return;
+        }
+        auto rtcFormat = static_cast<webrtc::VideoType>(format);
+        auto i420frame = videoCapturer->sendVideo(rtcFormat, frameData, frameBytes, width, height, timestamp);
 
-            bool expected = true;
-            if (i420frame && isScreenshotNeeded.compare_exchange_strong(expected, false)) {
-                try {
-                    screenshotPromise.set_value(createScreenshot(i420frame));
-                    LOG_DEBUG("Screenshot promise set");
-                } catch (std::exception ex) {
-                    LOG_ERROR("Failed to create screenshot: %s", ex.what());
-                    screenshotPromise.set_exception(std::current_exception());
-                } catch (...) {
-                    LOG_ERROR("Failed to create screenshot");
-                    screenshotPromise.set_exception(std::current_exception());
-                }
+        bool expected = true;
+        if (i420frame && isScreenshotNeeded.compare_exchange_strong(expected, false)) {
+            try {
+                screenshotPromise.set_value(createScreenshot(i420frame));
+                LOG_DEBUG("Screenshot promise set");
+            } catch (std::exception ex) {
+                LOG_ERROR("Failed to create screenshot: %s", ex.what());
+                screenshotPromise.set_exception(std::current_exception());
+            } catch (...) {
+                LOG_ERROR("Failed to create screenshot");
+                screenshotPromise.set_exception(std::current_exception());
             }
         }
     }

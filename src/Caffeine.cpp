@@ -68,6 +68,10 @@ CAFFEINE_API char const * caff_resultString(caff_Result result) try {
         return "Broadcast takeover";
     case caff_ResultAlreadyBroadcasting:
         return "Already broadcasting";
+    case caff_ResultAspectTooNarrow:
+        return "Aspect ratio too narrow";
+    case caff_ResultAspectTooWide:
+        return "Aspect ratio too wide";
     case caff_ResultDisconnected:
         return "Disconnected from server";
     case caff_ResultBroadcastFailed:
