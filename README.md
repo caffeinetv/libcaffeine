@@ -4,6 +4,8 @@ This is a library for setting up broadcasts and streaming on [Caffeine.tv](https
 
 Libcaffeine is licensed under the GNU GPL version 2. See LICENSE.txt for details.
 
+For information on contributing to this project, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 TODO: More Documentation
 
 ## Using the library
@@ -11,6 +13,7 @@ TODO: More Documentation
 Minimal Example:
 
 ```c
+// Callbacks
 void started(void *myContext) {
     // Start capturing audio & video
 }
@@ -20,16 +23,19 @@ void failed(void *myContext, caff_Result result) {
     // Stop capturing if necessary
 }
 
-// Starting a broadcast:
-caff_initialize(caff_SeverityDebug, NULL);
+
+// Once on startup
+caff_initialize("example", "1.0", caff_SeverityDebug, NULL);
+
+
+// Starting a broadcast
 caff_InstanceHandle instance = caff_createInstance();
 caff_Result result = caff_signIn(instance, "Myuser", "|\\/|Yp455WYrd", NULL);
 if (result != caff_ResultSuccess) return -1;
-result = caff_startBroadcast(
-    instance, &myContext, "My title!", caff_RatingNone, NULL, started, failed);
+result = caff_startBroadcast(instance, &myContext, "My title!", caff_RatingNone, NULL, started, failed);
 
 
-// In your video/audio capture thread:
+// On your video/audio capture thread(s)
 caff_sendVideo(
     instance, caff_VideoFormatNv12, pixels, pixelBytes, width, height, caff_TimestampGenerate);
 caff_sendAudio(instance, samples, 2);
@@ -79,35 +85,3 @@ Steps:
     * Build the project in Xcode
 
 **TODO:** Linux
-
-## Code style
-
-`.clang-format` is the source of truth. Ignore anything here that conflicts.
-
-Rule of thumb: mimic the style of whatever is around what you're changing. Here are some decided-on details:
-
-### Text formatting
-
-* 120-column text width
-* 4-space indentation
-* Always use braces for compound statements (`if`, `for`, `switch`, etc)
-* Spaces on both sides of `&` and `*` in declarations. `char * foo;`
-* East const (`char const * const` instead of `const char * const`)
-
-### Naming
-
-* Types, enum values, and file names: `PascalCase`
-* Macros (to be avoided): `SCREAMING_SNAKE_CASE`
-* Other names: `camelCase`
-
-Names should be unadorned (no hungarian notation, no distincion between global, local, and member variables, etc.).
-
-Acronyms, abbreviations, initialisms, etc should be treated like words, e.g. `IceUrl iceUrl;`
-
-All names should be declared in the `caff` namespace, except when extending 3rd-party namespaces.
-
-In C, all names should be prefixed with `caff_`, and otherwise follow the same conventions.
-
-In C++, prefer `enum class`es. In C, include the enum type in the name of the enum value, e.g. `caff_ErrorNotSignedIn`
-
-C++ filenames use `.hpp` and `.cpp`. C filenames use `.h` and `.c`.
