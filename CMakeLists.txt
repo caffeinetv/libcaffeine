@@ -55,6 +55,8 @@ set(libcaffeine_SOURCES
     src/LogSink.hpp
     src/PeerConnectionObserver.cpp
     src/PeerConnectionObserver.hpp
+    src/Policy.hpp
+    src/Policy.cpp
     src/RestApi.hpp
     src/RestApi.cpp
     src/Serialization.cpp

@@ -97,6 +97,8 @@ typedef enum caff_Result {
     caff_ResultOutOfCapacity,       //!< Could not find capacity on the server to start a broadcast
     caff_ResultTakeover,            //!< The user ended the broadcast from another device or instance
     caff_ResultAlreadyBroadcasting, //!< A broadcast is already online
+    caff_ResultAspectTooNarrow,     //!< The video being sent is too narrow for Caffeine
+    caff_ResultAspectTooWide,       //!< The video being sent is too wide for Caffeine
     caff_ResultDisconnected,        //!< Broadcast has been disconnected
     caff_ResultBroadcastFailed,     //!< Broadcast failed to start
 
