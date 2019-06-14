@@ -338,7 +338,7 @@ namespace caff {
             }
         }
 
-        if (titleChanged && isOnline()) {
+        if (titleChanged && state == State::Live) {
             updateTitle();
         }
     }
@@ -353,7 +353,7 @@ namespace caff {
             }
         }
 
-        if (ratingChanged && isOnline()) {
+        if (ratingChanged && state == State::Live) {
             updateTitle();
         }
     }
