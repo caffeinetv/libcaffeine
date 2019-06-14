@@ -29,7 +29,6 @@
 #define BROADCAST_URL(id) (std::string(API_ENDPOINT "v1/broadcasts/") + (id))
 
 #define REALTIME_GRAPHQL_URL REALTIME_ENDPOINT "public/graphql/query"
-#define STAGE_UPDATE_URL(username) (std::string(REALTIME_ENDPOINT "v4/stage/") + (username))
 #define STREAM_HEARTBEAT_URL(streamUrl) (std::string((streamUrl)) + "/heartbeat")
 
 #define BROADCAST_METRICS_URL EVENTS_ENDPOINT "v1/broadcast_metrics"
@@ -671,111 +670,6 @@ namespace caff {
     }
 
     static bool isOutOfCapacityFailure(std::string const & type) { return type == "OutOfCapacity"; }
-
-    static Retryable<optional<StageResponseResult>> doStageUpdate(
-            StageRequest const & request, SharedCredentials & creds) {
-        if (!request.stage || !request.stage->username || request.stage->username->empty()) {
-            LOG_ERROR("Did not set request username");
-            return optional<StageResponseResult>{};
-        }
-
-        Json requestJson = request;
-        auto requestBody = requestJson.dump();
-
-        ScopedCurl curl(CONTENT_TYPE_JSON, creds);
-
-        auto urlStr = STAGE_UPDATE_URL(*request.stage->username);
-
-        curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
-        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
-        char curlError[CURL_ERROR_SIZE];
-        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
-
-        CURLcode curlResult = curl_easy_perform(curl);
-        if (curlResult != CURLE_OK) {
-            LOG_ERROR("HTTP failure performing stage update: [%d] %s", curlResult, curlError);
-            return { {} };
-        }
-
-        long responseCode;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
-        LOG_DEBUG("Http response [%ld]", responseCode);
-
-        if (responseCode == 401) {
-            LOG_DEBUG("Unauthorized - refreshing credentials");
-            if (refreshCredentials(creds)) {
-                return doStageUpdate(request, creds);
-            }
-            return optional<StageResponseResult>{};
-        }
-
-        Json responseJson;
-        try {
-            responseJson = Json::parse(responseStr);
-        } catch (...) {
-            LOG_ERROR("Failed to deserialize stage update response to JSON");
-            return { {} };
-        }
-
-        if (responseCode == 200) {
-            try {
-                return { StageResponse(responseJson) };
-            } catch (...) {
-                LOG_ERROR("Failed to unpack stage response");
-                return { {} };
-            }
-        } else {
-            try {
-                auto type = responseJson.at("type").get<std::string>();
-
-                // As of now, the only failure response we want to return and not retry is `OutOfCapacity`
-                if (isOutOfCapacityFailure(type)) {
-                    return { FailureResponse(responseJson) };
-                }
-            } catch (...) {
-                LOG_ERROR("Failed to unpack failure response");
-            }
-            return { {} };
-        }
-    }
-
-    static optional<StageResponseResult> stageUpdate(StageRequest const & request, SharedCredentials & creds) {
-        return retryRequest<optional<StageResponseResult>>([&] { return doStageUpdate(request, creds); });
-    }
-
-    bool requestStageUpdate(
-            StageRequest & request,
-            SharedCredentials & creds,
-            std::chrono::milliseconds * retryIn,
-            bool * isOutOfCapacity) {
-        auto result = stageUpdate(request, creds);
-        if (!result.has_value()) {
-            return false;
-        }
-
-        auto response = get_if<StageResponse>(&*result);
-        if (response) {
-            if (retryIn) {
-                *retryIn = response->retryIn;
-            }
-            request.cursor = std::move(response->cursor);
-            request.stage = std::move(response->stage);
-            return true;
-        } else {
-            auto & failure = get<FailureResponse>(*result);
-            if (isOutOfCapacity && isOutOfCapacityFailure(failure.type)) {
-                *isOutOfCapacity = true;
-            }
-            return false;
-        }
-    }
 
     void sendWebrtcStats(SharedCredentials & sharedCreds, Json const & stats) {
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
