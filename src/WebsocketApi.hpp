@@ -46,11 +46,7 @@ namespace caff {
             std::function<void(WebsocketClient::ConnectionEndType)> endedHandler,
             SharedCredentials & creds,
             Args const &... args) {
-        std::string credential;
-        {
-            auto locked = creds.lock();
-            credential = locked.credentials.credential;
-        }
+        auto credential = creds.lock().credentials.credential;
         Json connectionInit{ { "type", "connection_init" },
                              { "payload", Json::object({ { "X-Credential", std::move(credential) } }) } };
         auto requestJson = OperationField::request(args...);
@@ -96,7 +92,7 @@ namespace caff {
             }
         };
 
-        return client.connect(realtimeGraphqlURL, name, opened, ended, messageReceived);
+        return client.connect(realtimeGraphqlUrl, name, opened, ended, messageReceived);
     }
 
 } // namespace caff

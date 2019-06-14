@@ -59,7 +59,7 @@ namespace caff {
     std::string clientType;
     std::string clientVersion;
 
-    std::string const realtimeGraphqlURL = REALTIME_GRAPHQL_URL;
+    std::string const realtimeGraphqlUrl = REALTIME_GRAPHQL_URL;
 
     class ScopedCurl final {
         static auto constexpr timeoutSeconds = 10l;
