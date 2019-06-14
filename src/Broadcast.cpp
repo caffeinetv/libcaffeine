@@ -368,7 +368,7 @@ namespace caff {
             }
         }
 
-        if (gameIdChanged) {
+        if (gameIdChanged && isOnline()) {
             updateFeed();
         }
     }
