@@ -669,8 +669,6 @@ namespace caff {
         return retryRequest<bool>([&] { return doUpdateScreenshot(broadcastId, screenshotData, sharedCreds); });
     }
 
-    static bool isOutOfCapacityFailure(std::string const & type) { return type == "OutOfCapacity"; }
-
     void sendWebrtcStats(SharedCredentials & sharedCreds, Json const & stats) {
         ScopedCurl curl(CONTENT_TYPE_FORM, sharedCreds);
 
