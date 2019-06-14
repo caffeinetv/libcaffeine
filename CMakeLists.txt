@@ -109,7 +109,7 @@ target_sources(${OBJLIB_NAME}
 )
 
 if(WIN32)
-    set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/win64/libx264.lib")
+    set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/win${BITS}/libx264.lib")
 elseif(APPLE)
     set(X264_LIB "${PROJECT_SOURCE_DIR}/third_party/x264/lib/mac64/libx264.a")
 endif()
