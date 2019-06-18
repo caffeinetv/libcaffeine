@@ -138,7 +138,7 @@ namespace caff {
         }
 
         if (auto data = get_if<typename OperationField::ResponseData>(&response)) {
-            return *data;
+            return std::move(*data);
         } else {
             auto const & errors = get<1>(response);
 
