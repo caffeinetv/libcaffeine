@@ -45,8 +45,9 @@ TEST_CASE("Annotate title") {
     }
 
     SUBCASE("adds the 17+ tag when rated 17+") {
-        CHECK(annotateTitle("Title", caff_RatingSeventeenPlus) == seventeenPlusTag + "Title");
-        CHECK(annotateTitle("", caff_RatingSeventeenPlus) == seventeenPlusTag + defaultTitle);
+        std::string ratingTag = seventeenPlusTag;
+        CHECK(annotateTitle("Title", caff_RatingSeventeenPlus) == ratingTag + "Title");
+        CHECK(annotateTitle("", caff_RatingSeventeenPlus) == ratingTag + defaultTitle);
     }
 
     SUBCASE("truncates titles longer than the max character limit") {

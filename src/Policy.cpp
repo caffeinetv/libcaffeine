@@ -22,16 +22,13 @@ namespace caff {
         }
     }
 
-    std::string const defaultTitle = "LIVE on Caffeine!";
-    std::string const seventeenPlusTag = "[17+] ";
-
     std::string annotateTitle(std::string title, caff_Rating rating) {
         trim(title);
         if (title.empty()) {
             title = defaultTitle;
         }
-        
-        static std::string const ratingStrings[] = { "", seventeenPlusTag };
+
+        static char const * ratingStrings[] = { "", seventeenPlusTag };
 
         auto fullTitle = ratingStrings[rating] + title;
         if (fullTitle.length() > maxTitleLength)
