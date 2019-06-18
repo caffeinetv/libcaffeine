@@ -31,18 +31,18 @@ namespace caff {
         clientThread.join();
     }
 
-    static std::string websocketLogPrefix(std::string const & name) { return "[Websocket " + name + "]"; }
+    static std::string websocketLogPrefix(std::string const & label) { return "[Websocket " + label + "]"; }
 
     optional<WebsocketClient::Connection> WebsocketClient::connect(
             std::string url,
-            std::string name,
+            std::string label,
             std::function<void(Connection)> openedCallback,
             std::function<void(Connection, ConnectionEndType)> endedCallback,
             std::function<void(Connection, std::string const &)> messageReceivedCallback) {
         std::error_code error;
         auto clientConnection = client.get_connection(url, error);
 
-        auto logPrefix = websocketLogPrefix(name);
+        auto logPrefix = websocketLogPrefix(label);
 
         if (error) {
             LOG_ERROR("%s connection initialization error: %s", logPrefix.c_str(), error.message().c_str());
@@ -52,7 +52,7 @@ namespace caff {
         clientConnection->set_open_handler([=](websocketpp::connection_hdl handle) {
             LOG_DEBUG("%s opened", logPrefix.c_str());
             if (openedCallback) {
-                openedCallback({ name, handle });
+                openedCallback({ label, handle });
             }
         });
 
@@ -66,7 +66,7 @@ namespace caff {
             }
 
             if (endedCallback) {
-                endedCallback({ name, handle }, ConnectionEndType::Closed);
+                endedCallback({ label, handle }, ConnectionEndType::Closed);
             }
         });
 
@@ -80,20 +80,20 @@ namespace caff {
             }
 
             if (endedCallback) {
-                endedCallback({ name, handle }, ConnectionEndType::Failed);
+                endedCallback({ label, handle }, ConnectionEndType::Failed);
             }
         });
 
         clientConnection->set_message_handler([=](websocketpp::connection_hdl handle, Client::message_ptr message) {
             LOG_DEBUG("%s message received: %s", logPrefix.c_str(), message->get_payload().c_str());
             if (messageReceivedCallback) {
-                messageReceivedCallback({ name, handle }, message->get_payload());
+                messageReceivedCallback({ label, handle }, message->get_payload());
             }
         });
 
         client.connect(clientConnection);
 
-        return Connection{ name, clientConnection->get_handle() };
+        return Connection{ label, clientConnection->get_handle() };
     }
 
     void WebsocketClient::sendMessage(Connection const & connection, std::string const & message) {
@@ -101,7 +101,7 @@ namespace caff {
         client.send(connection.handle, message, websocketpp::frame::opcode::text, error);
         if (error) {
             LOG_ERROR(
-                    "%s send message error: %s", websocketLogPrefix(connection.name).c_str(), error.message().c_str());
+                    "%s send message error: %s", websocketLogPrefix(connection.label).c_str(), error.message().c_str());
         }
     }
 
@@ -111,7 +111,7 @@ namespace caff {
         if (error) {
             LOG_ERROR(
                     "%s connection close error: %s",
-                    websocketLogPrefix(connection.name).c_str(),
+                    websocketLogPrefix(connection.label).c_str(),
                     error.message().c_str());
         }
     }
