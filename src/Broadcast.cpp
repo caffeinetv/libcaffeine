@@ -101,22 +101,6 @@ namespace caff {
         }
     }
 
-    static std::string annotateTitle(std::string title, caff_Rating rating) {
-        // TODO: move these defaults somewhere sane
-        trim(title);
-        if (title.empty()) {
-            title = "LIVE on Caffeine!";
-        }
-        size_t const maxTitleLength = 60;
-        static std::string const ratingStrings[] = { "", "[17+] " };
-
-        auto fullTitle = ratingStrings[rating] + title;
-        if (fullTitle.length() > maxTitleLength)
-            fullTitle.resize(maxTitleLength);
-
-        return fullTitle;
-    }
-
     variant<std::string, caff_Result> Broadcast::createFeed(std::string const & offer) {
         if (!requireState(State::Starting)) {
             return caff_ResultBroadcastFailed;
