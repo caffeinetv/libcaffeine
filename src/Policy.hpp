@@ -2,11 +2,14 @@
 
 #pragma once
 
-// TODO: Move some other things in here
+// TODO: Move more things in here (max BPS, max frame size, etc.)
 
 #include "caffeine.h"
 
 namespace caff {
+    // Broadcasting on the Caffeine platform after altering the values in this file may be deemed a violation of the
+    // Caffeine Terms of Service (https://www.caffeine.tv/tos.html).
+
     int32_t constexpr maxAspectWidth = 3;
     int32_t constexpr maxAspectHeight = 1;
 
