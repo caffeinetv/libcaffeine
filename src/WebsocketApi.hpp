@@ -42,7 +42,7 @@ namespace caff {
     template <typename OperationField, typename... Args>
     optional<WebsocketClient::Connection> graphqlSubscription(
             WebsocketClient & client,
-            std::string const & name,
+            std::string const & label,
             std::function<void(caffql::GraphqlResponse<typename OperationField::ResponseData>)> messageHandler,
             std::function<void(WebsocketClient::ConnectionEndType)> endedHandler,
             SharedCredentials & creds,
@@ -93,7 +93,7 @@ namespace caff {
             }
         };
 
-        return client.connect(REALTIME_GRAPHQL_URL, name, opened, ended, messageReceived);
+        return client.connect(REALTIME_GRAPHQL_URL, label, opened, ended, messageReceived);
     }
 
 } // namespace caff
