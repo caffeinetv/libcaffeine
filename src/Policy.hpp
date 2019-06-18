@@ -14,12 +14,11 @@ namespace caff {
     int32_t constexpr minAspectWidth = 1;
     int32_t constexpr minAspectHeight = 3;
 
+    char constexpr defaultTitle[] = "LIVE on Caffeine!";
+    char constexpr seventeenPlusTag[] = "[17+] ";
+    size_t constexpr maxTitleLength = 60;
 
     caff_Result checkAspectRatio(int32_t width, int32_t height);
-
-    extern std::string const defaultTitle;
-    extern std::string const seventeenPlusTag;
-    size_t constexpr maxTitleLength = 60;
 
     std::string annotateTitle(std::string title, caff_Rating rating);
 } // namespace caff
