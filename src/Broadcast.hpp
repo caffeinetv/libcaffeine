@@ -98,7 +98,7 @@ namespace caff {
         caff_ConnectionQuality connectionQuality = caff_ConnectionQualityUnknown;
         optional<std::string> broadcastId;
         std::string streamUrl;
-        optional<WebsocketClient::Connection> stageSubscription;
+        std::shared_ptr<GraphqlSubscription<caffql::Subscription::StageField>> subscription;
         std::atomic<bool> feedHasAppearedInSubscription;
         std::atomic<bool> stageHasGoneLiveInSubscription;
 
@@ -119,8 +119,7 @@ namespace caff {
         std::string fullTitle();
         bool updateFeed();
         bool updateTitle();
-        void setupSubscription();
-        void endSubscription();
+        void setupSubscription(size_t tryNum = 1);
     };
 
 } // namespace caff

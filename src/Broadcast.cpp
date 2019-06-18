@@ -54,7 +54,7 @@ namespace caff {
         , audioDevice(audioDevice)
         , factory(factory) {}
 
-    Broadcast::~Broadcast() { endSubscription(); }
+    Broadcast::~Broadcast() {}
 
     char const * Broadcast::stateString(Broadcast::State state) {
         switch (state) {
@@ -460,7 +460,7 @@ namespace caff {
 
     void Broadcast::stop() {
         state = State::Stopping;
-        endSubscription();
+        subscription = nullptr;
         if (broadcastThread.joinable()) {
             broadcastThread.join();
         }
@@ -598,14 +598,7 @@ namespace caff {
         return payload && !payload->error;
     }
 
-    void Broadcast::setupSubscription() {
-        std::lock_guard<std::mutex> lock(mutex);
-
-        if (stageSubscription) {
-            websocketClient.close(std::move(*stageSubscription));
-            stageSubscription.reset();
-        }
-
+    void Broadcast::setupSubscription(size_t tryNum) {
         std::weak_ptr<Broadcast> weakThis = shared_from_this();
 
         auto messageHandler = [weakThis](caffql::GraphqlResponse<caffql::StageSubscriptionPayload> update) mutable {
@@ -641,19 +634,42 @@ namespace caff {
                     strongThis->failedCallback(caff_ResultTakeover);
                 }
             } else if (auto errors = get_if<std::vector<caffql::GraphqlError>>(&update)) {
-                // TODO: Refresh credentials if needed
                 strongThis->failedCallback(caff_ResultBroadcastFailed);
             }
         };
 
-        auto endedHandler = [weakThis](WebsocketClient::ConnectionEndType endType) {
+        auto endedHandler = [weakThis, tryNum](WebsocketClient::ConnectionEndType endType) {
             if (auto strongThis = weakThis.lock()) {
                 switch (strongThis->state) {
                 case State::Starting:
                 case State::Streaming:
                 case State::Live:
-                    // TODO: Backoff?
-                    strongThis->setupSubscription();
+                    switch (endType) {
+                    case WebsocketClient::Failed:
+                        break;
+                    case WebsocketClient::Closed:
+                        strongThis->setupSubscription();
+                        return;
+                    }
+                case State::Offline:
+                case State::Stopping:
+                    return;
+                }
+            } else {
+                return;
+            }
+
+            auto sleepFor = backoffDuration(tryNum);
+            LOG_ERROR("Retrying broadcast subscription in %lld seconds", sleepFor.count());
+            std::this_thread::sleep_for(sleepFor);
+
+            if (auto strongThis = weakThis.lock()) {
+                switch (strongThis->state) {
+                case State::Starting:
+                case State::Streaming:
+                case State::Live:
+                    LOG_ERROR("Retrying broadcast subscription");
+                    strongThis->setupSubscription(tryNum + 1);
                     break;
                 case State::Offline:
                 case State::Stopping:
@@ -662,28 +678,19 @@ namespace caff {
             }
         };
 
-        stageSubscription = graphqlSubscription<caffql::Subscription::StageField>(
+        subscription = std::make_shared<GraphqlSubscription<caffql::Subscription::StageField>>(
                 websocketClient,
+                sharedCredentials,
                 "stage " + username,
                 messageHandler,
                 endedHandler,
-                sharedCredentials,
                 clientId,
                 caffql::ClientType::Capture,
                 username,
                 nullopt,
                 nullopt,
                 false);
-    }
-
-    void Broadcast::endSubscription() {
-        std::lock_guard<std::mutex> lock(mutex);
-        if (!stageSubscription) {
-            return;
-        }
-
-        websocketClient.close(std::move(*stageSubscription));
-        stageSubscription.reset();
+        subscription->connect();
     }
 
 } // namespace caff

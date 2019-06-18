@@ -92,6 +92,8 @@ namespace caff {
         caff_ConnectionQuality connectionQuality;
     };
 
+    std::chrono::duration<long long> backoffDuration(size_t tryNum);
+
     optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & creds);
 
     bool updateScreenshot(
@@ -104,6 +106,8 @@ namespace caff {
     AuthResponse signIn(char const * username, char const * password, char const * otp);
 
     AuthResponse refreshAuth(char const * refreshToken);
+
+    bool refreshCredentials(SharedCredentials & creds);
 
     optional<UserInfo> getUserInfo(SharedCredentials & creds);
 

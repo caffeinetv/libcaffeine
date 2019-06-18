@@ -122,13 +122,17 @@ namespace caff {
         return retryable.desire == Retryable<T>::Complete;
     }
 
+    std::chrono::duration<long long> backoffDuration(size_t tryNum) {
+        return std::min(1 + 1 * tryNum, size_t{ 20 }) * 1s;
+    }
+
     // TODO: put in configuration header or something
     int constexpr numRetries = 3;
     template <typename T> T retryRequest(std::function<Retryable<T>()> requestFunction) {
         Retryable<T> retryable{ Retryable<T>::Retry, {} };
-        for (int tryNum = 0; tryNum < numRetries; ++tryNum) {
+        for (size_t tryNum = 0; tryNum < numRetries; ++tryNum) {
             if (tryNum > 0) {
-                auto sleepFor = 1s + 1s * tryNum;
+                auto sleepFor = backoffDuration(tryNum);
                 LOG_DEBUG("Retrying in %lld seconds", sleepFor.count());
                 std::this_thread::sleep_for(sleepFor);
             }
@@ -368,7 +372,7 @@ namespace caff {
         return retryRequest<AuthResponse>(std::bind(doRefreshAuth, refreshToken));
     }
 
-    static bool refreshCredentials(SharedCredentials & creds) {
+    bool refreshCredentials(SharedCredentials & creds) {
         auto refreshToken = creds.lock().credentials.refreshToken;
         auto response = refreshAuth(refreshToken.c_str());
         if (response.credentials) {
