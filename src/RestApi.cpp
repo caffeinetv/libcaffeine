@@ -7,7 +7,7 @@
 #include <sstream>
 #include <thread>
 
-#define LIBCAFFEINE_VERSION "0.1"
+#define LIBCAFFEINE_VERSION "0.2"
 
 // TODO: load these from config? environment?
 #if CAFFEINE_STAGING
