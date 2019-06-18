@@ -29,3 +29,27 @@ TEST_CASE("Aspect ratio check succeeds between 1:3 and 3:1") {
     CHECK(checkAspectRatio(2999, 1000) == caff_ResultSuccess);
     CHECK(checkAspectRatio(1000, 2999) == caff_ResultSuccess);
 }
+
+TEST_CASE("Annotate title") {
+    SUBCASE("uses the supplied title when it is not empty") {
+        CHECK(annotateTitle("Title", caff_RatingNone) == "Title");
+    }
+
+    SUBCASE("uses the default title when an empty title is supplied") {
+        CHECK(annotateTitle("", caff_RatingNone) == defaultTitle);
+    }
+
+    SUBCASE("trims leading and trailing whitespace") {
+        CHECK(annotateTitle("  Title  ", caff_RatingNone) == "Title");
+        CHECK(annotateTitle("     ", caff_RatingNone) == defaultTitle);
+    }
+
+    SUBCASE("adds the 17+ tag when rated 17+") {
+        CHECK(annotateTitle("Title", caff_RatingSeventeenPlus) == seventeenPlusTag + "Title");
+        CHECK(annotateTitle("", caff_RatingSeventeenPlus) == seventeenPlusTag + defaultTitle);
+    }
+
+    SUBCASE("truncates titles longer than the max character limit") {
+        CHECK(annotateTitle(std::string(500, 'a'), caff_RatingNone) == std::string(maxTitleLength, 'a'));
+    }
+}

@@ -1,6 +1,7 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
 
 #include "Policy.hpp"
+#include "Utils.hpp"
 
 namespace caff {
     inline bool isRatioLess(int64_t width1, int64_t height1, int64_t width2, int64_t height2) {
@@ -19,5 +20,23 @@ namespace caff {
         } else {
             return caff_ResultSuccess;
         }
+    }
+
+    std::string const defaultTitle = "LIVE on Caffeine!";
+    std::string const seventeenPlusTag = "[17+] ";
+
+    std::string annotateTitle(std::string title, caff_Rating rating) {
+        trim(title);
+        if (title.empty()) {
+            title = defaultTitle;
+        }
+        
+        static std::string const ratingStrings[] = { "", seventeenPlusTag };
+
+        auto fullTitle = ratingStrings[rating] + title;
+        if (fullTitle.length() > maxTitleLength)
+            fullTitle.resize(maxTitleLength);
+
+        return fullTitle;
     }
 } // namespace caff
