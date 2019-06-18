@@ -16,7 +16,7 @@ namespace caff {
         ~WebsocketClient();
 
         struct Connection {
-            std::string name;
+            std::string label;
             websocketpp::connection_hdl handle;
         };
 
@@ -24,7 +24,7 @@ namespace caff {
 
         optional<Connection> connect(
                 std::string url,
-                std::string name,
+                std::string label,
                 std::function<void(Connection)> openedCallback,
                 std::function<void(Connection, ConnectionEndType)> endedCallback,
                 std::function<void(Connection, std::string const &)> messageReceivedCallback);
