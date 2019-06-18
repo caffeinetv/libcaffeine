@@ -3,6 +3,7 @@
 #pragma once
 
 #include "RestApi.hpp"
+#include "Urls.hpp"
 #include "websocketpp/client.hpp"
 #include "websocketpp/config/asio_client.hpp"
 
@@ -92,7 +93,7 @@ namespace caff {
             }
         };
 
-        return client.connect(realtimeGraphqlUrl, name, opened, ended, messageReceived);
+        return client.connect(REALTIME_GRAPHQL_URL, name, opened, ended, messageReceived);
     }
 
 } // namespace caff
