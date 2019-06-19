@@ -64,16 +64,16 @@ namespace caff {
         void connect() {
             disconnect();
 
-            auto credential = creds.lock().credentials.credential;
-            Json connectionInit{ { "type", "connection_init" },
-                                 { "payload", Json::object({ { "X-Credential", std::move(credential) } }) } };
-
             std::weak_ptr<GraphqlSubscription> weakThis = this->shared_from_this();
 
-            auto & client = this->client;
-            auto opened = [init = std::move(connectionInit), weakThis](WebsocketClient::Connection connection) {
+            auto opened = [weakThis](WebsocketClient::Connection connection) {
                 if (auto strongThis = weakThis.lock()) {
-                    strongThis->client.sendMessage(connection, init.dump());
+                    Json connectionInit{
+                        { "type", "connection_init" },
+                        { "payload",
+                          Json::object({ { "X-Credential", strongThis->creds.lock().credentials.credential } }) }
+                    };
+                    strongThis->client.sendMessage(connection, connectionInit.dump());
                     strongThis->client.sendMessage(connection, strongThis->connectionParams.dump());
                 }
             };
@@ -110,6 +110,11 @@ namespace caff {
                     return;
                 }
 
+                auto strongThis = weakThis.lock();
+                if (!strongThis) {
+                    return;
+                }
+
                 if (auto errors = get_if<std::vector<caffql::GraphqlError>>(&response)) {
                     // Refresh credentials if needed
                     bool shouldRefresh = false;
@@ -121,21 +126,16 @@ namespace caff {
                         }
                     }
 
-
                     if (shouldRefresh) {
-                        if (auto strongThis = weakThis.lock()) {
-                            if (refreshCredentials(strongThis->creds)) {
-                                strongThis->connect();
-                                return;
-                            }
+                        if (refreshCredentials(strongThis->creds)) {
+                            strongThis->connect();
+                            return;
                         }
                     }
                 }
 
-                if (auto strongThis = weakThis.lock()) {
-                    if (strongThis->messageHandler) {
-                        strongThis->messageHandler(response);
-                    }
+                if (strongThis->messageHandler) {
+                    strongThis->messageHandler(response);
                 }
             };
 
