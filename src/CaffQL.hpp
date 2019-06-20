@@ -790,7 +790,7 @@ namespace caffql {
 
         };
 
-    }; // namespace Subscription 
+    } // namespace Subscription
 
     struct UpdateFeedPayload {
         optional<Error> error;
@@ -937,7 +937,7 @@ namespace caffql {
 
         };
 
-    }; // namespace Query 
+    } // namespace Query
 
     struct RemoveFeedPayload {
         optional<Error> error;
@@ -2036,6 +2036,6 @@ namespace caffql {
 
         };
 
-    }; // namespace Mutation 
+    } // namespace Mutation
 
 } // namespace caffql
