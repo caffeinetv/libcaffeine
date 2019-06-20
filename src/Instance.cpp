@@ -149,6 +149,15 @@ namespace caff {
             return caff_ResultOldVersion;
         }
 
+        if (!userInfo->canBroadcast) {
+            // Refresh user info in case the user is newly allowed to broadcast
+            auto newUserInfo = caff::getUserInfo(*sharedCredentials);
+            if (!newUserInfo || !newUserInfo->canBroadcast) {
+                return caff_ResultEmailVerificationRequired;
+            }
+            userInfo = std::move(newUserInfo);
+        }
+
         std::lock_guard<std::mutex> lock(broadcastMutex);
 
         if (broadcast) {

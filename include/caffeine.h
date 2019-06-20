@@ -397,6 +397,7 @@ If there is an error that either prevents the broadcast from starting or interru
         - ::caff_ResultAlreadyBroadcasting if the instance already has a broadcast in progress
         - ::caff_ResultNotSignedIn if the instance has not been authenticated
         - ::caff_ResultOldVersion if the version of libcaffeine or the application are no longer supported
+        - ::caff_ResultEmailVerificationRequired if the user has not verified their email address
         - ::caff_ResultSuccess if the broadcast thread has started
 
 \see caff_setTitle()
