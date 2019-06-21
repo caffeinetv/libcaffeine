@@ -60,7 +60,7 @@ namespace caff {
         size_t const idLength = 12;
 
         static std::default_random_engine generator(std::time(0));
-        static std::uniform_int_distribution<size_t> distribution(0, sizeof(charset) - 1);
+        static std::uniform_int_distribution<size_t> distribution(0, sizeof(charset) - 2);
 
         std::string id;
 
