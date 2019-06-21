@@ -49,6 +49,7 @@ namespace caffql {
         json.at("message").get_to(value.message);
     }
 
+    // For sending data into the CDN.
     struct BroadcasterStream {
         Id id;
         std::string url;
@@ -73,6 +74,10 @@ namespace caffql {
         {Capability::Video, "VIDEO"},
     });
 
+    /*
+    This error will be returned when Reyes failed to retrieve streams for all of
+    the feeds even after retrying.
+    */
     struct CdnError {
         optional<std::string> title;
         std::string message;
@@ -90,6 +95,13 @@ namespace caffql {
         json.at("message").get_to(value.message);
     }
 
+    /*
+    Reyes will now enforce rules around when and how clients are able to take over
+    the stage. (See documentation here (TODO)).
+    
+    For example, if you try to start a broadcaston Lucio and Reyes does not allow
+    it, the user will receive a message via this Error type.
+    */
     struct ClientContentionError {
         optional<std::string> title;
         std::string message;
@@ -109,10 +121,8 @@ namespace caffql {
 
     enum class ClientType {
         Web,
-
         // iOS and Android
         Mobile,
-
         // COBS and Lucio (via libcaffeine)
         Capture,
         Unknown = -1
@@ -135,6 +145,10 @@ namespace caffql {
         json.at("clientType").get_to(value.clientType);
     }
 
+    /*
+    This error will be returned when the user is not authorized to view requested
+    content due to the user's location.
+    */
     struct GeoRestrictionError {
         optional<std::string> title;
         std::string message;
@@ -163,13 +177,11 @@ namespace caffql {
     struct LiveHosting {
         Id address;
         double volume;
-
         /*
         ownerId is the account ID of the owner of the stage that is providing the
         underlying live-hostable content.
         */
         std::string ownerId;
-
         /*
         ownerUsername is the username of the owner of the stage that is providing the
         underlying live-hostable content.
@@ -184,6 +196,10 @@ namespace caffql {
         json.at("ownerUsername").get_to(value.ownerUsername);
     }
 
+    /*
+    This is an error specifically for when we have no more capacity. Clients should
+    not retry when they get this.
+    */
     struct OutOfCapacityError {
         optional<std::string> title;
         std::string message;
@@ -238,6 +254,7 @@ namespace caffql {
         {Role::Secondary, "SECONDARY"},
     });
 
+    // TODO Follow up on Cog DR discussion.
     enum class SourceConnectionQuality {
         Good,
         Poor,
@@ -265,6 +282,7 @@ namespace caffql {
         }
     }
 
+    // For viewing data from the CDN.
     struct ViewerStream {
         Id id;
         std::string url;
@@ -338,15 +356,13 @@ namespace caffql {
         }
     }
 
+    // Optional fields that are not set will be set to the specified default values.
     struct FeedInput {
-
         // Must be a valid, lower-cased v4 UUID.
         Id id;
         optional<Id> gameId;
-
         // Defaults to PRIMARY.
         optional<Role> role;
-
         /*
         Currently, the volume only matters for live hosting content, so that clients
         can determine the right balance between the volume of live hosting content
@@ -355,27 +371,22 @@ namespace caffql {
         Defaults to 1.0; currently only returned on a LiveHostingFeed.
         */
         optional<double> volume;
-
         // Defaults to GOOD.
         optional<SourceConnectionQuality> sourceConnectionQuality;
-
         // Defaults to [AUDIO, VIDEO].
         optional<std::vector<Capability>> capabilities;
-
         /*
         Currently, only Garrus may add live-hostable content, but this is included
         for testing. Users without the permission will not be able to make the feed
         hostable.
         */
         optional<bool> liveHostable;
-
         /*
         Use this for adding a live hosting feed to the stage.
         
         Must correspond to a valid "address" on a LiveHostableFeed.
         */
         optional<Id> liveHostingAddress;
-
         /*
         Include the SDP offer when adding a new feed whose content you own and will
         be sending into the CDN. The SDP offer is used to allocate a
@@ -384,7 +395,6 @@ namespace caffql {
         NOTE: You must either provide an sdpOffer or a viewerStream.
         */
         optional<std::string> sdpOffer;
-
         /*
         If you want to add a live-hosting feed, and you already have a viewer stream
         that you want to reuse, include it here.
@@ -450,6 +460,11 @@ namespace caffql {
         std::string url;
     };
 
+    /*
+    A stream is a CDN resource for viewing or broadcasting.
+    
+    After you get a stream you should _____ (TODO, link to client tech design).
+    */
     struct Stream {
         variant<BroadcasterStream, ViewerStream, UnknownStream> implementation;
 
@@ -487,18 +502,15 @@ namespace caffql {
         Id id;
         Id clientId;
         ClientType clientType;
-
         // Represents content identifiable in Roadhog's game table.
         optional<Id> gameId;
         SourceConnectionQuality sourceConnectionQuality;
         std::vector<Capability> capabilities;
-
         /*
         Reyes may override the role a client specifies in order to maintain a valid
         feed / role configuration.
         */
         Role role;
-
         /*
         Currently, only Garrus may set restrictions, which is why they are not
         included on the FeedInput type.
@@ -542,15 +554,12 @@ namespace caffql {
     }
 
     struct Stage {
-
         // The Roadhog account ID of the owner of the stage (no CAID prefix).
         Id id;
-
         // The username of the owner of the stage.
         std::string username;
         std::string title;
         bool live;
-
         /*
         For now, clients still need to upload their own images.
         
@@ -565,7 +574,6 @@ namespace caffql {
         If you don't have a broadcast ID.
         */
         optional<Id> broadcastId;
-
         /*
         If the stage is live (or in test mode), then the ControllingClient will be
         populated. This indicates that there exists a client that is in "control" of
@@ -574,7 +582,6 @@ namespace caffql {
         takeover rules, documented here (TODO)).
         */
         optional<ControllingClient> controllingClient;
-
         /*
         Contains only the feeds that the requesting client should be concerned with.
         (i.e. The feeds necessary to allow the client to view the stage.)
@@ -658,7 +665,6 @@ namespace caffql {
     }
 
     namespace Subscription {
-
 
         /*
         Use this subscription to get reactive updates to the stage pushed from Reyes.
@@ -849,7 +855,6 @@ namespace caffql {
 
     namespace Query {
 
-
         /*
         NOTE All this query does is to read stage and sanitize it depending on who
         the requester is.
@@ -1021,6 +1026,10 @@ namespace caffql {
         optional<Error> error;
     };
 
+    /*
+    If the error is present, then you should not expect the Stage to have
+    meaningful information (i.e. it will be a zero value).
+    */
     struct ErrorPayload {
         variant<AddFeedPayload, SetLiveHostingFeedPayload, UpdateFeedPayload, RemoveFeedPayload, ChangeStageTitlePayload, StartBroadcastPayload, StopBroadcastPayload, StageSubscriptionPayload, UnknownErrorPayload> implementation;
 
@@ -1067,7 +1076,6 @@ namespace caffql {
     }
 
     namespace Mutation {
-
 
         /*
         Add a feed to the stage. Any non-required fields in the input will be filled
@@ -1223,7 +1231,6 @@ namespace caffql {
 
         };
 
-
         /*
         Sets the live hosting feed to the stage. If a live hosting feed was already on
         the stage, this mutation will remove the pre-existing feed.
@@ -1376,7 +1383,6 @@ namespace caffql {
 
         };
 
-
         /*
         Reyes will only modify fields that are explicitly set in the input.
         
@@ -1521,7 +1527,6 @@ namespace caffql {
 
         };
 
-
         /*
         This mutation will give you an error if you try to remove the last feed on a
         live stage.
@@ -1632,7 +1637,6 @@ namespace caffql {
 
         };
 
-
         // If a client is controlling the stage, then only that client may change the title.
         struct ChangeStageTitleField {
 
@@ -1737,7 +1741,6 @@ namespace caffql {
             }
 
         };
-
 
         /*
         If multiple clients were in preview mode and had feeds on the stage, starting
@@ -1847,7 +1850,6 @@ namespace caffql {
 
         };
 
-
         /*
         keepLiveHostingFeeds, if true, will leave any live hosting feeds on the stage.
         Otherwise, all other feeds will be removed.
@@ -1953,7 +1955,6 @@ namespace caffql {
 
         };
 
-
         /*
         Use this when the CDN gives you a 400 type error on the stream to tell Reyes
         you need a new viewer stream.
@@ -1999,7 +2000,6 @@ namespace caffql {
             }
 
         };
-
 
         // This is an admin-only mutation.
         struct TakedownStageField {
