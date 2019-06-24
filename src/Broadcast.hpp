@@ -99,8 +99,10 @@ namespace caff {
         optional<std::string> broadcastId;
         std::string streamUrl;
         std::shared_ptr<GraphqlSubscription<caffql::Subscription::StageField>> subscription;
-        std::atomic<bool> feedHasAppearedInSubscription;
-        std::atomic<bool> stageHasGoneLiveInSubscription;
+
+        enum class SubscriptionState { None, Open, FeedHasAppeared, StageHasGoneLive };
+        SubscriptionState subscriptionState{};
+        std::promise<bool> subscriptionOpened;
 
         AudioDevice * audioDevice;
         VideoCapturer * videoCapturer;

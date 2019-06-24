@@ -387,6 +387,17 @@ namespace caff {
             return;
         }
 
+        // Make sure the subscription has opened before going live
+        {
+            auto openedFuture = subscriptionOpened.get_future();
+            auto status = openedFuture.wait_for(5s);
+            if (status != std::future_status::ready) {
+                LOG_ERROR("Timed out waiting for stage subscription open");
+                failedCallback(caff_ResultBroadcastFailed);
+                return;
+            }
+        }
+
         // Set stage live
 
         auto startPayload = graphqlRequest<caffql::Mutation::StartBroadcastField>(
@@ -610,25 +621,35 @@ namespace caff {
             if (auto payload = get_if<caffql::StageSubscriptionPayload>(&update)) {
                 // TODO: Check for error messages to display to the user
 
+                if (strongThis->subscriptionState == SubscriptionState::None) {
+                    strongThis->subscriptionState = SubscriptionState::Open;
+                    strongThis->subscriptionOpened.set_value(true);
+                }
+
                 auto const & feeds = payload->stage.feeds;
                 auto feedIt = std::find_if(
                         feeds.begin(), feeds.end(), [&](auto const & feed) { return feed.id == strongThis->feedId; });
                 bool feedIsOnStage = feedIt != feeds.end();
 
                 if (feedIsOnStage) {
-                    strongThis->feedHasAppearedInSubscription = true;
+                    if (strongThis->subscriptionState == SubscriptionState::Open) {
+                        strongThis->subscriptionState = SubscriptionState::FeedHasAppeared;
+                    }
 
                     if (payload->stage.live) {
-                        strongThis->stageHasGoneLiveInSubscription = true;
+                        strongThis->subscriptionState = SubscriptionState::StageHasGoneLive;
                     }
-                } else if (strongThis->feedHasAppearedInSubscription && strongThis->isOnline()) {
+                } else if (
+                        (strongThis->subscriptionState == SubscriptionState::FeedHasAppeared ||
+                         strongThis->subscriptionState == SubscriptionState::StageHasGoneLive) &&
+                        strongThis->isOnline()) {
                     // If our feed has appeared in the subscription and is no longer there
                     // while we think we're online, then we've failed.
                     strongThis->failedCallback(caff_ResultTakeover);
                     return;
                 }
 
-                if (!payload->stage.live && strongThis->stageHasGoneLiveInSubscription &&
+                if (!payload->stage.live && strongThis->subscriptionState == SubscriptionState::StageHasGoneLive &&
                     strongThis->state == State::Live) {
                     // If the stage is no longer live after we've gone live with our feed, then we've failed.
                     strongThis->failedCallback(caff_ResultTakeover);
