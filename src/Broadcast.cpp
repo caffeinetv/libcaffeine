@@ -651,6 +651,8 @@ namespace caff {
                         strongThis->setupSubscription();
                         return;
                     }
+                    break;
+
                 case State::Offline:
                 case State::Stopping:
                     return;
