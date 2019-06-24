@@ -665,13 +665,12 @@ namespace caff {
                 case State::Starting:
                 case State::Streaming:
                 case State::Live:
-                    switch (endType) {
-                    case WebsocketClient::Failed:
-                        break;
-                    case WebsocketClient::Closed:
+                    if (endType == WebsocketClient::ConnectionEndType::Closed) {
                         strongThis->setupSubscription();
                         return;
                     }
+                    break;
+
                 case State::Offline:
                 case State::Stopping:
                     return;
