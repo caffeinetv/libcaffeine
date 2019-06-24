@@ -20,7 +20,7 @@ namespace caff {
             websocketpp::connection_hdl handle;
         };
 
-        enum ConnectionEndType { Failed, Closed };
+        enum class ConnectionEndType { Failed, Closed };
 
         optional<Connection> connect(
                 std::string url,
