@@ -2,6 +2,7 @@
 
 #include "WebsocketApi.hpp"
 #include "ErrorLogging.hpp"
+#include "rtc_base/opensslutility.h"
 
 namespace caff {
 
@@ -13,10 +14,13 @@ namespace caff {
 
         client.set_tls_init_handler(
                 [](websocketpp::connection_hdl connection) -> std::shared_ptr<websocketpp::lib::asio::ssl::context> {
-                    // TODO: Look more into what should be done here
                     auto context = std::make_shared<asio::ssl::context>(asio::ssl::context::sslv23);
-                    context->set_default_verify_paths();
-                    context->set_verify_mode(asio::ssl::verify_peer);
+                    if (rtc::openssl::LoadBuiltinSSLRootCertificates(context->native_handle())) {
+                        LOG_DEBUG("Loaded built in ssl root certificates");
+                        context->set_verify_mode(asio::ssl::verify_peer);
+                    } else {
+                        LOG_ERROR("Could not load built in ssl root certificates");
+                    }
                     return context;
                 });
 
