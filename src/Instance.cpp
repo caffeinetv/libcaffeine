@@ -164,13 +164,6 @@ namespace caff {
             return caff_ResultAlreadyBroadcasting;
         }
 
-        auto dispatchFailure = [=](caff_Result error) {
-            taskQueue.PostTask([=] {
-                endBroadcast();
-                failedCallback(error);
-            });
-        };
-
         broadcast = std::make_shared<Broadcast>(
                 *sharedCredentials,
                 userInfo->username,
@@ -179,6 +172,23 @@ namespace caff {
                 std::move(gameId),
                 audioDevice,
                 factory);
+
+        auto clientId = broadcast->getClientId();
+
+        auto dispatchFailure = [=](caff_Result error) {
+            taskQueue.PostTask([=] {
+                {
+                    std::lock_guard<std::mutex> lock(broadcastMutex);
+                    if (!broadcast || broadcast->getClientId() != clientId) {
+                        LOG_DEBUG("Failed callback called after stopping broadcast");
+                        return;
+                    }
+                }
+                endBroadcast();
+                failedCallback(error);
+            });
+        };
+
         broadcast->start(startedCallback, dispatchFailure);
         return caff_ResultSuccess;
     }
@@ -191,8 +201,9 @@ namespace caff {
     void Instance::endBroadcast() {
         std::lock_guard<std::mutex> lock(broadcastMutex);
         if (broadcast) {
-            // Asynchronously end the broadcast so we don't block this thread
-            std::thread([broadcast = std::move(broadcast)] { broadcast->stop(); }).detach();
+            broadcast->stop();
+            // Asynchronously destroy the broadcast so we don't block this thread
+            std::thread([broadcast = std::move(broadcast)] { }).detach();
         }
     }
 

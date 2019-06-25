@@ -75,6 +75,10 @@ namespace caff {
 
         caff_ConnectionQuality getConnectionQuality();
 
+        std::string const & getClientId() const {
+            return clientId;
+        }
+
     private:
         enum class State { Offline, Starting, Streaming, Live, Stopping };
         std::atomic<State> state{ State::Offline };
