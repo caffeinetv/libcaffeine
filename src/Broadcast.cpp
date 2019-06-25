@@ -304,7 +304,9 @@ namespace caff {
 
             statsObserver = new rtc::RefCountedObject<StatsObserver>(sharedCredentials);
 
-            state.store(State::Streaming);
+            if (!transitionState(State::Starting, State::Streaming)) {
+                return;
+            }
             startedCallback();
 
             startHeartbeat();
@@ -409,7 +411,10 @@ namespace caff {
             failedCallback(caff_ResultBroadcastFailed);
         }
 
-        state = State::Live;
+        if (!transitionState(State::Streaming, State::Live)) {
+            graphqlRequest<caffql::Mutation::StopBroadcastField>(sharedCredentials, clientId, nullopt);
+            return;
+        }
 
         auto constexpr heartbeatInterval = 5000ms;
         auto constexpr checkInterval = 100ms;
