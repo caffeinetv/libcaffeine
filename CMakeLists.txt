@@ -80,7 +80,7 @@ set(libcaffeine_SOURCES
 add_definitions(-DASIO_STANDALONE)
 
 if(WIN32)
-    add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
+    add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 if(MSVC)
