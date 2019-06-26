@@ -2,12 +2,13 @@
 
 #include "Urls.hpp"
 #include <stdlib.h>
+#include "Utils.hpp"
 
 namespace caff {
 
     const std::string caffeineDomain = []() -> std::string {
         auto custom = getenv("LIBCAFFEINE_DOMAIN");
-        if (custom && strlen(custom) > 0) {
+        if (!isEmpty(custom)) {
             return custom;
         }
         return "caffeine.tv";
