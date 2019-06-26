@@ -25,3 +25,7 @@ foreach(file ${files})
 
     set_tests_properties("${testcase}" PROPERTIES LABELS "default")
 endforeach()
+
+# set the appropriate domain environment variable value for the environment tests
+set_tests_properties(test-default-environment PROPERTIES ENVIRONMENT LIBCAFFEINE_DOMAIN=)
+set_tests_properties(test-custom-environment PROPERTIES ENVIRONMENT LIBCAFFEINE_DOMAIN=custom.environment.net)

@@ -8,6 +8,7 @@ namespace caff {
     // Set the environment variable LIBCAFFEINE_DOMAIN to use a custom environment.
     // The default environment is "caffeine.tv".
 
+    extern std::string const caffeineDomain;
     extern std::string const versionCheckUrl;
     extern std::string const signInUrl;
     extern std::string const refreshTokenUrl;
