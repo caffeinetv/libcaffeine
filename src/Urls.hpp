@@ -2,26 +2,21 @@
 
 #pragma once
 
-// TODO: load these from config? environment?
-#if CAFFEINE_STAGING
-#    define CAFFEINE_DOMAIN "staging.caffeine.tv/"
-#else
-#    define CAFFEINE_DOMAIN "caffeine.tv/"
-#endif
+#include <string>
 
-#define API_ENDPOINT "https://api." CAFFEINE_DOMAIN
-#define REALTIME_ENDPOINT "https://realtime." CAFFEINE_DOMAIN
-#define EVENTS_ENDPOINT "https://events." CAFFEINE_DOMAIN
+namespace caff {
+    // Set the environment variable LIBCAFFEINE_DOMAIN to use a custom environment.
+    // The default environment is "caffeine.tv".
 
-// TODO: some of these are deprecated
-#define VERSION_CHECK_URL API_ENDPOINT "v1/version-check"
-#define SIGNIN_URL API_ENDPOINT "v1/account/signin"
-#define REFRESH_TOKEN_URL API_ENDPOINT "v1/account/token"
-#define GETGAMES_URL API_ENDPOINT "v1/games"
-#define GETUSER_URL(id) (std::string(API_ENDPOINT "v1/users/") + (id))
-#define BROADCAST_URL(id) (std::string(API_ENDPOINT "v1/broadcasts/") + (id))
+    extern std::string const caffeineDomain;
+    extern std::string const versionCheckUrl;
+    extern std::string const signInUrl;
+    extern std::string const refreshTokenUrl;
+    extern std::string const getGamesUrl;
+    extern std::string const realtimeGraphqlUrl;
+    extern std::string const broadcastMetricsUrl;
 
-#define REALTIME_GRAPHQL_URL REALTIME_ENDPOINT "public/graphql/query"
-#define STREAM_HEARTBEAT_URL(streamUrl) (std::string((streamUrl)) + "/heartbeat")
-
-#define BROADCAST_METRICS_URL EVENTS_ENDPOINT "v1/broadcast_metrics"
+    std::string getUserUrl(std::string const & id);
+    std::string broadcastUrl(std::string const & id);
+    std::string streamHeartbeatUrl(std::string const & streamUrl);
+} // namespace caff
