@@ -66,6 +66,7 @@ set(libcaffeine_SOURCES
     src/SessionDescriptionObserver.hpp
     src/StatsObserver.cpp
     src/StatsObserver.hpp
+    src/Urls.cpp
     src/Urls.hpp
     src/Utils.hpp
     src/VideoCapturer.cpp

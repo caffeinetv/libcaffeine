@@ -162,7 +162,7 @@ namespace caff {
     static Retryable<caff_Result> doCheckVersion() {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
-        curl_easy_setopt(curl, CURLOPT_URL, VERSION_CHECK_URL);
+        curl_easy_setopt(curl, CURLOPT_URL, versionCheckUrl.c_str());
 
         std::string responseStr;
 
@@ -229,7 +229,7 @@ namespace caff {
 
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
-        curl_easy_setopt(curl, CURLOPT_URL, SIGNIN_URL);
+        curl_easy_setopt(curl, CURLOPT_URL, signInUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
 
         std::string responseStr;
@@ -317,7 +317,7 @@ namespace caff {
 
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
-        curl_easy_setopt(curl, CURLOPT_URL, REFRESH_TOKEN_URL);
+        curl_easy_setopt(curl, CURLOPT_URL, refreshTokenUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
 
         std::string responseStr;
@@ -385,7 +385,7 @@ namespace caff {
     static Retryable<optional<UserInfo>> doGetUserInfo(SharedCredentials & creds) {
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
-        auto urlStr = GETUSER_URL(creds.lock().credentials.caid);
+        auto urlStr = getUserUrl(creds.lock().credentials.caid);
         curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
 
         std::string responseStr;
@@ -446,7 +446,7 @@ namespace caff {
     static Retryable<optional<GameList>> doGetSupportedGames() {
         ScopedCurl curl(CONTENT_TYPE_JSON);
 
-        curl_easy_setopt(curl, CURLOPT_URL, GETGAMES_URL);
+        curl_easy_setopt(curl, CURLOPT_URL, getGamesUrl.c_str());
 
         std::string responseStr;
 
@@ -530,7 +530,7 @@ namespace caff {
             std::string const & streamUrl, SharedCredentials & sharedCreds) {
         ScopedCurl curl(CONTENT_TYPE_JSON, sharedCreds);
 
-        auto url = STREAM_HEARTBEAT_URL(streamUrl);
+        auto url = streamHeartbeatUrl(streamUrl);
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{}"); // TODO: is this necessary?
@@ -608,7 +608,7 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, post.head);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
 
-        auto url = BROADCAST_URL(broadcastId);
+        auto url = broadcastUrl(broadcastId);
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
         char curlError[CURL_ERROR_SIZE];
@@ -667,7 +667,7 @@ namespace caff {
 
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, post.head);
 
-        curl_easy_setopt(curl, CURLOPT_URL, BROADCAST_METRICS_URL);
+        curl_easy_setopt(curl, CURLOPT_URL, broadcastMetricsUrl.c_str());
 
         std::string responseStr;
 
@@ -696,12 +696,11 @@ namespace caff {
     }
 
     static Retryable<optional<Json>> doGraphqlRawRequest(SharedCredentials & creds, Json const & requestJson) {
-        auto url = REALTIME_GRAPHQL_URL;
         auto requestBody = requestJson.dump();
 
         ScopedCurl curl(CONTENT_TYPE_JSON, creds);
 
-        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_URL, realtimeGraphqlUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
 

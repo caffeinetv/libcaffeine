@@ -139,7 +139,7 @@ namespace caff {
                 }
             };
 
-            connection = client.connect(REALTIME_GRAPHQL_URL, label, opened, ended, messageReceived);
+            connection = client.connect(realtimeGraphqlUrl, label, opened, ended, messageReceived);
         }
 
     private:
