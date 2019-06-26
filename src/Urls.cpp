@@ -6,10 +6,23 @@
 namespace caff {
 
     const std::string caffeineDomain = []() -> std::string {
-        auto custom = getenv("LIBCAFFEINE_DOMAIN");
+        auto const domainVariable = "LIBCAFFEINE_DOMAIN";
+#ifdef _WIN32
+        size_t requiredSize = 0;
+        getenv_s(&requiredSize, nullptr, 0, domainVariable);
+        if (requiredSize != 0) {
+            auto custom = new char[requiredSize]();
+            getenv_s(&requiredSize, custom, requiredSize, domainVariable);
+            std::string customStr = custom;
+            delete[] custom;
+            return customStr;
+        }
+#else
+        auto custom = getenv(domainVariable);
         if (custom && strlen(custom) > 0) {
             return custom;
         }
+#endif
         return "caffeine.tv";
     }();
 
