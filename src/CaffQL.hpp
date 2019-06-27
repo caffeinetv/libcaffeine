@@ -38,6 +38,8 @@ namespace caffql {
     using absl::monostate;
     using absl::visit;
 
+    enum class Operation { Query, Mutation, Subscription };
+
     struct GraphqlError {
         std::string message;
     };
@@ -685,6 +687,8 @@ namespace caffql {
         */
         struct StageField {
 
+            static Operation constexpr operation = Operation::Subscription;
+
             static Json request(Id const & clientId, ClientType clientType, std::string const & username, optional<bool> constrainedBaseline, optional<std::vector<StageSubscriptionViewerStreamInput>> const & viewerStreams, optional<bool> skipStreamAllocation) {
                 Json query = R"(
                     subscription Stage(
@@ -866,6 +870,8 @@ namespace caffql {
         should never use this information for anything.
         */
         struct StageField {
+
+            static Operation constexpr operation = Operation::Query;
 
             static Json request(std::string const & username) {
                 Json query = R"(
@@ -1091,8 +1097,19 @@ namespace caffql {
         
         Adding a feed may mutate other feeds, since Reyes always maintains a legal
         assignment of roles to the various feeds.
+        
+        Roles are assigned according to the following rules:
+        
+        1. Each client may have at most 2 feeds on the stage.
+        2. Each client may have at most 1 live hosting feed on the stage.
+        3. If the client did not specify the roles on the feeds, then the last feed
+        that was added will be PRIMARY.
+        4. However, if one of the feeds is live hosting, then that feed will be made
+        PRIMARY.
         */
         struct AddFeedField {
+
+            static Operation constexpr operation = Operation::Mutation;
 
             static Json request(Id const & clientId, ClientType clientType, FeedInput const & input) {
                 Json query = R"(
@@ -1246,6 +1263,8 @@ namespace caffql {
         */
         struct SetLiveHostingFeedField {
 
+            static Operation constexpr operation = Operation::Mutation;
+
             static Json request(Id const & clientId, ClientType clientType, FeedInput const & input) {
                 Json query = R"(
                     mutation SetLiveHostingFeed(
@@ -1389,6 +1408,8 @@ namespace caffql {
         It will give an error of the specified feed does not exist.
         */
         struct UpdateFeedField {
+
+            static Operation constexpr operation = Operation::Mutation;
 
             static Json request(Id const & clientId, ClientType clientType, FeedInput const & input) {
                 Json query = R"(
@@ -1535,6 +1556,8 @@ namespace caffql {
         */
         struct RemoveFeedField {
 
+            static Operation constexpr operation = Operation::Mutation;
+
             static Json request(Id const & clientId, ClientType clientType, Id const & feedId) {
                 Json query = R"(
                     mutation RemoveFeed(
@@ -1639,6 +1662,8 @@ namespace caffql {
 
         // If a client is controlling the stage, then only that client may change the title.
         struct ChangeStageTitleField {
+
+            static Operation constexpr operation = Operation::Mutation;
 
             static Json request(Id const & clientId, ClientType clientType, std::string const & title) {
                 Json query = R"(
@@ -1748,6 +1773,8 @@ namespace caffql {
         */
         struct StartBroadcastField {
 
+            static Operation constexpr operation = Operation::Mutation;
+
             static Json request(Id const & clientId, ClientType clientType, optional<std::string> const & title) {
                 Json query = R"(
                     mutation StartBroadcast(
@@ -1855,6 +1882,8 @@ namespace caffql {
         Otherwise, all other feeds will be removed.
         */
         struct StopBroadcastField {
+
+            static Operation constexpr operation = Operation::Mutation;
 
             static Json request(Id const & clientId, optional<bool> keepLiveHostingFeeds) {
                 Json query = R"(
@@ -1966,6 +1995,8 @@ namespace caffql {
         */
         struct RequestViewerStreamField {
 
+            static Operation constexpr operation = Operation::Mutation;
+
             static Json request(Id const & clientId, Id const & feedId) {
                 Json query = R"(
                     mutation RequestViewerStream(
@@ -2003,6 +2034,8 @@ namespace caffql {
 
         // This is an admin-only mutation.
         struct TakedownStageField {
+
+            static Operation constexpr operation = Operation::Mutation;
 
             static Json request(std::string const & username) {
                 Json query = R"(
