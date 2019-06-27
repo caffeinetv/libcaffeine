@@ -3,6 +3,7 @@
 #include "VideoCapturer.hpp"
 
 #include "ErrorLogging.hpp"
+#include "Policy.hpp"
 
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "libyuv.h"
@@ -67,12 +68,10 @@ namespace caff {
         return cricket::CS_STARTING;
     }
 
-    static int32_t const maxHeight = 720;
-    static int32_t const minDimension = 360;
-
     // Caffeine platform only supports up to 30 fps. Frames that come in too quickly will be dropped
-    // This value is fudged a bit (/32 instead of /30) to allow for minor variance between frames
-    static auto const minInterframe = 1000000us / 32;
+    // This value is fudged a bit (32 instead of 30) to allow for minor variance between frames
+    static auto constexpr dropFps = maxFps + 2;
+    static auto constexpr minInterframe = 1'000'000us / dropFps;
 
     rtc::scoped_refptr<webrtc::I420Buffer> VideoCapturer::sendVideo(
             webrtc::VideoType format,
@@ -81,6 +80,7 @@ namespace caff {
             int32_t width,
             int32_t height,
             std::chrono::microseconds timestamp) {
+        // TODO: see if we can easily configure max frame rate in webrtc
         auto span = timestamp - lastTimestamp;
         if (span < minInterframe) {
             LOG_DEBUG(
@@ -92,8 +92,8 @@ namespace caff {
         }
         lastTimestamp = timestamp;
 
-        int32_t adaptedWidth = minDimension;
-        int32_t adaptedHeight = minDimension;
+        int32_t adaptedWidth = minFrameDimension;
+        int32_t adaptedHeight = minFrameDimension;
         int32_t cropWidth;
         int32_t cropHeight;
         int32_t cropX;
@@ -119,18 +119,18 @@ namespace caff {
         // we will cap the minimum resolution to be 360 on the smaller of either width
         // or height depending on the orientation.
 
-        if ((width >= height) && (adaptedHeight < minDimension)) {
-            adaptedWidth = width * minDimension / height;
-            adaptedHeight = minDimension;
-        } else if ((height > width) && (adaptedWidth < minDimension)) {
-            adaptedWidth = minDimension;
-            adaptedHeight = height * minDimension / width;
+        if ((width >= height) && (adaptedHeight < minFrameDimension)) {
+            adaptedWidth = width * minFrameDimension / height;
+            adaptedHeight = minFrameDimension;
+        } else if ((height > width) && (adaptedWidth < minFrameDimension)) {
+            adaptedWidth = minFrameDimension;
+            adaptedHeight = height * minFrameDimension / width;
         }
 
         // And cap the maximum vertical resolution to be 720
-        if (adaptedHeight > maxHeight) {
-            adaptedWidth = adaptedWidth * maxHeight / adaptedHeight;
-            adaptedHeight = maxHeight;
+        if (adaptedHeight > maxFrameHeight) {
+            adaptedWidth = adaptedWidth * maxFrameHeight / adaptedHeight;
+            adaptedHeight = maxFrameHeight;
         }
 
         // if the given input is a weird resolution that is an odd number, the adapted

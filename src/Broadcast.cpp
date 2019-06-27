@@ -182,9 +182,8 @@ namespace caff {
             peerConnection->AddStream(mediaStream);
 
             webrtc::BitrateSettings bitrateOptions;
-            int const maxBitrateBps = 2000000;
-            bitrateOptions.start_bitrate_bps = maxBitrateBps;
-            bitrateOptions.max_bitrate_bps = maxBitrateBps;
+            bitrateOptions.start_bitrate_bps = maxBitsPerSecond;
+            bitrateOptions.max_bitrate_bps = maxBitsPerSecond;
             peerConnection->SetBitrate(bitrateOptions);
 
             rtc::scoped_refptr<CreateSessionDescriptionObserver> creationObserver =

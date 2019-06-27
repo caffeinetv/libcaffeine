@@ -3,13 +3,10 @@
 #include "AudioDevice.hpp"
 
 #include "ErrorLogging.hpp"
+#include "Policy.hpp"
 
 namespace caff {
 
-    // TODO: make these dynamic and transcode
-    static size_t const channels = 2;
-    static size_t const sampleRate = 48000;
-    static size_t const sampleSize = 2;
     static size_t const chunkSamples = sampleRate / 100;
     static size_t const chunkSize = chunkSamples * sampleSize * channels;
 
