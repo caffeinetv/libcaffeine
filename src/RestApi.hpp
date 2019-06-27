@@ -122,6 +122,9 @@ namespace caff {
 
     template <typename OperationField, typename... Args>
     optional<typename OperationField::ResponseData> graphqlRequest(SharedCredentials & creds, Args const &... args) {
+        static_assert(
+                OperationField::operation != caffql::Operation::Subscription,
+                "graphqlRequest only supports query and mutation operations");
 
         auto requestJson = OperationField::request(args...);
         auto rawResponse = graphqlRawRequest(creds, requestJson);

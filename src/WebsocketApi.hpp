@@ -42,6 +42,10 @@ namespace caff {
     template <typename OperationField>
     class GraphqlSubscription : public std::enable_shared_from_this<GraphqlSubscription<OperationField>> {
     public:
+        static_assert(
+                OperationField::operation == caffql::Operation::Subscription,
+                "GraphqlSubscription only supports subscription operations");
+
         template <typename... Args>
         GraphqlSubscription(
                 WebsocketClient & client,
