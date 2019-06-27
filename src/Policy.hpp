@@ -12,7 +12,7 @@ namespace caff {
 
 
     // Network
-    int constexpr maxBitsPerSecond = 2000000;
+    int constexpr maxBitsPerSecond = 2'000'000;
 
     // Video
     int32_t constexpr maxAspectWidth = 3;
@@ -25,7 +25,7 @@ namespace caff {
 
     // Audio
     size_t constexpr channels = 2;
-    size_t constexpr sampleRate = 48000;
+    size_t constexpr sampleRate = 48'000;
     size_t constexpr sampleSize = 2;
 
     // Stage
