@@ -13,6 +13,8 @@ var searchData=
   ['caff_5fratingnone',['caff_RatingNone',['../d6/db0/caffeine_8h.html#ade37e1e8d41ee81143326635261c0024a9c18733a43ab8558108ba873e5f3c293',1,'caffeine.h']]],
   ['caff_5fratingseventeenplus',['caff_RatingSeventeenPlus',['../d6/db0/caffeine_8h.html#ade37e1e8d41ee81143326635261c0024a75ff2f3b2e7dffb75c6885ce668fa36c',1,'caffeine.h']]],
   ['caff_5fresultalreadybroadcasting',['caff_ResultAlreadyBroadcasting',['../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cafb17c0ca2a182f300f747738821fe579',1,'caffeine.h']]],
+  ['caff_5fresultaspecttoonarrow',['caff_ResultAspectTooNarrow',['../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65caed61ae6df30ff323c8b7638a5c478d53',1,'caffeine.h']]],
+  ['caff_5fresultaspecttoowide',['caff_ResultAspectTooWide',['../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cab2c533aeadb3ce7566d5ebe2968bf480',1,'caffeine.h']]],
   ['caff_5fresultbroadcastfailed',['caff_ResultBroadcastFailed',['../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cae174e57bb4a7ffbbf89416902edfa4d7',1,'caffeine.h']]],
   ['caff_5fresultdisconnected',['caff_ResultDisconnected',['../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca99addfc671572c86922804d78dc45857',1,'caffeine.h']]],
   ['caff_5fresultemailverificationrequired',['caff_ResultEmailVerificationRequired',['../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca8658d77cadd927cb00fec87e19ebbd75',1,'caffeine.h']]],

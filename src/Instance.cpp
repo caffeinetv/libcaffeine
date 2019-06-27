@@ -34,12 +34,12 @@ namespace caff {
             return { webrtc::SdpVideoFormat(name, parameters) };
         }
 
-        virtual CodecInfo QueryVideoEncoder(const webrtc::SdpVideoFormat & format) const override {
+        virtual CodecInfo QueryVideoEncoder(webrtc::SdpVideoFormat const & format) const override {
             return { false, false };
         }
 
         virtual std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
-                const webrtc::SdpVideoFormat & format) override {
+                webrtc::SdpVideoFormat const & format) override {
             return std::make_unique<X264Encoder>(cricket::VideoCodec(format));
         }
     };

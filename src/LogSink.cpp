@@ -36,7 +36,7 @@ namespace caff {
         }
     }
 
-    void LogSink::OnLogMessage(const std::string & messageIn, rtc::LoggingSeverity severity) {
+    void LogSink::OnLogMessage(std::string const & messageIn, rtc::LoggingSeverity severity) {
         if (!callback)
             return;
 
@@ -47,5 +47,5 @@ namespace caff {
         callback(rtcToCaffLogLevel(severity), messageOut.c_str());
     }
 
-    void LogSink::OnLogMessage(const std::string & message) { OnLogMessage(message, rtc::LS_INFO); }
+    void LogSink::OnLogMessage(std::string const & message) { OnLogMessage(message, rtc::LS_INFO); }
 } // namespace caff

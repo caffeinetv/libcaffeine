@@ -1,0 +1,3 @@
+#pragma once
+
+#define LIBCAFFEINE_VERSION "@PROJECT_VERSION@"

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <thread>
 
+#include "Configuration.hpp"
 #include "Urls.hpp"
 
 #define CONTENT_TYPE_JSON "Content-Type: application/json"

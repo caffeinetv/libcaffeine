@@ -12,8 +12,6 @@ This is the public API for Libcaffeine
 #include <stddef.h>
 #include <stdint.h>
 
-#define LIBCAFFEINE_VERSION "0.2"
-
 #ifdef __cplusplus
 #    define CAFFEINE_LINKAGE extern "C"
 #else
