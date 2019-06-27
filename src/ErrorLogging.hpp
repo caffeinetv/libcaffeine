@@ -9,24 +9,20 @@
 #include "rtc_base/logging.h"
 
 // Format strings are easier on the eyes than c++ << streaming << operations
-#define LOG_IMPL(severity, format, ...)                                                                                \
+#define LOG_IMPL_NOSCOPE(severity, format, ...)                                                                        \
     constexpr size_t bufferSize = 4096;                                                                                \
     char errorBuffer[bufferSize];                                                                                      \
     std::snprintf(errorBuffer, bufferSize, format, ##__VA_ARGS__);                                                     \
-    RTC_LOG(severity) << errorBuffer
+    RTC_LOG(severity) << errorBuffer;
 
-#define LOG_DEBUG(format, ...)                                                                                         \
+#define LOG_IMPL(...)                                                                                                  \
     do {                                                                                                               \
-        LOG_IMPL(LS_INFO, format, ##__VA_ARGS__);                                                                      \
+        LOG_IMPL_NOSCOPE(__VA_ARGS__)                                                                                  \
     } while (false)
-#define LOG_WARNING(format, ...)                                                                                       \
-    do {                                                                                                               \
-        LOG_IMPL(LS_WARNING, format, ##__VA_ARGS__);                                                                   \
-    } while (false)
-#define LOG_ERROR(format, ...)                                                                                         \
-    do {                                                                                                               \
-        LOG_IMPL(LS_ERROR, format, ##__VA_ARGS__);                                                                     \
-    } while (false)
+
+#define LOG_DEBUG(format, ...) LOG_IMPL(LS_INFO, format, ##__VA_ARGS__)
+#define LOG_WARNING(format, ...) LOG_IMPL(LS_WARNING, format, ##__VA_ARGS__)
+#define LOG_ERROR(format, ...) LOG_IMPL(LS_ERROR, format, ##__VA_ARGS__)
 
 // Used to protect against changes in the underlying enums
 #define ASSERT_MATCH(left, right)                                                                                      \
@@ -37,7 +33,7 @@
 #define CAFF_CHECK(condition)                                                                                          \
     do {                                                                                                               \
         if (!(condition)) {                                                                                            \
-            LOG_IMPL(LS_ERROR, "Check failed [%s]: ", #condition);                                                     \
+            LOG_IMPL_NOSCOPE(LS_ERROR, "Check failed [%s]: ", #condition);                                             \
             throw std::logic_error(errorBuffer);                                                                       \
         }                                                                                                              \
     } while (false)
