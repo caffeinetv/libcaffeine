@@ -22,14 +22,14 @@ namespace caff {
 
         virtual int32_t RegisterEncodeCompleteCallback(webrtc::EncodedImageCallback * callback) override;
         virtual int32_t SetRateAllocation(
-                const webrtc::BitrateAllocation & bitrate_allocation, uint32_t framerate) override;
+                webrtc::BitrateAllocation const & bitrate_allocation, uint32_t framerate) override;
 
         virtual int32_t Encode(
-                const webrtc::VideoFrame & frame,
-                const webrtc::CodecSpecificInfo * codec_specific_info,
-                const std::vector<webrtc::FrameType> * frame_types) override;
+                webrtc::VideoFrame const & frame,
+                webrtc::CodecSpecificInfo const * codec_specific_info,
+                std::vector<webrtc::FrameType> const * frame_types) override;
 
-        virtual const char * ImplementationName() const override;
+        virtual char const * ImplementationName() const override;
 
         virtual webrtc::VideoEncoder::ScalingSettings GetScalingSettings() const override;
 

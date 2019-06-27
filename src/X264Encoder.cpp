@@ -9,17 +9,17 @@
 
 namespace caff {
 
-    const uint32_t kLongStartcodeSize = 4;
-    const uint32_t kShortStartcodeSize = 3;
+    uint32_t const kLongStartcodeSize = 4;
+    uint32_t const kShortStartcodeSize = 3;
 
-    const float kHighQualityCrf = 18.0f;
-    const float kNormalQualityCrf = 21.5f;
+    float const kHighQualityCrf = 18.0f;
+    float const kNormalQualityCrf = 21.5f;
 
     // maximum height for high quality crf. above and equal to 720p will use normal quality
-    const int kMaxFrameHeightHighQualityCrf = 720;
+    int const kMaxFrameHeightHighQualityCrf = 720;
 
     // minimum bitrate for high quality crf. above 1000 kbps will use high quality crf if before 720p.
-    const int kMinBitrateKbpsHighQualityCrf = 1000;
+    int const kMinBitrateKbpsHighQualityCrf = 1000;
 
     // Used by histograms. Values of entries should not be changed.
     enum X264EncoderEvent {
@@ -50,7 +50,7 @@ namespace caff {
     static void rtpFragmentize(
             webrtc::EncodedImage * encodedImage,
             std::unique_ptr<uint8_t[]> * encodedImageBuffer,
-            const webrtc::VideoFrameBuffer & frameBuffer,
+            webrtc::VideoFrameBuffer const & frameBuffer,
             uint32_t numNals,
             x264_nal_t * nal,
             webrtc::RTPFragmentationHeader * fragHeader) {
@@ -99,7 +99,7 @@ namespace caff {
         // decoder requires 4 byte start codes only. For simplicity, we will just
         // prepend 00 00 00 01 in front of the NALU and remove the generated start
         // code by x264.
-        const uint8_t startCode[4] = { 0, 0, 0, 1 };
+        uint8_t const startCode[4] = { 0, 0, 0, 1 };
         fragHeader->VerifyAndAllocateFragmentationHeader(fragmentsCount);
         size_t frag = 0;
         encodedImage->_length = 0;
@@ -126,7 +126,7 @@ namespace caff {
         }
     }
 
-    X264Encoder::X264Encoder(const cricket::VideoCodec & codec) {
+    X264Encoder::X264Encoder(cricket::VideoCodec const & codec) {
         LOG_DEBUG("Using x264 encoder");
         std::string packetizationModeString;
         if (codec.GetParam(cricket::kH264FmtpPacketizationMode, &packetizationModeString) &&
@@ -137,7 +137,7 @@ namespace caff {
 
     X264Encoder::~X264Encoder() { Release(); }
 
-    int32_t X264Encoder::InitEncode(const webrtc::VideoCodec * codecSettings, int32_t numCores, size_t maxPayloadSize) {
+    int32_t X264Encoder::InitEncode(webrtc::VideoCodec const * codecSettings, int32_t numCores, size_t maxPayloadSize) {
         reportInit();
 
         if (!codecSettings || codecSettings->codecType != webrtc::kVideoCodecH264) {
@@ -277,7 +277,7 @@ namespace caff {
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    int32_t X264Encoder::SetRateAllocation(const webrtc::BitrateAllocation & bitrateAllocation, uint32_t framerate) {
+    int32_t X264Encoder::SetRateAllocation(webrtc::BitrateAllocation const & bitrateAllocation, uint32_t framerate) {
         if (bitrateAllocation.get_sum_bps() <= 0 || framerate <= 0) {
             return WEBRTC_VIDEO_CODEC_ERR_PARAMETER;
         }
@@ -290,9 +290,9 @@ namespace caff {
     }
 
     int32_t X264Encoder::Encode(
-            const webrtc::VideoFrame & inputFrame,
-            const webrtc::CodecSpecificInfo * codecSpecificInfo,
-            const std::vector<webrtc::FrameType> * frameTypes) {
+            webrtc::VideoFrame const & inputFrame,
+            webrtc::CodecSpecificInfo const * codecSpecificInfo,
+            std::vector<webrtc::FrameType> const * frameTypes) {
         if (!isInitialized()) {
             reportError();
             return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
@@ -338,7 +338,7 @@ namespace caff {
 
         pictureIn.i_type = forceKeyFrame ? X264_TYPE_IDR : X264_TYPE_AUTO;
 
-        rtc::scoped_refptr<const webrtc::I420BufferInterface> frameBuffer = inputFrame.video_frame_buffer()->ToI420();
+        rtc::scoped_refptr<webrtc::I420BufferInterface const> frameBuffer = inputFrame.video_frame_buffer()->ToI420();
 
         pictureIn.img.plane[0] = const_cast<uint8_t *>(frameBuffer->DataY());
         pictureIn.img.plane[1] = const_cast<uint8_t *>(frameBuffer->DataU());
@@ -392,7 +392,7 @@ namespace caff {
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
-    const char * X264Encoder::ImplementationName() const {
+    char const * X264Encoder::ImplementationName() const {
         // implementation name.
         return "libx264";
     }

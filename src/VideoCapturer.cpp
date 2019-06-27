@@ -28,7 +28,7 @@ namespace caff {
     // Copied from old version of libwebrtc
     static int convertToI420(
             webrtc::VideoType srcVideoType,
-            const uint8_t * srcFrame,
+            uint8_t const * srcFrame,
             int cropX,
             int cropY,
             int srcWidth,
