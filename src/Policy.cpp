@@ -28,12 +28,13 @@ namespace caff {
             title = defaultTitle;
         }
 
-        static char const * ratingStrings[] = { "", seventeenPlusTag };
+        if (rating == caff_RatingSeventeenPlus) {
+            title.insert(0, seventeenPlusTag);
+        }
 
-        auto fullTitle = ratingStrings[rating] + title;
-        if (fullTitle.length() > maxTitleLength)
-            fullTitle.resize(maxTitleLength);
+        if (title.length() > maxTitleLength)
+            title.resize(maxTitleLength);
 
-        return fullTitle;
+        return title;
     }
 } // namespace caff
