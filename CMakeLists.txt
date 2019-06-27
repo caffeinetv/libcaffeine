@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
+project(libcaffeine VERSION 0.4)
 
 ################################################################################
 # Setup / Bootstrap
@@ -7,8 +8,6 @@ include(cmake/CMakeHelpers.cmake)
 include(cmake/CMakeFindExtensions.cmake)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
-
-project(libcaffeine)
 
 math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
 
@@ -40,7 +39,14 @@ set(libcaffeine_HEADER
     include/caffeine.h
 )
 
+configure_file(src/Configuration.hpp.in gen/Configuration.hpp)
+
 # Source & internal headers
+set(libcaffeine_GENERATED
+    ${CMAKE_BINARY_DIR}/gen/Configuration.hpp
+)
+source_group("gen" FILES ${libcaffeine_GENERATED})
+
 set(libcaffeine_SOURCES
     src/AudioDevice.cpp
     src/AudioDevice.hpp
@@ -49,6 +55,7 @@ set(libcaffeine_SOURCES
     src/Broadcast.hpp
     src/Caffeine.cpp
     src/CaffQL.hpp
+    src/Configuration.hpp.in
     src/ErrorLogging.hpp
     src/Instance.cpp
     src/Instance.hpp
@@ -106,6 +113,7 @@ target_sources(${OBJLIB_NAME}
     PRIVATE
         ${libcaffeine_SOURCES}
         ${libcaffeine_HEADER}
+        ${libcaffeine_GENERATED}
     INTERFACE
         ${libcaffeine_HEADER}
 )
@@ -119,16 +127,21 @@ endif()
 set(PRIVATE_INCLUDES
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/src
+
+    ${CMAKE_BINARY_DIR}/gen
+
     ${PROJECT_SOURCE_DIR}/third_party/x264/include #TODO find externally
     ${PROJECT_SOURCE_DIR}/third_party/asio/include
     ${PROJECT_SOURCE_DIR}/third_party/nlohmann_json/single_include
     ${PROJECT_SOURCE_DIR}/third_party/stb
     ${PROJECT_SOURCE_DIR}/third_party/websocketpp/include
-    ${LIBCURL_INCLUDE_DIRS}
+
     ${WEBRTC_INCLUDE_DIR}
     ${WEBRTC_INCLUDE_DIR}/third_party/abseil-cpp
     ${WEBRTC_INCLUDE_DIR}/third_party/libyuv/include
     ${WEBRTC_INCLUDE_DIR}/third_party/boringssl/src/include
+
+    ${LIBCURL_INCLUDE_DIRS}
 )
 
 set(PUBLIC_INCLUDES
