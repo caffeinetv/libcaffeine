@@ -123,8 +123,7 @@ namespace caff {
                     // Refresh credentials if needed
                     bool shouldRefresh = false;
                     for (auto const & error : *errors) {
-                        // TODO: Use a more robust way to tell that we need to refresh credentials
-                        if (error.message.find("credential") != std::string::npos) {
+                        if (error.message == "credential expired") {
                             shouldRefresh = true;
                             break;
                         }
