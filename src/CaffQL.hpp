@@ -148,6 +148,21 @@ namespace caffql {
     }
 
     /*
+    GameInput is used in order to allow both setting and clearing the game ID.
+    
+    To set the game ID, include a GameInput input with a non-null ID.
+    To clear the game ID, include a GameInput input with a null ID.
+    To leave it unchanged, then don't include the GameInput.
+    */
+    struct GameInput {
+        optional<Id> id;
+    };
+
+    inline void to_json(Json & json, GameInput const & value) {
+        json["id"] = value.id;
+    }
+
+    /*
     This error will be returned when the user is not authorized to view requested
     content due to the user's location.
     */
@@ -362,7 +377,7 @@ namespace caffql {
     struct FeedInput {
         // Must be a valid, lower-cased v4 UUID.
         Id id;
-        optional<Id> gameId;
+        optional<GameInput> game;
         // Defaults to PRIMARY.
         optional<Role> role;
         /*
@@ -406,7 +421,7 @@ namespace caffql {
 
     inline void to_json(Json & json, FeedInput const & value) {
         json["id"] = value.id;
-        json["gameId"] = value.gameId;
+        json["game"] = value.game;
         json["role"] = value.role;
         json["volume"] = value.volume;
         json["sourceConnectionQuality"] = value.sourceConnectionQuality;
