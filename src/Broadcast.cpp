@@ -573,8 +573,9 @@ namespace caff {
         std::lock_guard<std::mutex> lock(mutex);
         caffql::FeedInput feed{};
         feed.id = feedId;
+        feed.game = caffql::GameInput{};
         if (!gameId.empty()) {
-            feed.gameId = gameId;
+            feed.game->id = gameId;
         }
         switch (connectionQuality) {
         case caff_ConnectionQualityGood:
