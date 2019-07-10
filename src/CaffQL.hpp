@@ -689,11 +689,12 @@ namespace caffql {
 
             static Operation constexpr operation = Operation::Subscription;
 
-            static Json request(Id const & clientId, ClientType clientType, std::string const & username, optional<bool> constrainedBaseline, optional<std::vector<StageSubscriptionViewerStreamInput>> const & viewerStreams, optional<bool> skipStreamAllocation) {
+            static Json request(Id const & clientId, ClientType clientType, optional<std::string> const & clientTypeForMetrics, std::string const & username, optional<bool> constrainedBaseline, optional<std::vector<StageSubscriptionViewerStreamInput>> const & viewerStreams, optional<bool> skipStreamAllocation) {
                 Json query = R"(
                     subscription Stage(
                         $clientId: ID!
                         $clientType: ClientType!
+                        $clientTypeForMetrics: String
                         $username: String!
                         $constrainedBaseline: Boolean
                         $viewerStreams: [StageSubscriptionViewerStreamInput!]
@@ -702,6 +703,7 @@ namespace caffql {
                         stage(
                             clientId: $clientId
                             clientType: $clientType
+                            clientTypeForMetrics: $clientTypeForMetrics
                             username: $username
                             constrainedBaseline: $constrainedBaseline
                             viewerStreams: $viewerStreams
@@ -778,6 +780,7 @@ namespace caffql {
                 Json variables;
                 variables["clientId"] = clientId;
                 variables["clientType"] = clientType;
+                variables["clientTypeForMetrics"] = clientTypeForMetrics;
                 variables["username"] = username;
                 variables["constrainedBaseline"] = constrainedBaseline;
                 variables["viewerStreams"] = viewerStreams;

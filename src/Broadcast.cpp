@@ -710,6 +710,7 @@ namespace caff {
                 endedHandler,
                 clientId,
                 caffql::ClientType::Capture,
+                clientType,
                 username,
                 nullopt,
                 nullopt,
