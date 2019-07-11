@@ -726,22 +726,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -764,11 +750,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -776,14 +759,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
@@ -919,11 +900,8 @@ namespace caffql {
                                 restrictions
                                 liveHost {
                                     __typename
-                                    ...on LiveHostable {
-                                        address
-                                    }
+                                    address
                                     ...on LiveHosting {
-                                        address
                                         volume
                                         ownerId
                                         ownerUsername
@@ -931,14 +909,12 @@ namespace caffql {
                                 }
                                 stream {
                                     __typename
+                                    id
+                                    url
                                     ...on BroadcasterStream {
-                                        id
-                                        url
                                         sdpAnswer
                                     }
                                     ...on ViewerStream {
-                                        id
-                                        url
                                         sdpOffer
                                     }
                                 }
@@ -1143,22 +1119,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -1181,11 +1143,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -1193,14 +1152,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
@@ -1217,11 +1174,8 @@ namespace caffql {
                                 restrictions
                                 liveHost {
                                     __typename
-                                    ...on LiveHostable {
-                                        address
-                                    }
+                                    address
                                     ...on LiveHosting {
-                                        address
                                         volume
                                         ownerId
                                         ownerUsername
@@ -1229,14 +1183,12 @@ namespace caffql {
                                 }
                                 stream {
                                     __typename
+                                    id
+                                    url
                                     ...on BroadcasterStream {
-                                        id
-                                        url
                                         sdpAnswer
                                     }
                                     ...on ViewerStream {
-                                        id
-                                        url
                                         sdpOffer
                                     }
                                 }
@@ -1297,22 +1249,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -1335,11 +1273,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -1347,14 +1282,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
@@ -1371,11 +1304,8 @@ namespace caffql {
                                 restrictions
                                 liveHost {
                                     __typename
-                                    ...on LiveHostable {
-                                        address
-                                    }
+                                    address
                                     ...on LiveHosting {
-                                        address
                                         volume
                                         ownerId
                                         ownerUsername
@@ -1383,14 +1313,12 @@ namespace caffql {
                                 }
                                 stream {
                                     __typename
+                                    id
+                                    url
                                     ...on BroadcasterStream {
-                                        id
-                                        url
                                         sdpAnswer
                                     }
                                     ...on ViewerStream {
-                                        id
-                                        url
                                         sdpOffer
                                     }
                                 }
@@ -1443,22 +1371,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -1481,11 +1395,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -1493,14 +1404,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
@@ -1517,11 +1426,8 @@ namespace caffql {
                                 restrictions
                                 liveHost {
                                     __typename
-                                    ...on LiveHostable {
-                                        address
-                                    }
+                                    address
                                     ...on LiveHosting {
-                                        address
                                         volume
                                         ownerId
                                         ownerUsername
@@ -1529,14 +1435,12 @@ namespace caffql {
                                 }
                                 stream {
                                     __typename
+                                    id
+                                    url
                                     ...on BroadcasterStream {
-                                        id
-                                        url
                                         sdpAnswer
                                     }
                                     ...on ViewerStream {
-                                        id
-                                        url
                                         sdpOffer
                                     }
                                 }
@@ -1590,22 +1494,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -1628,11 +1518,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -1640,14 +1527,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
@@ -1697,22 +1582,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -1735,11 +1606,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -1747,14 +1615,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
@@ -1807,22 +1673,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -1845,11 +1697,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -1857,14 +1706,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
@@ -1915,22 +1762,8 @@ namespace caffql {
                         ) {
                             error {
                                 __typename
-                                ...on OutOfCapacityError {
-                                    title
-                                    message
-                                }
-                                ...on CdnError {
-                                    title
-                                    message
-                                }
-                                ...on ClientContentionError {
-                                    title
-                                    message
-                                }
-                                ...on GeoRestrictionError {
-                                    title
-                                    message
-                                }
+                                title
+                                message
                             }
                             stage {
                                 id
@@ -1953,11 +1786,8 @@ namespace caffql {
                                     restrictions
                                     liveHost {
                                         __typename
-                                        ...on LiveHostable {
-                                            address
-                                        }
+                                        address
                                         ...on LiveHosting {
-                                            address
                                             volume
                                             ownerId
                                             ownerUsername
@@ -1965,14 +1795,12 @@ namespace caffql {
                                     }
                                     stream {
                                         __typename
+                                        id
+                                        url
                                         ...on BroadcasterStream {
-                                            id
-                                            url
                                             sdpAnswer
                                         }
                                         ...on ViewerStream {
-                                            id
-                                            url
                                             sdpOffer
                                         }
                                     }
