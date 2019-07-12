@@ -19,7 +19,7 @@ var searchData=
   ['caff_5finitialize',['caff_initialize',['../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467',1,'caffeine.h']]],
   ['caff_5finstancehandle',['caff_InstanceHandle',['../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687',1,'caffeine.h']]],
   ['caff_5fissignedin',['caff_isSignedIn',['../d6/db0/caffeine_8h.html#ae72e73f6b41825893fcfae7a6435878f',1,'caffeine.h']]],
-  ['caff_5flogcallback',['caff_LogCallback',['../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72',1,'caffeine.h']]],
+  ['caff_5flogcallback',['caff_LogCallback',['../d6/db0/caffeine_8h.html#a7361bc797a90d0299bc4c9cb529c4156',1,'caffeine.h']]],
   ['caff_5floglevel',['caff_LogLevel',['../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee',1,'caff_LogLevel():&#160;caffeine.h'],['../d6/db0/caffeine_8h.html#aec242db9d9f802a7bbb05e1583d47226',1,'caff_LogLevel():&#160;caffeine.h']]],
   ['caff_5floglevelall',['caff_LogLevelAll',['../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea61de805b9dfa32683dc459445e6461fb',1,'caffeine.h']]],
   ['caff_5flogleveldebug',['caff_LogLevelDebug',['../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76eea2118451e44a0ba363a8418e6313c8fcd',1,'caffeine.h']]],

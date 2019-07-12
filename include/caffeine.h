@@ -154,12 +154,12 @@ typedef struct caff_Instance * caff_InstanceHandle;
 /*!
 This callback is used to pass log messages from libcaffeine into the application's logging facility.
 
-\param severity is the severity of the log message
+\param logLevel is the severity level of the log message
 \param message is the log message itself
 
 \see caff_initialize()
 */
-typedef void (*caff_LogCallback)(caff_LogLevel severity, char const * message);
+typedef void (*caff_LogCallback)(caff_LogLevel logLevel, char const * message);
 
 
 //! Game enumeration callback

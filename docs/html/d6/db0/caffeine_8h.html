@@ -108,9 +108,9 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a3c1c7c27b0629fc1245e36e3fa71e687"><td class="memItemLeft" align="right" valign="top">typedef struct caff_Instance *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a3c1c7c27b0629fc1245e36e3fa71e687">caff_InstanceHandle</a></td></tr>
 <tr class="memdesc:a3c1c7c27b0629fc1245e36e3fa71e687"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque handle to libcaffeine instance.  <a href="#a3c1c7c27b0629fc1245e36e3fa71e687">More...</a><br /></td></tr>
 <tr class="separator:a3c1c7c27b0629fc1245e36e3fa71e687"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab81bfd4d5d83eee25958a9c897994c72"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72">caff_LogCallback</a>) (<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> severity, char const *message)</td></tr>
-<tr class="memdesc:ab81bfd4d5d83eee25958a9c897994c72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log message callback.  <a href="#ab81bfd4d5d83eee25958a9c897994c72">More...</a><br /></td></tr>
-<tr class="separator:ab81bfd4d5d83eee25958a9c897994c72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7361bc797a90d0299bc4c9cb529c4156"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a7361bc797a90d0299bc4c9cb529c4156">caff_LogCallback</a>) (<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> logLevel, char const *message)</td></tr>
+<tr class="memdesc:a7361bc797a90d0299bc4c9cb529c4156"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log message callback.  <a href="#a7361bc797a90d0299bc4c9cb529c4156">More...</a><br /></td></tr>
+<tr class="separator:a7361bc797a90d0299bc4c9cb529c4156"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f6ee0eb9a9efa2830cad9c7be738c3b"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a9f6ee0eb9a9efa2830cad9c7be738c3b">caff_GameEnumerator</a>) (void *userData, char const *processName, char const *gameId, char const *gameName)</td></tr>
 <tr class="memdesc:a9f6ee0eb9a9efa2830cad9c7be738c3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Game enumeration callback.  <a href="#a9f6ee0eb9a9efa2830cad9c7be738c3b">More...</a><br /></td></tr>
 <tr class="separator:a9f6ee0eb9a9efa2830cad9c7be738c3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -211,7 +211,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a094d91259057fe29557c9b11b038de6b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> char const  *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a094d91259057fe29557c9b11b038de6b">caff_resultString</a> (<a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a> result)</td></tr>
 <tr class="memdesc:a094d91259057fe29557c9b11b038de6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a string representation of an error enum.  <a href="#a094d91259057fe29557c9b11b038de6b">More...</a><br /></td></tr>
 <tr class="separator:a094d91259057fe29557c9b11b038de6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af6888ad19f91c55d30532761e56d5467"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467">caff_initialize</a> (char const *clientType, char const *clientVersion, <a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> minLogLevel, <a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72">caff_LogCallback</a> logCallback)</td></tr>
+<tr class="memitem:af6888ad19f91c55d30532761e56d5467"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467">caff_initialize</a> (char const *clientType, char const *clientVersion, <a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> minLogLevel, <a class="el" href="../../d6/db0/caffeine_8h.html#a7361bc797a90d0299bc4c9cb529c4156">caff_LogCallback</a> logCallback)</td></tr>
 <tr class="memdesc:af6888ad19f91c55d30532761e56d5467"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the Caffeine library.  <a href="#af6888ad19f91c55d30532761e56d5467">More...</a><br /></td></tr>
 <tr class="separator:af6888ad19f91c55d30532761e56d5467"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b94c597a690dbda931f47b42ddba677"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/db0/caffeine_8h.html#af5c7df013b69d175b790bd9eca6216c9">CAFFEINE_API</a> <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65c">caff_Result</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/db0/caffeine_8h.html#a3b94c597a690dbda931f47b42ddba677">caff_checkVersion</a> ()</td></tr>
@@ -431,14 +431,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ab81bfd4d5d83eee25958a9c897994c72"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab81bfd4d5d83eee25958a9c897994c72">&#9670;&nbsp;</a></span>caff_LogCallback</h2>
+<a id="a7361bc797a90d0299bc4c9cb529c4156"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7361bc797a90d0299bc4c9cb529c4156">&#9670;&nbsp;</a></span>caff_LogCallback</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* caff_LogCallback) (<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> severity, char const *message)</td>
+          <td class="memname">typedef void(* caff_LogCallback) (<a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee">caff_LogLevel</a> logLevel, char const *message)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -447,7 +447,7 @@ Functions</h2></td></tr>
 <p>This callback is used to pass log messages from libcaffeine into the application's logging facility.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">severity</td><td>is the severity of the log message </td></tr>
+    <tr><td class="paramname">logLevel</td><td>is the severity level of the log message </td></tr>
     <tr><td class="paramname">message</td><td>is the log message itself</td></tr>
   </table>
   </dd>
@@ -474,7 +474,7 @@ Functions</h2></td></tr>
 <p>These are used to filter out log messages based on their severity</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467" title="Initialize the Caffeine library.">caff_initialize()</a> </dd>
 <dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72" title="Log message callback.">caff_LogCallback</a> </dd></dl>
+<a class="el" href="../../d6/db0/caffeine_8h.html#a7361bc797a90d0299bc4c9cb529c4156" title="Log message callback.">caff_LogCallback</a> </dd></dl>
 
 </div>
 </div>
@@ -595,7 +595,7 @@ Functions</h2></td></tr>
 <p>These are used to filter out log messages based on their severity</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#af6888ad19f91c55d30532761e56d5467" title="Initialize the Caffeine library.">caff_initialize()</a> </dd>
 <dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72" title="Log message callback.">caff_LogCallback</a> </dd></dl>
+<a class="el" href="../../d6/db0/caffeine_8h.html#a7361bc797a90d0299bc4c9cb529c4156" title="Log message callback.">caff_LogCallback</a> </dd></dl>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a30e91958d94ac5a35bad99bf9c3a76eea61de805b9dfa32683dc459445e6461fb"></a>caff_LogLevelAll&#160;</td><td class="fielddoc"><p>Extremely verbose, potentially containing sensitive information. </p>
 </td></tr>
@@ -1043,7 +1043,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72">caff_LogCallback</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="../../d6/db0/caffeine_8h.html#a7361bc797a90d0299bc4c9cb529c4156">caff_LogCallback</a>&#160;</td>
           <td class="paramname"><em>logCallback</em>&#160;</td>
         </tr>
         <tr>
@@ -1068,7 +1068,7 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65ca0ad8356cedde0f182f07d700c7f188f6" title="General success result.">caff_ResultSuccess</a> or <a class="el" href="../../d6/db0/caffeine_8h.html#aa9207ae931b8b6d6b9ab6ec29344c65cacf8ef36c41d8d850f2e4a9b913335f7d" title="General failure result.">caff_ResultFailure</a></dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="../../d6/db0/caffeine_8h.html#a30e91958d94ac5a35bad99bf9c3a76ee" title="Log level severities.">caff_LogLevel</a> </dd>
 <dd>
-<a class="el" href="../../d6/db0/caffeine_8h.html#ab81bfd4d5d83eee25958a9c897994c72" title="Log message callback.">caff_LogCallback</a> </dd></dl>
+<a class="el" href="../../d6/db0/caffeine_8h.html#a7361bc797a90d0299bc4c9cb529c4156" title="Log message callback.">caff_LogCallback</a> </dd></dl>
 
 </div>
 </div>
