@@ -90,18 +90,6 @@ CAFFEINE_API caff_Result caff_initialize(
 
     // Thread-safe single-init
     static caff_Result result = ([=] {
-        if (!clientType || !clientType[0]) {
-            LOG_ERROR("Missing clientType");
-            return caff_ResultFailure;
-        }
-        caff::clientType = clientType;
-
-        if (!clientVersion || !clientVersion[0]) {
-            LOG_ERROR("Missing clientVersion");
-            return caff_ResultFailure;
-        }
-        caff::clientVersion = clientVersion;
-
         // Set up logging
         rtc::LogMessage::LogThreads(true);
         rtc::LogMessage::LogTimestamps(true);
@@ -119,6 +107,18 @@ CAFFEINE_API caff_Result caff_initialize(
 #endif
         }
 
+        if (!clientType || !clientType[0]) {
+            LOG_ERROR("Missing clientType");
+            return caff_ResultFailure;
+        }
+        caff::clientType = clientType;
+
+        if (!clientVersion || !clientVersion[0]) {
+            LOG_ERROR("Missing clientVersion");
+            return caff_ResultFailure;
+        }
+        caff::clientVersion = clientVersion;
+
         // Initialize WebRTC
 #ifdef _WIN32
         rtc::EnsureWinsockInit();
@@ -128,7 +128,7 @@ CAFFEINE_API caff_Result caff_initialize(
             return caff_ResultFailure;
         }
 
-        LOG_ERROR("Libcaffeine initialized");
+        LOG_DEBUG("Libcaffeine initialized");
         return caff_ResultSuccess;
     })();
 

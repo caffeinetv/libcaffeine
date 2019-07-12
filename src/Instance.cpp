@@ -201,7 +201,7 @@ namespace caff {
         if (broadcast) {
             broadcast->stop();
             // Asynchronously destroy the broadcast so we don't block this thread
-            std::thread([broadcast = std::move(broadcast)] { }).detach();
+            std::thread([broadcast = std::move(broadcast)] {}).detach();
         }
     }
 
