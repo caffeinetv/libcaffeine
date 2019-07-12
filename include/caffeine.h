@@ -327,6 +327,28 @@ authentications. This token is intended to be stored by the application to provi
 CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandle);
 
 
+//! Get access token
+/*
+This can be used by clients that wish to make their own HTTP requests to the Caffeine back-end
+
+\param instanceHandle the handle returned by caff_createInstance()
+
+\return the access token if signed in, otherwise NULL
+*/
+CAFFEINE_API char const * caff_getAccessToken(caff_InstanceHandle instanceHandle);
+
+
+//! Get credential header
+/*
+This can be used by clients that wish to make their own HTTP requests to the Caffeine back-end
+
+\param instanceHandle the handle returned by caff_createInstance()
+
+\return the credential header if signed in, otherwise NULL
+*/
+CAFFEINE_API char const * caff_getCredential(caff_InstanceHandle instanceHandle);
+
+
 //! Sign in with refresh token
 /*!
 This attempts to authenticate using the provided refresh token. If this fails, the user will need to sign in again with

@@ -203,6 +203,24 @@ CAFFEINE_API char const * caff_getRefreshToken(caff_InstanceHandle instanceHandl
 CATCHALL_RETURN(nullptr)
 
 
+CAFFEINE_API char const * caff_getAccessToken(caff_InstanceHandle instanceHandle) try {
+    CHECK_PTR(instanceHandle);
+
+    auto instance = reinterpret_cast<Instance *>(instanceHandle);
+    return instance->getAccessToken();
+}
+CATCHALL_RETURN(nullptr)
+
+
+CAFFEINE_API char const * caff_getCredential(caff_InstanceHandle instanceHandle) try {
+    CHECK_PTR(instanceHandle);
+
+    auto instance = reinterpret_cast<Instance *>(instanceHandle);
+    return instance->getCredential();
+}
+CATCHALL_RETURN(nullptr)
+
+
 CAFFEINE_API char const * caff_getUsername(caff_InstanceHandle instanceHandle) try {
     CHECK_PTR(instanceHandle);
 

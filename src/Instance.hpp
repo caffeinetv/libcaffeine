@@ -34,8 +34,10 @@ namespace caff {
         bool isSignedIn() const;
         void signOut();
 
-        char const * getRefreshToken() const;
         char const * getUsername() const;
+        char const * getRefreshToken() const;
+        char const * getAccessToken() const;
+        char const * getCredential() const;
         bool canBroadcast() const;
 
         caff_Result enumerateGames(std::function<void(char const *, char const *, char const *)> enumerator);
@@ -61,7 +63,7 @@ namespace caff {
         std::unique_ptr<rtc::Thread> signalingThread;
         rtc::TaskQueue taskQueue;  // TODO: only used for disptaching failures; maybe find a better way
 
-        optional<SharedCredentials> sharedCredentials;
+        mutable optional<SharedCredentials> sharedCredentials;
         std::shared_ptr<Broadcast> broadcast;
         std::mutex broadcastMutex;
 

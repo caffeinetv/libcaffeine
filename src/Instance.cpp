@@ -132,6 +132,24 @@ namespace caff {
 
     char const * Instance::getRefreshToken() const { return refreshToken ? refreshToken->c_str() : nullptr; }
 
+    char const * Instance::getAccessToken() const {
+        if (!sharedCredentials) {
+            return nullptr;
+        }
+        static std::string copyForC;
+        copyForC = sharedCredentials->lock().credentials.accessToken;
+        return copyForC.c_str();
+    }
+
+    char const * Instance::getCredential() const {
+        if (!sharedCredentials) {
+            return nullptr;
+        }
+        static std::string copyForC;
+        copyForC = sharedCredentials->lock().credentials.credential;
+        return copyForC.c_str();
+    }
+
     char const * Instance::getUsername() const { return userInfo ? userInfo->username.c_str() : nullptr; }
 
     bool Instance::canBroadcast() const { return userInfo ? userInfo->canBroadcast : false; }
