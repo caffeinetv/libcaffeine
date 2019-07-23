@@ -617,15 +617,18 @@ namespace caff {
     void Broadcast::setupSubscription(size_t tryNum) {
         std::weak_ptr<Broadcast> weakThis = shared_from_this();
 
+        LOG_DEBUG("Setting up GraphQL subscription. Attempt %zu", tryNum);
+
         auto messageHandler = [weakThis](caffql::GraphqlResponse<caffql::StageSubscriptionPayload> update) mutable {
+            LOG_DEBUG("Subscription message received");
             auto strongThis = weakThis.lock();
             if (!strongThis) {
+                LOG_DEBUG("Broadcast no longer exists. Ignoring.");
                 return;
             }
 
             if (auto payload = get_if<caffql::StageSubscriptionPayload>(&update)) {
-                // TODO: Check for error messages to display to the user
-
+                LOG_DEBUG("Stage update received");
                 if (strongThis->subscriptionState == SubscriptionState::None) {
                     strongThis->subscriptionState = SubscriptionState::Open;
                     strongThis->subscriptionOpened.set_value(true);
@@ -638,10 +641,12 @@ namespace caff {
 
                 if (feedIsOnStage) {
                     if (strongThis->subscriptionState == SubscriptionState::Open) {
+                        LOG_DEBUG("Feed has appeared on stage");
                         strongThis->subscriptionState = SubscriptionState::FeedHasAppeared;
                     }
 
                     if (payload->stage.live) {
+                        LOG_DEBUG("Stage has gone live");
                         strongThis->subscriptionState = SubscriptionState::StageHasGoneLive;
                     }
                 } else if (
@@ -650,6 +655,7 @@ namespace caff {
                         strongThis->isOnline()) {
                     // If our feed has appeared in the subscription and is no longer there
                     // while we think we're online, then we've failed.
+                    LOG_ERROR("Feed no longer exists on stage");
                     strongThis->failedCallback(caff_ResultTakeover);
                     return;
                 }
@@ -657,9 +663,15 @@ namespace caff {
                 if (!payload->stage.live && strongThis->subscriptionState == SubscriptionState::StageHasGoneLive &&
                     strongThis->state == State::Live) {
                     // If the stage is no longer live after we've gone live with our feed, then we've failed.
+                    LOG_ERROR("Stage failed to go live");
                     strongThis->failedCallback(caff_ResultTakeover);
                 }
             } else if (auto errors = get_if<std::vector<caffql::GraphqlError>>(&update)) {
+                // TODO: See if we can report more meaningful errors to user than "broadcast failed"
+                LOG_ERROR("Error(s) creating GraphQL subscription:");
+                for (auto & error : *errors) {
+                    LOG_ERROR("    %s", error.message.c_str());
+                }
                 strongThis->failedCallback(caff_ResultBroadcastFailed);
             }
         };
@@ -671,21 +683,26 @@ namespace caff {
                 case State::Streaming:
                 case State::Live:
                     if (endType == WebsocketClient::ConnectionEndType::Closed) {
+                        LOG_WARNING("Stage websocket was closed.");
+                        // retry immediately
                         strongThis->setupSubscription();
                         return;
                     }
+                    LOG_WARNING("Stage websocket failed.");
+                    // retry after delay below
                     break;
-
                 case State::Offline:
                 case State::Stopping:
+                    LOG_DEBUG("Broadcast is offline. Subscription ended.");
                     return;
                 }
             } else {
+                LOG_DEBUG("Broadcast no longer exists. Subscription ended.");
                 return;
             }
 
             auto sleepFor = backoffDuration(tryNum);
-            LOG_ERROR("Retrying broadcast subscription in %lld seconds", sleepFor.count());
+            LOG_WARNING("Retrying broadcast subscription in %lld seconds.", sleepFor.count());
             std::this_thread::sleep_for(sleepFor);
 
             if (auto strongThis = weakThis.lock()) {
@@ -693,13 +710,16 @@ namespace caff {
                 case State::Starting:
                 case State::Streaming:
                 case State::Live:
-                    LOG_ERROR("Retrying broadcast subscription");
+                    LOG_WARNING("Retrying broadcast subscription.");
                     strongThis->setupSubscription(tryNum + 1);
-                    break;
+                    return;
                 case State::Offline:
                 case State::Stopping:
-                    break;
+                    LOG_WARNING("Broadcast offline. Retry canceled.");
+                    return;
                 }
+            } else {
+                LOG_DEBUG("Broadcast no longer exists. Retry canceled.");
             }
         };
 
