@@ -131,6 +131,10 @@ namespace caff {
             }
         }
 
+        if (payload->stage.feeds.empty() || payload->stage.feeds[0].id != feedId) {
+            LOG_ERROR("Expected feed in AddFeedPayload");
+        }
+
         if (!payload->stage.broadcastId) {
             LOG_ERROR("Expected broadcast id in AddFeedPayload");
             return caff_ResultBroadcastFailed;
@@ -475,9 +479,14 @@ namespace caff {
                     }
                 }
 
-                if (shouldMutateFeed && !updateFeed()) {
-                    failedCallback(caff_ResultBroadcastFailed);
-                    return;
+                if (shouldMutateFeed) {
+                    if (updateFeed()) {
+                        LOG_DEBUG("Updated feed connection quality");
+                    } else {
+                        LOG_DEBUG("Failed to update feed");
+                        failedCallback(caff_ResultBroadcastFailed);
+                        return;
+                    }
                 }
             } else {
                 LOG_ERROR("Heartbeat failed");
@@ -680,6 +689,8 @@ namespace caff {
                     LOG_ERROR("Feed no longer exists on stage");
                     strongThis->failedCallback(caff_ResultTakeover);
                     return;
+                } else {
+                    LOG_ERROR("Feed not present in stage");
                 }
 
                 if (!payload->stage.live && strongThis->subscriptionState == SubscriptionState::StageHasGoneLive &&
