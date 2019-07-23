@@ -82,10 +82,15 @@ namespace caff {
         return true;
     }
 
-    bool Broadcast::transitionState(State oldState, State newState) {
+    bool Broadcast::transitionState(State const expected, State newState) {
+        State oldState = expected;
         bool result = state.compare_exchange_strong(oldState, newState);
         if (!result)
-            LOG_ERROR("Transitioning to state %s expects state %s", stateString(newState), stateString(oldState));
+            LOG_ERROR(
+                    "Transitioning to state %s expects state %s but was in state %s",
+                    stateString(newState),
+                    stateString(expected),
+                    stateString(oldState));
         return result;
     }
 
