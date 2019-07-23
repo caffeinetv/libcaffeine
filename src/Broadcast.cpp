@@ -106,12 +106,14 @@ namespace caff {
             return caff_ResultBroadcastFailed;
         }
 
+        LOG_DEBUG("Creating feed: %s", feedId.c_str());
         auto feed = currentFeedInput();
         feed.sdpOffer = offer;
 
         auto payload = graphqlRequest<caffql::Mutation::AddFeedField>(
                 sharedCredentials, clientId, caffql::ClientType::Capture, feed);
         if (!payload) {
+            LOG_ERROR("Request failed adding feed");
             return caff_ResultBroadcastFailed;
         }
 
@@ -138,6 +140,7 @@ namespace caff {
         }
 
         streamUrl = stream->url;
+        LOG_DEBUG("Feed added to stage");
 
         return stream->sdpAnswer;
     }
@@ -149,10 +152,12 @@ namespace caff {
         broadcastThread = std::thread([=] {
             setupSubscription();
 
+            LOG_DEBUG("Creating video track");
             videoCapturer = new VideoCapturer;
             auto videoSource = factory->CreateVideoSource(videoCapturer);
             auto videoTrack = factory->CreateVideoTrack("external_video", videoSource);
 
+            LOG_DEBUG("Creating audio track");
             cricket::AudioOptions audioOptions;
             audioOptions.echo_cancellation = false;
             audioOptions.noise_suppression = false;
@@ -175,6 +180,7 @@ namespace caff {
             mediaStream->AddTrack(videoTrack);
             mediaStream->AddTrack(audioTrack);
 
+            LOG_DEBUG("Creating peer connection");
             webrtc::PeerConnectionInterface::RTCConfiguration config;
             auto observer = new PeerConnectionObserver(failedCallback);
             peerConnection = factory->CreatePeerConnection(config, webrtc::PeerConnectionDependencies(observer));
@@ -193,6 +199,7 @@ namespace caff {
 
             std::future_status status;
 
+            LOG_DEBUG("Awaiting SDP offer");
             auto constexpr futureWait = 1s;
             auto creationFuture = creationObserver->getFuture();
             status = creationFuture.wait_for(futureWait);
@@ -222,6 +229,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Creating local session description");
             webrtc::SdpParseError offerError;
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
@@ -249,6 +257,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Creating feed");
             auto result = createFeed(offerSdp);
             auto error = get_if<caff_Result>(&result);
             if (error) {
@@ -257,6 +266,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Creating remote session description");
             webrtc::SdpParseError answerError;
             auto remoteDesc =
                     webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, get<std::string>(result), &answerError);
@@ -274,6 +284,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Trickling ICE candidates");
             auto & candidates = observerFuture.get();
             if (!trickleCandidates(candidates, streamUrl, sharedCredentials)) {
                 LOG_ERROR("Failed to negotiate ICE");
@@ -281,6 +292,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Setting remote session description");
             rtc::scoped_refptr<SetSessionDescriptionObserver> setRemoteObserver =
                     new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
@@ -301,6 +313,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Adding stats observer");
             statsObserver = new rtc::RefCountedObject<StatsObserver>(sharedCredentials);
 
             if (!transitionState(State::Starting, State::Streaming)) {
@@ -364,6 +377,7 @@ namespace caff {
             return;
         }
 
+        LOG_DEBUG("Awaiting screenshot");
         std::future_status status;
         auto screenshotFuture = screenshotPromise.get_future();
         try {
@@ -376,6 +390,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Sending screenshot");
             auto screenshotData = screenshotFuture.get();
             if (!updateScreenshot(broadcastId.value(), screenshotData, sharedCredentials)) {
                 LOG_ERROR("Failed to send screenshot");
@@ -388,6 +403,7 @@ namespace caff {
             return;
         }
 
+        LOG_DEBUG("Awaiting stage subscription");
         // Make sure the subscription has opened before going live
         {
             auto openedFuture = subscriptionOpened.get_future();
@@ -400,7 +416,7 @@ namespace caff {
         }
 
         // Set stage live
-
+        LOG_DEBUG("Setting stage live");
         auto startPayload = graphqlRequest<caffql::Mutation::StartBroadcastField>(
                 sharedCredentials, clientId, caffql::ClientType::Capture, fullTitle());
         if (!startPayload || startPayload->error || !startPayload->stage.live) {
@@ -423,6 +439,7 @@ namespace caff {
         int const max_failures = 5;
         int failures = 0;
 
+        LOG_DEBUG("Starting heartbeats");
         for (; state == State::Live; std::this_thread::sleep_for(checkInterval)) {
             // TODO: use wall time?
             interval += checkInterval;
@@ -431,18 +448,18 @@ namespace caff {
 
             interval = 0ms;
 
+            LOG_DEBUG("Updating webrtc stats");
             peerConnection->GetStats(
                     statsObserver,
                     nullptr,
                     webrtc::PeerConnectionInterface::StatsOutputLevel::kStatsOutputLevelStandard);
 
             // Heartbeat broadcast
-
             auto heartbeatResponse = heartbeatStream(streamUrl, sharedCredentials);
 
             if (heartbeatResponse) {
+                LOG_DEBUG("Heartbeat succeeded");
                 failures = 0;
-
                 // Update the feed's connection quality if it has changed
                 bool shouldMutateFeed = false;
                 {
