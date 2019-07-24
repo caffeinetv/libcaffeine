@@ -82,10 +82,15 @@ namespace caff {
         return true;
     }
 
-    bool Broadcast::transitionState(State oldState, State newState) {
+    bool Broadcast::transitionState(State const expected, State newState) {
+        State oldState = expected;
         bool result = state.compare_exchange_strong(oldState, newState);
         if (!result)
-            LOG_ERROR("Transitioning to state %s expects state %s", stateString(newState), stateString(oldState));
+            LOG_ERROR(
+                    "Transitioning to state %s expects state %s but was in state %s",
+                    stateString(newState),
+                    stateString(expected),
+                    stateString(oldState));
         return result;
     }
 
@@ -106,12 +111,14 @@ namespace caff {
             return caff_ResultBroadcastFailed;
         }
 
+        LOG_DEBUG("Creating feed: %s", feedId.c_str());
         auto feed = currentFeedInput();
         feed.sdpOffer = offer;
 
         auto payload = graphqlRequest<caffql::Mutation::AddFeedField>(
                 sharedCredentials, clientId, caffql::ClientType::Capture, feed);
         if (!payload) {
+            LOG_ERROR("Request failed adding feed");
             return caff_ResultBroadcastFailed;
         }
 
@@ -122,6 +129,10 @@ namespace caff {
                 LOG_ERROR("Error adding feed: %s", payload->error->message().c_str());
                 return caff_ResultBroadcastFailed;
             }
+        }
+
+        if (payload->stage.feeds.empty() || payload->stage.feeds[0].id != feedId) {
+            LOG_ERROR("Expected feed in AddFeedPayload");
         }
 
         if (!payload->stage.broadcastId) {
@@ -138,6 +149,7 @@ namespace caff {
         }
 
         streamUrl = stream->url;
+        LOG_DEBUG("Feed added to stage");
 
         return stream->sdpAnswer;
     }
@@ -149,10 +161,12 @@ namespace caff {
         broadcastThread = std::thread([=] {
             setupSubscription();
 
+            LOG_DEBUG("Creating video track");
             videoCapturer = new VideoCapturer;
             auto videoSource = factory->CreateVideoSource(videoCapturer);
             auto videoTrack = factory->CreateVideoTrack("external_video", videoSource);
 
+            LOG_DEBUG("Creating audio track");
             cricket::AudioOptions audioOptions;
             audioOptions.echo_cancellation = false;
             audioOptions.noise_suppression = false;
@@ -175,6 +189,7 @@ namespace caff {
             mediaStream->AddTrack(videoTrack);
             mediaStream->AddTrack(audioTrack);
 
+            LOG_DEBUG("Creating peer connection");
             webrtc::PeerConnectionInterface::RTCConfiguration config;
             auto observer = new PeerConnectionObserver(failedCallback);
             peerConnection = factory->CreatePeerConnection(config, webrtc::PeerConnectionDependencies(observer));
@@ -193,6 +208,7 @@ namespace caff {
 
             std::future_status status;
 
+            LOG_DEBUG("Awaiting SDP offer");
             auto constexpr futureWait = 1s;
             auto creationFuture = creationObserver->getFuture();
             status = creationFuture.wait_for(futureWait);
@@ -222,6 +238,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Creating local session description");
             webrtc::SdpParseError offerError;
             auto localDesc = webrtc::CreateSessionDescription(webrtc::SdpType::kOffer, offerSdp, &offerError);
             if (!localDesc) {
@@ -249,6 +266,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Creating feed");
             auto result = createFeed(offerSdp);
             auto error = get_if<caff_Result>(&result);
             if (error) {
@@ -257,6 +275,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Creating remote session description");
             webrtc::SdpParseError answerError;
             auto remoteDesc =
                     webrtc::CreateSessionDescription(webrtc::SdpType::kAnswer, get<std::string>(result), &answerError);
@@ -274,6 +293,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Trickling ICE candidates");
             auto & candidates = observerFuture.get();
             if (!trickleCandidates(candidates, streamUrl, sharedCredentials)) {
                 LOG_ERROR("Failed to negotiate ICE");
@@ -281,6 +301,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Setting remote session description");
             rtc::scoped_refptr<SetSessionDescriptionObserver> setRemoteObserver =
                     new rtc::RefCountedObject<SetSessionDescriptionObserver>;
 
@@ -301,6 +322,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Adding stats observer");
             statsObserver = new rtc::RefCountedObject<StatsObserver>(sharedCredentials);
 
             if (!transitionState(State::Starting, State::Streaming)) {
@@ -364,6 +386,7 @@ namespace caff {
             return;
         }
 
+        LOG_DEBUG("Awaiting screenshot");
         std::future_status status;
         auto screenshotFuture = screenshotPromise.get_future();
         try {
@@ -376,6 +399,7 @@ namespace caff {
                 return;
             }
 
+            LOG_DEBUG("Sending screenshot");
             auto screenshotData = screenshotFuture.get();
             if (!updateScreenshot(broadcastId.value(), screenshotData, sharedCredentials)) {
                 LOG_ERROR("Failed to send screenshot");
@@ -388,6 +412,7 @@ namespace caff {
             return;
         }
 
+        LOG_DEBUG("Awaiting stage subscription");
         // Make sure the subscription has opened before going live
         {
             auto openedFuture = subscriptionOpened.get_future();
@@ -400,7 +425,7 @@ namespace caff {
         }
 
         // Set stage live
-
+        LOG_DEBUG("Setting stage live");
         auto startPayload = graphqlRequest<caffql::Mutation::StartBroadcastField>(
                 sharedCredentials, clientId, caffql::ClientType::Capture, fullTitle());
         if (!startPayload || startPayload->error || !startPayload->stage.live) {
@@ -423,6 +448,7 @@ namespace caff {
         int const max_failures = 5;
         int failures = 0;
 
+        LOG_DEBUG("Starting heartbeats");
         for (; state == State::Live; std::this_thread::sleep_for(checkInterval)) {
             // TODO: use wall time?
             interval += checkInterval;
@@ -431,18 +457,18 @@ namespace caff {
 
             interval = 0ms;
 
+            LOG_DEBUG("Updating webrtc stats");
             peerConnection->GetStats(
                     statsObserver,
                     nullptr,
                     webrtc::PeerConnectionInterface::StatsOutputLevel::kStatsOutputLevelStandard);
 
             // Heartbeat broadcast
-
             auto heartbeatResponse = heartbeatStream(streamUrl, sharedCredentials);
 
             if (heartbeatResponse) {
+                LOG_DEBUG("Heartbeat succeeded");
                 failures = 0;
-
                 // Update the feed's connection quality if it has changed
                 bool shouldMutateFeed = false;
                 {
@@ -453,9 +479,14 @@ namespace caff {
                     }
                 }
 
-                if (shouldMutateFeed && !updateFeed()) {
-                    failedCallback(caff_ResultBroadcastFailed);
-                    return;
+                if (shouldMutateFeed) {
+                    if (updateFeed()) {
+                        LOG_DEBUG("Updated feed connection quality");
+                    } else {
+                        LOG_DEBUG("Failed to update feed");
+                        failedCallback(caff_ResultBroadcastFailed);
+                        return;
+                    }
                 }
             } else {
                 LOG_ERROR("Heartbeat failed");
@@ -617,15 +648,18 @@ namespace caff {
     void Broadcast::setupSubscription(size_t tryNum) {
         std::weak_ptr<Broadcast> weakThis = shared_from_this();
 
+        LOG_DEBUG("Setting up GraphQL subscription. Attempt %zu", tryNum);
+
         auto messageHandler = [weakThis](caffql::GraphqlResponse<caffql::StageSubscriptionPayload> update) mutable {
+            LOG_DEBUG("Subscription message received");
             auto strongThis = weakThis.lock();
             if (!strongThis) {
+                LOG_DEBUG("Broadcast no longer exists. Ignoring.");
                 return;
             }
 
             if (auto payload = get_if<caffql::StageSubscriptionPayload>(&update)) {
-                // TODO: Check for error messages to display to the user
-
+                LOG_DEBUG("Stage update received");
                 if (strongThis->subscriptionState == SubscriptionState::None) {
                     strongThis->subscriptionState = SubscriptionState::Open;
                     strongThis->subscriptionOpened.set_value(true);
@@ -638,10 +672,12 @@ namespace caff {
 
                 if (feedIsOnStage) {
                     if (strongThis->subscriptionState == SubscriptionState::Open) {
+                        LOG_DEBUG("Feed has appeared on stage");
                         strongThis->subscriptionState = SubscriptionState::FeedHasAppeared;
                     }
 
                     if (payload->stage.live) {
+                        LOG_DEBUG("Stage has gone live");
                         strongThis->subscriptionState = SubscriptionState::StageHasGoneLive;
                     }
                 } else if (
@@ -650,16 +686,25 @@ namespace caff {
                         strongThis->isOnline()) {
                     // If our feed has appeared in the subscription and is no longer there
                     // while we think we're online, then we've failed.
+                    LOG_ERROR("Feed no longer exists on stage");
                     strongThis->failedCallback(caff_ResultTakeover);
                     return;
+                } else {
+                    LOG_ERROR("Feed not present in stage");
                 }
 
                 if (!payload->stage.live && strongThis->subscriptionState == SubscriptionState::StageHasGoneLive &&
                     strongThis->state == State::Live) {
                     // If the stage is no longer live after we've gone live with our feed, then we've failed.
+                    LOG_ERROR("Stage failed to go live");
                     strongThis->failedCallback(caff_ResultTakeover);
                 }
             } else if (auto errors = get_if<std::vector<caffql::GraphqlError>>(&update)) {
+                // TODO: See if we can report more meaningful errors to user than "broadcast failed"
+                LOG_ERROR("Error(s) creating GraphQL subscription:");
+                for (auto & error : *errors) {
+                    LOG_ERROR("    %s", error.message.c_str());
+                }
                 strongThis->failedCallback(caff_ResultBroadcastFailed);
             }
         };
@@ -671,21 +716,26 @@ namespace caff {
                 case State::Streaming:
                 case State::Live:
                     if (endType == WebsocketClient::ConnectionEndType::Closed) {
+                        LOG_WARNING("Stage websocket was closed.");
+                        // retry immediately
                         strongThis->setupSubscription();
                         return;
                     }
+                    LOG_WARNING("Stage websocket failed.");
+                    // retry after delay below
                     break;
-
                 case State::Offline:
                 case State::Stopping:
+                    LOG_DEBUG("Broadcast is offline. Subscription ended.");
                     return;
                 }
             } else {
+                LOG_DEBUG("Broadcast no longer exists. Subscription ended.");
                 return;
             }
 
             auto sleepFor = backoffDuration(tryNum);
-            LOG_ERROR("Retrying broadcast subscription in %lld seconds", sleepFor.count());
+            LOG_WARNING("Retrying broadcast subscription in %lld seconds.", sleepFor.count());
             std::this_thread::sleep_for(sleepFor);
 
             if (auto strongThis = weakThis.lock()) {
@@ -693,13 +743,16 @@ namespace caff {
                 case State::Starting:
                 case State::Streaming:
                 case State::Live:
-                    LOG_ERROR("Retrying broadcast subscription");
+                    LOG_WARNING("Retrying broadcast subscription.");
                     strongThis->setupSubscription(tryNum + 1);
-                    break;
+                    return;
                 case State::Offline:
                 case State::Stopping:
-                    break;
+                    LOG_WARNING("Broadcast offline. Retry canceled.");
+                    return;
                 }
+            } else {
+                LOG_DEBUG("Broadcast no longer exists. Retry canceled.");
             }
         };
 
