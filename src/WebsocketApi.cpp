@@ -2,15 +2,40 @@
 
 #include "WebsocketApi.hpp"
 #include "ErrorLogging.hpp"
+
 #include "rtc_base/opensslutility.h"
 
 namespace caff {
+    class LoggerStream : public std::ostream, public std::streambuf {
+    public:
+        LoggerStream(rtc::LoggingSeverity severity) : std::ostream(this), severity(severity) {}
+
+    protected:
+        virtual int overflow(int c) override {
+            if (c == '\n') {
+                RTC_LOG_V(severity) << "[WebsocketClient] " << buffer;
+                buffer.clear();
+            } else if (c != '\r') {
+                buffer += c;
+            }
+            return 0;
+        }
+
+    private:
+        std::string buffer;
+        rtc::LoggingSeverity severity;
+    };
+
+    static LoggerStream infoStream(rtc::LS_INFO);
+    static LoggerStream errorStream(rtc::LS_ERROR);
 
     WebsocketClient::WebsocketClient() {
         // TODO: Configure logging to work with libcaffeine?
         client.set_access_channels(websocketpp::log::alevel::all);
         client.clear_access_channels(websocketpp::log::alevel::frame_payload);
         client.set_error_channels(websocketpp::log::elevel::all);
+        client.get_alog().set_ostream(&infoStream);
+        client.get_elog().set_ostream(&errorStream);
 
         client.set_tls_init_handler(
                 [](websocketpp::connection_hdl connection) -> std::shared_ptr<websocketpp::lib::asio::ssl::context> {

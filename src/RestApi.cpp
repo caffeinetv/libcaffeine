@@ -47,6 +47,8 @@ namespace caff {
             curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeoutSeconds);
             curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, lowSpeedBps);
             curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, timeoutSeconds);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
         }
         explicit ScopedCurl(char const * contentType) : ScopedCurl(basicHeaders(contentType)) {}
         ScopedCurl(char const * contentType, SharedCredentials & creds)
@@ -59,9 +61,12 @@ namespace caff {
 
         operator CURL *() { return curl; }
 
+        std::string const & getResponse() const { return responseStr; }
+
     private:
         CURL * curl = curl_easy_init();
         curl_slist * headers;
+        std::string responseStr;
 
         static curl_slist * basicHeaders(char const * contentType) {
             curl_slist * headers = nullptr;
@@ -87,6 +92,14 @@ namespace caff {
             headers = curl_slist_append(headers, credential.c_str());
             return headers;
         }
+
+        static size_t curlWriteCallback(char * ptr, size_t, size_t nmemb, void * userData) {
+            if (nmemb > 0) {
+                std::string & resultStr = *(reinterpret_cast<std::string *>(userData));
+                resultStr.append(ptr, nmemb);
+            }
+            return nmemb;
+        }
     };
 
     struct ScopedPost {
@@ -94,14 +107,6 @@ namespace caff {
         curl_httppost * head = nullptr;
         curl_httppost * tail = nullptr;
     };
-
-    static size_t curlWriteCallback(char * ptr, size_t, size_t nmemb, void * userData) {
-        if (nmemb > 0) {
-            std::string & resultStr = *(reinterpret_cast<std::string *>(userData));
-            resultStr.append(ptr, nmemb);
-        }
-        return nmemb;
-    }
 
     template <typename T> struct Retryable {
         enum Desire { Retry, Complete } desire = Retry;
@@ -165,10 +170,6 @@ namespace caff {
 
         curl_easy_setopt(curl, CURLOPT_URL, versionCheckUrl.c_str());
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
 
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
@@ -181,7 +182,7 @@ namespace caff {
 
         Json responseJson;
         try {
-            responseJson = Json::parse(responseStr);
+            responseJson = Json::parse(curl.getResponse());
         } catch (...) {
             LOG_ERROR("Failed to parse version check response");
             return retry(caff_ResultFailure);
@@ -233,11 +234,6 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_URL, signInUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
 
@@ -257,7 +253,7 @@ namespace caff {
 
         Json responseJson;
         try {
-            responseJson = Json::parse(responseStr);
+            responseJson = Json::parse(curl.getResponse());
         } catch (...) {
             LOG_ERROR("Failed to parse signin response");
             return { {} };
@@ -321,11 +317,6 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_URL, refreshTokenUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
 
@@ -346,7 +337,7 @@ namespace caff {
 
         Json responseJson;
         try {
-            responseJson = Json::parse(responseStr);
+            responseJson = Json::parse(curl.getResponse());
         } catch (...) {
             LOG_ERROR("Failed to parse refresh response");
             return { {} };
@@ -389,11 +380,6 @@ namespace caff {
         auto urlStr = getUserUrl(creds.lock().credentials.caid);
         curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
 
@@ -417,7 +403,7 @@ namespace caff {
 
         Json responseJson;
         try {
-            responseJson = Json::parse(responseStr);
+            responseJson = Json::parse(curl.getResponse());
         } catch (...) {
             LOG_ERROR("Failed to parse user response");
             return { {} };
@@ -449,11 +435,6 @@ namespace caff {
 
         curl_easy_setopt(curl, CURLOPT_URL, getGamesUrl.c_str());
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
 
@@ -465,7 +446,7 @@ namespace caff {
 
         Json responseJson;
         try {
-            responseJson = Json::parse(responseStr);
+            responseJson = Json::parse(curl.getResponse());
         } catch (...) {
             LOG_ERROR("Failed to parse game list response");
             return { {} };
@@ -537,11 +518,6 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{}"); // TODO: is this necessary?
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
 
@@ -569,7 +545,7 @@ namespace caff {
 
         Json responseJson;
         try {
-            responseJson = Json::parse(responseStr);
+            responseJson = Json::parse(curl.getResponse());
         } catch (...) {
             LOG_ERROR("Failed to parse refresh response");
             return { {} };
@@ -670,11 +646,6 @@ namespace caff {
 
         curl_easy_setopt(curl, CURLOPT_URL, broadcastMetricsUrl.c_str());
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
 
@@ -705,11 +676,6 @@ namespace caff {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
 
-        std::string responseStr;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&responseStr);
-
         char curlError[CURL_ERROR_SIZE];
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
 
@@ -735,7 +701,7 @@ namespace caff {
 
         Json responseJson;
         try {
-            return { { Json::parse(responseStr) } };
+            return { { Json::parse(curl.getResponse()) } };
         } catch (...) {
             LOG_ERROR("Failed to deserialize graphql response to JSON");
             return optional<Json>{};
