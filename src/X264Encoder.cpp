@@ -137,6 +137,28 @@ namespace caff {
 
     X264Encoder::~X264Encoder() { Release(); }
 
+    static rtc::LoggingSeverity x264ToRtcLogLevel(int level) {
+        switch (level) {
+        case X264_LOG_INFO:
+        case X264_LOG_DEBUG:
+            return rtc::LS_INFO;
+        case X264_LOG_WARNING:
+            return rtc::LS_WARNING;
+        case X264_LOG_ERROR:
+            return rtc::LS_ERROR;
+        default:
+            return rtc::LS_NONE;
+        }
+    }
+
+    static void x264Logger(void *, int level, char const * format, va_list args) {
+        auto severity = x264ToRtcLogLevel(level);
+        constexpr size_t bufferSize = 4096;
+        char errorBuffer[bufferSize];
+        std::vsnprintf(errorBuffer, bufferSize, format, args);
+        RTC_LOG_V(severity) << errorBuffer;
+    }
+
     int32_t X264Encoder::InitEncode(webrtc::VideoCodec const * codecSettings, int32_t numCores, size_t maxPayloadSize) {
         reportInit();
 
@@ -183,6 +205,9 @@ namespace caff {
             reportError();
             return WEBRTC_VIDEO_CODEC_ERROR;
         }
+
+        encoderParams.pf_log = x264Logger;
+        encoderParams.i_log_level = X264_LOG_DEBUG;
 
         encoderParams.i_csp = X264_CSP_I420;
         encoderParams.b_annexb = 1;
