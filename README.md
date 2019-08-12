@@ -52,18 +52,24 @@ caff_freeInstance(&instance);
 
 Prereqs:
 
-* Visual Studio 2017 (and [LLVM Compiler Toolchain Extension](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain))
-* LLVM toolchain
+* [CMake](https://cmake.org/download/)
+* [OBS dependencies](https://obsproject.com/downloads/dependencies2017.zip) - **TODO** This is only used for libcurl. We should use something else
+* [Pre-built WebRTC](https://github.com/caffeinetv/webrtc/releases/latest)
+* [Visual Studio 2019](https://visualstudio.microsoft.com/downloads/)
+    * Select "Desktop C++ development with C++"
+    * Add the "C++ Clang tools for Windows" component
 
 Steps:
 
-* Download the latest version of webrtc-prebuilt-windows.7z from https://github.com/caffeinetv/webrtc/releases
-* Extract the file somewhere convenient
-* Set `WEBRTC_ROOT_DIR` environment variable to the directory you extracted the files to
+* Extract the OBS dependencies and prebuilt webrtc somewhere convenient
+* Set `DepsPath` environment variable to the `win64` directory inside the OBS dependencies
+    * E.g. `C:\Users\Cogwheel\Desktop\obs-dependencies2017\win64`
+* Set `WEBRTC_ROOT_DIR` environment variable to the directory you extracted prebuilt webrtc
+    * E.g. `C:
 * In the libcaffeine root directory:
     * `mkdir build`
     * `cd build`
-    * `cmake .. -G "Visual Studio 15 2017 Win64" -T LLVM`
+    * `cmake .. -G "Visual Studio 16 2019" -T ClangCL`
     * `start libcaffeine.sln`
 * Build the solution in Visual Studio
 
