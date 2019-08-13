@@ -17,6 +17,7 @@ environment:
     CMAKE_TOOLSET: "LLVM"
     WEBRTC_URL: "https://github.com/caffeinetv/webrtc/releases/download/v70.2-libcaffeine/webrtc-prebuilt-windows.7z"
     WEBRTC_PATH: .cache\\webrtc
+    LLVM_EXTENSION: "https://llvmextensions.gallerycdn.vsassets.io/extensions/llvmextensions/llvm-toolchain/1.0.363769/1560930595399/llvm.vsix"
     # Used for libcurl only, should be replaced in the future by a proper C++ library.
     OBS_DEPENDENCIES_URL: "https://obsproject.com/downloads/dependencies2017.zip"
     OBS_DEPENDENCIES_ARCH: "win64"

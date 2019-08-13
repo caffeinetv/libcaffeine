@@ -10,6 +10,16 @@ IF NOT EXIST "%ROOT%\.cache" (
     MKDIR "%ROOT%\.cache"
 )
 
+SET VSIXPATH=%ROOT%\.cache\llvm.vsix
+
+ECHO Installing LLVM toolchain
+IF EXIST %ROOT%\.cache\obs_deps.zip (
+    curl -kL "%LLVM_EXTENSION%" -f --retry 5 -o "%VSIXPATH%" -z "%VSIXPATH%"
+) ELSE (
+    curl -kL "%LLVM_EXTENSION%" -f --retry 5 -o "%VSIXPATH%"
+)
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\VSIXInstaller.exe" /q /a "%VSIXPATH%"
+
 ECHO Updating libcurl...
 IF EXIST %ROOT%\.cache\obs_deps.zip (
     curl -kL "%OBS_DEPENDENCIES_URL%" -f --retry 5 -o "%ROOT%\.cache\obs_deps.zip" -z "%ROOT%\.cache\obs_deps.zip"
