@@ -29,6 +29,11 @@ cache:
   - .cache/obs_deps.zip
 
 # Scripts
+
+init:
+- ps: |
+    & 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe' modify --norestart --add Microsoft.VisualStudio.Component.VC.Llvm.ClangToolset  --installPath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community' --quiet
+
 install:
 - cmd: ci/win/install.cmd
 
