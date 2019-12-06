@@ -52,9 +52,7 @@ configure.execute().then(function(result) {
     
     let configs = [
         new Config("Debug", "cmake", ['--build', 'build', '--target', 'INSTALL', '--config', 'Debug'].concat(appveyor_opts)),
-        new Config("MinSizeRel", "cmake", ['--build', 'build', '--target', 'INSTALL', '--config', 'MinSizeRel'].concat(appveyor_opts)),
         new Config("RelWithDebInfo", "cmake", ['--build', 'build', '--target', 'INSTALL', '--config', 'RelWithDebInfo'].concat(appveyor_opts)),
-        new Config("Release", "cmake", ['--build', 'build', '--target', 'INSTALL', '--config', 'Release'].concat(appveyor_opts))
     ];
     let promises = [];
     for (config of configs) {
@@ -63,7 +61,7 @@ configure.execute().then(function(result) {
     Promise.all(promises).then(function(result) {
         let packager = [
             new Config("7-Zip", "cmake", ['--build', 'build', '--target', 'PACKAGE_7Z', '--config', 'RelWithDebInfo'].concat(appveyor_opts)),
-            new Config("Zip", "cmake", ['--build', 'build', '--target', 'PACKAGE_ZIP', '--config', 'Release'].concat(appveyor_opts))
+            new Config("Zip", "cmake", ['--build', 'build', '--target', 'PACKAGE_ZIP', '--config', 'RelWithDebInfo'].concat(appveyor_opts))
         ];
         let promises = [];
         for (pack of packager) {
