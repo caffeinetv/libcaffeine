@@ -56,3 +56,22 @@ TEST_CASE("webrtc stats serialize") {
 
     CHECK(serializeWebrtcStats(reports) == expected);
 }
+
+TEST_CASE("Deserializes encoder info response correctly") {
+    Json infoResponseJson = {
+        { "encoder_type", "default" },
+        { "encoder_setting", {
+            { "width", 1280 },
+            { "height", 720 },
+            { "bitrate", 3500000 },
+            { "framerate", 60 },
+        }}
+    };
+
+    EncoderInfoResponse info = infoResponseJson;
+    CHECK(info.encoderType == "default");
+    CHECK(info.setting.width == 1280);
+    CHECK(info.setting.height == 720);
+    CHECK(info.setting.bitrate == 3500000);
+    CHECK(info.setting.framerate == 60);
+}
