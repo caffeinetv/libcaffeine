@@ -17,6 +17,7 @@ namespace caff {
     std::string const apiEndpoint = "https://api." + caffeineDomain;
     std::string const realtimeEndpoint = "https://realtime." + caffeineDomain;
     std::string const eventsEndpoint = "https://events." + caffeineDomain;
+    std::string const lakituEndpoint = "https://lakitu." + caffeineDomain;
 
     std::string const versionCheckUrl = apiEndpoint + "/v1/version-check";
     std::string const signInUrl = apiEndpoint + "/v1/account/signin";
@@ -26,6 +27,8 @@ namespace caff {
     std::string const realtimeGraphqlUrl = realtimeEndpoint + "/public/graphql/query";
 
     std::string const broadcastMetricsUrl = eventsEndpoint + "/v1/broadcast_metrics";
+
+    std::string const encoderInfoUrl = lakituEndpoint + "/v2/encoderselection";
 
     std::string getUserUrl(std::string const & id) { return apiEndpoint + "/v1/users/" + id; }
 

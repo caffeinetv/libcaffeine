@@ -712,4 +712,35 @@ namespace caff {
         return retryRequest<optional<Json>>([&] { return doGraphqlRawRequest(creds, requestJson); });
     }
 
+    static Retryable<optional<EncoderInfoResponse>> doGetEncoderInfo(SharedCredentials & sharedCreds) {
+        ScopedCurl curl(CONTENT_TYPE_JSON, sharedCreds);
+
+        curl_easy_setopt(curl, CURLOPT_URL, encoderInfoUrl.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{}"); 
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+
+        char curlError[CURL_ERROR_SIZE];
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlError);
+
+        CURLcode curlResult = curl_easy_perform(curl);
+        if (CURLE_OK != curlResult) {
+            LOG_ERROR("HTTP failure fetching encoder info: [%d] %s", curlResult, curlError);
+            return { {} };
+        }
+
+        Json responseJson;
+        try {
+            responseJson = Json::parse(curl.getResponse());
+        } catch (...) {
+            LOG_ERROR("Failed to prase encoder info response");
+            return { {} };
+        }
+
+        return { responseJson };
+    }
+
+    optional<EncoderInfoResponse> getEncoderInfo(SharedCredentials & creds) {
+        return retryRequest<optional<EncoderInfoResponse>>(std::bind(doGetEncoderInfo, std::ref(creds)));
+    }
+
 } // namespace caff

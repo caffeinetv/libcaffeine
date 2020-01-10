@@ -158,6 +158,9 @@ namespace caff {
         this->failedCallback = failedCallback;
         transitionState(State::Offline, State::Starting);
 
+        auto info = getEncoderInfo(sharedCredentials);
+        int targetBitrate = info->setting.bitrate > 0 ? info->setting.bitrate : maxBitsPerSecond;
+
         broadcastThread = std::thread([=] {
             setupSubscription();
 
@@ -197,8 +200,8 @@ namespace caff {
             peerConnection->AddStream(mediaStream);
 
             webrtc::BitrateSettings bitrateOptions;
-            bitrateOptions.start_bitrate_bps = maxBitsPerSecond;
-            bitrateOptions.max_bitrate_bps = maxBitsPerSecond;
+            bitrateOptions.start_bitrate_bps = targetBitrate;
+            bitrateOptions.max_bitrate_bps = targetBitrate;
             peerConnection->SetBitrate(bitrateOptions);
 
             rtc::scoped_refptr<CreateSessionDescriptionObserver> creationObserver =

@@ -49,6 +49,15 @@ namespace caff {
         get_value_to(json, "connection_quality", response.connectionQuality);
     }
 
+    void from_json(Json const & json, EncoderInfoResponse & response) {
+        get_value_to(json, "encoder_type", response.encoderType);
+
+        get_value_to(json["encoder_setting"], "bitrate", response.setting.bitrate);
+        get_value_to(json["encoder_setting"], "framerate", response.setting.framerate);
+        get_value_to(json["encoder_setting"], "width", response.setting.width);
+        get_value_to(json["encoder_setting"], "height", response.setting.height);
+    }
+
     static bool isWhitelistedReportType(webrtc::StatsReport::StatsType type) {
         switch (type) {
         case webrtc::StatsReport::kStatsReportTypeSsrc:
