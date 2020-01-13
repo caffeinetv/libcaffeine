@@ -72,6 +72,6 @@ TEST_CASE("Deserializes encoder info response correctly") {
     CHECK(info.encoderType == "default");
     CHECK(info.setting.width == 1280);
     CHECK(info.setting.height == 720);
-    CHECK(info.setting.bitrate == 3500000);
+    CHECK(info.setting.targetBitrate == 3500000);
     CHECK(info.setting.framerate == 60);
 }
