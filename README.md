@@ -1,12 +1,70 @@
 # libcaffeine
+This library enables you to set up broadcasts and begin streaming on [Caffeine.tv](https://www.caffeine.tv) with ease. 
 
-This is a library for setting up broadcasts and streaming on [Caffeine.tv](https://www.caffeine.tv).
+* `libcaffeine` is licensed under the GNU GPL Version 2, please see LICENSE.txt for details.
+* For information on contributing to this project, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Libcaffeine is licensed under the GNU GPL version 2. See LICENSE.txt for details.
 
-For information on contributing to this project, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-TODO: More Documentation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# EVERYTHING BELOW THIS LINE SHOULD BE IN THE WIKI OR IS OUTDATED
+
+# Building libcaffeine from Source
+## On Windows
+### Requirements
+* Visual Studio 2019 with Desktop C++ Toolset enabled 
+* **or**: Visual Studio 2017 with [LLVM Compiler Toolchain Extension](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain)
+* 
+
+## On Linux
+Linux is currently not yet supported.
+
+## On Mac
+Prereqs:
+
+* Xcode
+* CMAKE
+
+Steps:
+
+* Download the latest version of webrtc-prebuilt-macos.7z from https://github.com/caffeinetv/webrtc/releases
+* Extract the archive somewhere convenient
+* Set `WEBRTC_ROOT_DIR` environment variable to the directory you extracted the files to
+* In the libcaffeine root directory:
+    * `mkdir build`
+    * `cd build`
+    * `cmake .. -G Xcode`
+    * Build the project in Xcode
+
 
 ## Using the library
 
@@ -66,25 +124,6 @@ Steps:
     * `cmake .. -G "Visual Studio 15 2017 Win64" -T LLVM`
     * `start libcaffeine.sln`
 * Build the solution in Visual Studio
-
-### Mac
-Prereqs:
-
-* Xcode
-* CMAKE
-
-Steps:
-
-* Download the latest version of webrtc-prebuilt-macos.7z from https://github.com/caffeinetv/webrtc/releases
-* Extract the archive somewhere convenient
-* Set `WEBRTC_ROOT_DIR` environment variable to the directory you extracted the files to
-* In the libcaffeine root directory:
-    * `mkdir build`
-    * `cd build`
-    * `cmake .. -G Xcode`
-    * Build the project in Xcode
-
-**TODO:** Linux
 
 ## Packaging Instructions    
 

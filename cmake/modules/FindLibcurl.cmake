@@ -8,9 +8,13 @@
 #
 # For use in OBS:
 #
-#  CURL_INCLUDE_DIR
+#  CURL_INCLUDE_DIRS
 # TODO is ^^^^ needed?
 
+# Variables
+set(CURL_DIR "" CACHE PATH "Path to NVIDIA Audio Effects SDK")
+
+include(FindPackageHandleStandardArgs)
 find_package(PkgConfig QUIET)
 if (PKG_CONFIG_FOUND)
 	pkg_check_modules(_CURL QUIET curl libcurl)
@@ -22,7 +26,7 @@ else()
 	set(_lib_suffix 32)
 endif()
 
-find_path(CURL_INCLUDE_DIR
+find_path(CURL_INCLUDE_DIRS
 	NAMES curl/curl.h
 	HINTS
 		ENV curlPath${_lib_suffix}
@@ -34,12 +38,13 @@ find_path(CURL_INCLUDE_DIR
 		${DepsPath${_lib_suffix}}
 		${DepsPath}
 		${_CURL_INCLUDE_DIRS}
+		${CURL_DIR}
 	PATHS
 		/usr/include /usr/local/include /opt/local/include /sw/include
 	PATH_SUFFIXES
 		include)
 
-find_library(CURL_LIB
+find_library(CURL_LIBRARIES
 	NAMES ${_CURL_LIBRARIES} curl libcurl
 	HINTS
 		ENV curlPath${_lib_suffix}
@@ -51,6 +56,7 @@ find_library(CURL_LIB
 		${DepsPath${_lib_suffix}}
 		${DepsPath}
 		${_CURL_LIBRARY_DIRS}
+		${CURL_DIR}
 	PATHS
 		/usr/lib /usr/local/lib /opt/local/lib /sw/lib
 	PATH_SUFFIXES
@@ -63,12 +69,13 @@ find_library(CURL_LIB
 		"build/Win${_lib_suffix}/VC12/DLL Release - DLL Windows SSPI"
 		"../build/Win${_lib_suffix}/VC12/DLL Release - DLL Windows SSPI")
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Libcurl DEFAULT_MSG CURL_LIB CURL_INCLUDE_DIR)
-mark_as_advanced(CURL_INCLUDE_DIR CURL_LIB)
+find_package_handle_standard_args(libCURL
+	FOUND_VAR LIBCURL_FOUND
+	REQUIRED_VARS CURL_INCLUDE_DIRS CURL_LIBRARIES
+)
+mark_as_advanced(CURL_INCLUDE_DIRS CURL_LIBRARIES)
 
 if(LIBCURL_FOUND)
-	set(LIBCURL_INCLUDE_DIRS ${CURL_INCLUDE_DIR})
-	set(LIBCURL_LIBRARIES ${CURL_LIB})
+	set(LIBCURL_INCLUDE_DIRS ${CURL_INCLUDE_DIRS})
+	set(LIBCURL_LIBRARIES ${CURL_LIBRARIES})
 endif()
-
