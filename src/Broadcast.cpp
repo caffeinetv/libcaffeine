@@ -159,7 +159,8 @@ namespace caff {
         transitionState(State::Offline, State::Starting);
 
         auto info = getEncoderInfo(sharedCredentials);
-        int targetBitrate = info->setting.bitrate > 0 ? info->setting.bitrate : maxBitsPerSecond;
+        int targetBitrate = info.has_value() && info->setting.bitrate > 0 ? info->setting.bitrate : maxBitsPerSecond;
+        LOG_DEBUG("Setting target bitrate: %d", targetBitrate);
 
         broadcastThread = std::thread([=] {
             setupSubscription();
