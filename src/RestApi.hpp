@@ -95,7 +95,7 @@ namespace caff {
     struct EncoderSettings {
         int width;
         int height;
-        int bitrate;
+        int targetBitrate;
         int framerate;
     };
 
