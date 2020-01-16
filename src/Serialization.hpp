@@ -53,6 +53,7 @@ namespace caff {
     void from_json(Json const & json, GameInfo & gameInfo);
     void to_json(Json & json, IceInfo const & iceInfo);
     void from_json(Json const & json, HeartbeatResponse & response);
+    void from_json(Json const & json, EncoderInfoResponse & response);
 
     // The WebRTC types fail nlohmann's "compatibility" checks when using the to_json overload, either as a free
     // function or as an adl_serializer specialization

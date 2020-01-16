@@ -92,6 +92,18 @@ namespace caff {
         caff_ConnectionQuality connectionQuality;
     };
 
+    struct EncoderSettings {
+        int width;
+        int height;
+        int targetBitrate;
+        int framerate;
+    };
+
+    struct EncoderInfoResponse {
+        std::string encoderType;
+        EncoderSettings setting;
+    };
+
     std::chrono::duration<long long> backoffDuration(size_t tryNum);
 
     optional<HeartbeatResponse> heartbeatStream(std::string const & streamUrl, SharedCredentials & creds);
@@ -119,6 +131,8 @@ namespace caff {
     void sendWebrtcStats(SharedCredentials & creds, Json const & report);
 
     optional<Json> graphqlRawRequest(SharedCredentials & creds, Json const & requestJson);
+
+    optional<EncoderInfoResponse> getEncoderInfo(SharedCredentials & creds);
 
     template <typename OperationField, typename... Args>
     optional<typename OperationField::ResponseData> graphqlRequest(SharedCredentials & creds, Args const &... args) {

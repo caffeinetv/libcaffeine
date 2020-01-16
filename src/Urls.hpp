@@ -15,6 +15,7 @@ namespace caff {
     extern std::string const getGamesUrl;
     extern std::string const realtimeGraphqlUrl;
     extern std::string const broadcastMetricsUrl;
+    extern std::string const encoderInfoUrl;
 
     std::string getUserUrl(std::string const & id);
     std::string broadcastUrl(std::string const & id);
