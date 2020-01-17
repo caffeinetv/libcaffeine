@@ -203,6 +203,7 @@ namespace caff {
             webrtc::BitrateSettings bitrateOptions;
             bitrateOptions.start_bitrate_bps = targetBitrate;
             bitrateOptions.max_bitrate_bps = targetBitrate;
+            bitrateOptions.min_bitrate_bps = targetBitrate;
             peerConnection->SetBitrate(bitrateOptions);
 
             rtc::scoped_refptr<CreateSessionDescriptionObserver> creationObserver =
@@ -269,6 +270,29 @@ namespace caff {
                 failedCallback(caff_ResultFailure);
                 return;
             }
+
+            LOG_DEBUG("Setting RTP sender min/max bitrates");
+            auto senders = peerConnection->GetSenders();
+            if (senders.size() == 0) {
+                LOG_WARNING("No RTP senders are setup");
+            } else {
+                for (auto sender : senders) {
+                    if (cricket::MEDIA_TYPE_VIDEO == sender->media_type()) {
+                        webrtc::RtpParameters params = sender->GetParameters();
+
+                        if (params.encodings.size() > 0) {
+                            params.encodings[0].max_bitrate_bps = params.encodings[0].min_bitrate_bps = targetBitrate;
+                            LOG_DEBUG("Setting video RTP sender min/max bitrate to target bitrate: %d", targetBitrate);
+                        }
+
+                        webrtc::RTCError ret = sender->SetParameters(params);
+                        if (!ret.ok()) {
+                            LOG_ERROR("Failed to set rtp parameters: %s", ret.message());
+                        }
+                    }
+                }
+            }
+
 
             LOG_DEBUG("Creating feed");
             auto result = createFeed(offerSdp);
