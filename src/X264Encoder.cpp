@@ -217,7 +217,7 @@ namespace caff {
         encoderParams.i_height = height;
         encoderParams.i_fps_den = 1;
         encoderParams.i_fps_num = 30;
-        encoderParams.i_level_idc = 31;
+        encoderParams.i_level_idc = 42;
 
         // CPU settings
         // use single thread encoding since multi-threaded may cause some issue on
