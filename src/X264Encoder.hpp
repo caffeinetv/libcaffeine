@@ -50,6 +50,7 @@ namespace caff {
         int height = 0;
         float maxFrameRate = 0.0f;
         uint32_t targetKbps = 0;
+        uint32_t targetFps = 30;
         webrtc::VideoCodecMode mode = webrtc::VideoCodecMode::kRealtimeVideo;
 
         // H.264 specifc parameters

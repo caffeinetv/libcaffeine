@@ -158,8 +158,15 @@ namespace caff {
         this->failedCallback = failedCallback;
         transitionState(State::Offline, State::Starting);
 
+        int targetBitrate = maxBitsPerSecond;
+        int targetFps = maxFps;
+
         auto info = getEncoderInfo(sharedCredentials);
-        int targetBitrate = info.has_value() && info->setting.targetBitrate > 0 ? info->setting.targetBitrate : maxBitsPerSecond;
+        if (info.has_value()) {
+            targetBitrate = info->setting.targetBitrate > 0 ? info->setting.targetBitrate : maxBitsPerSecond;
+            targetFps = info->setting.framerate > 0 ? info->setting.framerate : maxFps;
+        }
+
         LOG_DEBUG("Setting target bitrate: %d", targetBitrate);
 
         broadcastThread = std::thread([=] {
@@ -167,6 +174,7 @@ namespace caff {
 
             LOG_DEBUG("Creating video track");
             videoCapturer = new VideoCapturer;
+            videoCapturer->SetFramerateLimit(targetFps);
             auto videoSource = factory->CreateVideoSource(videoCapturer);
             auto videoTrack = factory->CreateVideoTrack("external_video", videoSource);
 

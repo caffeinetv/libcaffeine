@@ -62,16 +62,13 @@ namespace caff {
                 webrtc::ConvertVideoType(srcVideoType));
     }
 
+    VideoCapturer::VideoCapturer() : interFrameLimit(1'000'000us / (maxFps + 2)) {}
+
     cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const & format) {
         SetCaptureFormat(&format);
         SetCaptureState(cricket::CS_RUNNING);
         return cricket::CS_STARTING;
     }
-
-    // Caffeine platform only supports up to 30 fps. Frames that come in too quickly will be dropped
-    // This value is fudged a bit (32 instead of 30) to allow for minor variance between frames
-    static auto constexpr dropFps = maxFps + 2;
-    static auto constexpr minInterframe = 1'000'000us / dropFps;
 
     rtc::scoped_refptr<webrtc::I420Buffer> VideoCapturer::sendVideo(
             webrtc::VideoType format,
@@ -82,7 +79,7 @@ namespace caff {
             std::chrono::microseconds timestamp) {
         // TODO: see if we can easily configure max frame rate in webrtc
         auto span = timestamp - lastTimestamp;
-        if (span < minInterframe) {
+        if (span < interFrameLimit) {
             LOG_DEBUG(
                     "Dropping Frame: timestamp: %lld, lastTimestamp: %lld, span: %lld",
                     timestamp.count(),
@@ -181,6 +178,13 @@ namespace caff {
 
         fourccs->clear();
         return true;
+    }
+
+    void VideoCapturer::SetFramerateLimit(int32_t framerate) {
+        // Caffeine platform only supports either 30 or 60fps. Frames that come in too quickly will be dropped.
+        // This value is fudged a bit (+2 frames) to allow for minor variance between frames.
+        int32_t dropFps = framerate + 2;
+        interFrameLimit = 1'000'000us / dropFps;
     }
 
 } // namespace caff

@@ -13,7 +13,7 @@ namespace caff {
 
     class VideoCapturer : public cricket::VideoCapturer {
     public:
-        VideoCapturer() {}
+        VideoCapturer();
         VideoCapturer(VideoCapturer const &) = delete;
         VideoCapturer & operator=(VideoCapturer const &) = delete;
         virtual ~VideoCapturer() {}
@@ -32,8 +32,11 @@ namespace caff {
         virtual bool IsScreencast() const override;
         virtual bool GetPreferredFourccs(std::vector<uint32_t> * fourccs) override;
 
+        void SetFramerateLimit(int32_t framerate);
+
     private:
         std::chrono::microseconds lastTimestamp{ std::chrono::seconds::min() };
+        std::chrono::microseconds interFrameLimit;
     };
 
 }  // namespace caff
