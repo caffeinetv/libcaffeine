@@ -21,6 +21,12 @@ namespace caff {
     // minimum bitrate for high quality crf. above 1000 kbps will use high quality crf if before 720p.
     int const kMinBitrateKbpsHighQualityCrf = 1000;
 
+    // If the incoming fps is higher than 50, we will switch x264 to encode at 60fps. Otherwise, if the
+    // incoming fps drops below 35, we will switch to encode at 30fps.
+    // The default target framerate is 30.
+    uint32_t const kFpsHighThreshold = 50;
+    uint32_t const kFpsLowThreshold = 35;
+
     // Used by histograms. Values of entries should not be changed.
     enum X264EncoderEvent {
         kX264EncoderEventInit = 0,
@@ -216,7 +222,7 @@ namespace caff {
         encoderParams.i_width = width;
         encoderParams.i_height = height;
         encoderParams.i_fps_den = 1;
-        encoderParams.i_fps_num = 30;
+        encoderParams.i_fps_num = targetFps;
         encoderParams.i_level_idc = 42;
 
         // CPU settings
@@ -310,7 +316,37 @@ namespace caff {
         targetKbps = bitrateAllocation.get_sum_kbps();
         maxFrameRate = static_cast<float>(framerate);
 
-        // TODO: need to change x264 target_bps and framerate on the fly?
+        if (frameCount == 0 || nullptr == encoder) {
+            // Don't adjust the framerate until we start encoding.
+            LOG_DEBUG("No frames encoded or encoder setup yet. Ignore resetting encoder parameters.");
+            return WEBRTC_VIDEO_CODEC_OK;
+        }
+
+        // If incoming fps is greater than high threshold and we still at 30fps, switch to 60fps.
+        if (framerate > kFpsHighThreshold && targetFps == 30) {
+            LOG_DEBUG("Resetting target framerate to 60");
+            targetFps = 60;
+        } else if (framerate < kFpsLowThreshold && targetFps == 60) {
+            LOG_DEBUG("Resetting target framerate to 30");
+            targetFps = 30;
+        } else {
+            // No changes needed.
+            return WEBRTC_VIDEO_CODEC_OK;
+        }
+
+        x264_param_t encoderParams;
+        x264_encoder_parameters(encoder, &encoderParams);
+
+        // Reset the fps.
+        encoderParams.i_fps_num = targetFps;
+
+        int ret = x264_encoder_reconfig(encoder, &encoderParams);
+        if (ret < 0) {
+            LOG_ERROR("Failed to reconfig encoder; error code: %d", ret);
+            return WEBRTC_VIDEO_CODEC_ERR_PARAMETER;
+        }
+
+        // TODO: need to change x264 target_bps on the fly?
         return WEBRTC_VIDEO_CODEC_OK;
     }
 
