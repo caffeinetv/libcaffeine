@@ -85,3 +85,83 @@ Steps:
     * Build the project in Xcode
 
 **TODO:** Linux
+
+## Packaging Instructions    
+
+
+
+### Prerequisites  
+To run the build 
+### Windows
+* Download [7z](https://www.7-zip.org/download.html) 
+* Add 7z.exe to system Path env variable.
+* Add msbuild binary to system PATH env var
+* Add cmake binary to system PATH env var.
+* Add LLVM bin to system PATH env var.
+
+### Mac
+* Install using homebrew 
+  ```
+  brew install p7zip 
+  ```
+### Automated steps:
+
+Change directory to be the libcaffeine directory.
+### Windows:
+* Run the automated script in command prompt     
+    ``` 
+    build.bat [OPTION] 
+    ```
+### Mac
+* Run the automated script in Terminal     
+    ``` 
+    sh build.sh [OPTION] 
+    ```
+Supported options 
+
+    Options         | Usage
+    -------------   | -------------
+    -check          | To check project prerequisites
+    -build          | Builds the project
+    -package        | Packages libcaffein with 7z
+    -buildAndPackage| Builds and packages libcaffeine.
+
+The packaged output will be in `build` directory in Mac and dist directory in Windows.
+
+### Manual steps: 
+
+### Windows:
+* Build libcaffeine for both 32- and 64-bit windows
+* Create a folder named libcaffeine-vX.Y-windows
+* Inside that create these folders:
+    * bin32
+    * bin64
+    * include
+    * lib32
+    * lib64
+* Copy caffeine.h into include
+* Copy the .dll and .pdb files into the binXX folders
+* Copy the .lib files into the libXX folders
+* From `CMakeFiles/Export/libXX/cmake` folder copy `libcaffeineTarget.cmake`, `libcaffeineTarget-debug.cmake` , `libcaffeineTarget-debug.cmake`  into libXX/cmake
+* Copy libcaffeineConfig.cmake into libXX/cmake
+* Copy libcaffeineConfigVersion.cmake into libXX/cmake
+* 7z a libcaffeine-vX.Y-windows libcaffeine-vX.Y-windows.7z
+
+### Mac:
+* Build for macOS
+* Create a folder named libcaffeine-vX.Y-macos
+* Inside that create these folders:
+    * binXX
+    * include
+    * libXX
+* Copy `caffeine.h` into include
+* Copy `libcaffeine.dylib` into binXX
+* Copy `libcaffeined.a` (static lib) and `libcaffeined.dylib` into libXX
+* Copy `libcaffeine.a` (static lib) and `libcaffeine.dylib` into libXX
+* From `CMakeFiles/Export/libXX/cmake` folder copy `libcaffeineTarget.cmake`, `libcaffeineTarget-debug.cmake` , `libcaffeineTarget-relwithdebinfo.cmake`  into libXX/cmake
+* Copy libcaffeineConfig.cmake into libXX/cmake
+* Copy libcaffeineConfigVersion.cmake into libXX/cmake
+* 7z a libcaffeine-vX.Y-macos.7z libcaffeine-vX.Y-macos
+
+
+
