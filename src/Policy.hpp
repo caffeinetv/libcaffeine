@@ -12,14 +12,14 @@ namespace caff {
 
 
     // Network
-    int constexpr maxBitsPerSecond = 2'000'000;
+    int constexpr maxBitsPerSecond = 4'000'000;
 
     // Video
     int32_t constexpr maxAspectWidth = 3;
     int32_t constexpr maxAspectHeight = 1;
     int32_t constexpr minAspectWidth = 1;
     int32_t constexpr minAspectHeight = 3;
-    int32_t constexpr maxFrameHeight = 720;
+    int32_t constexpr maxFrameHeight = 1080;
     int32_t constexpr minFrameDimension = 360;
     int32_t constexpr maxFps = 30;
 
