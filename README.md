@@ -163,5 +163,11 @@ The packaged output will be in `build` directory in Mac and dist directory in Wi
 * Copy libcaffeineConfigVersion.cmake into libXX/cmake
 * 7z a libcaffeine-vX.Y-macos.7z libcaffeine-vX.Y-macos
 
+## Metadata
+
+- Team: Frontend / Desktop
+- Product Owner: Viral Desai
+- Engineer: Prateeksha Das
+- Engineer: David Chen
 
 
