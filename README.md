@@ -84,7 +84,7 @@ Steps:
     * `cmake .. -G Xcode`
     * Build the project in Xcode
 
-Note: if the cmake command above fails, it may be due to the XCode commandline tools being selected. To resolve this, switch to full XCode and retry: `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+Note: if the cmake command above fails, it may be due to the XCode commandline tools being selected. To resolve this, reset your XCode selection and retry: `sudo xcode-select -r`
 
 **TODO:** Linux
 
