@@ -6,17 +6,18 @@ matrix:
 
 environment:
   global:
-    CMAKE_SYSTEM_VERSION: 10.0.17134.0
+    CMAKE_SYSTEM_VERSION: 10.0
     CURL_VERSION: 7.56.1
     LLVM_VERSION: 8.0.0
     LIBYUV_GIT: "https://chromium.googlesource.com/libyuv/libyuv"
 
   matrix:
-  - APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2017"
-    CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
-    CMAKE_TOOLSET: "LLVM"
+  - APPVEYOR_BUILD_WORKER_IMAGE: "Visual Studio 2019"
+    CMAKE_GENERATOR: "Visual Studio 16 2019"
+    CMAKE_TOOLSET: "ClangCL"
     WEBRTC_URL: "https://github.com/caffeinetv/webrtc/releases/download/v70.2-libcaffeine/webrtc-prebuilt-windows.7z"
     WEBRTC_PATH: .cache\\webrtc
+    #LLVM_EXTENSION: "https://llvmextensions.gallerycdn.vsassets.io/extensions/llvmextensions/llvm-toolchain/1.0.363769/1560930595399/llvm.vsix"
     # Used for libcurl only, should be replaced in the future by a proper C++ library.
     OBS_DEPENDENCIES_URL: "https://obsproject.com/downloads/dependencies2017.zip"
     OBS_DEPENDENCIES_ARCH: "win64"

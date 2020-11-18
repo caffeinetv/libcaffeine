@@ -52,8 +52,9 @@ caff_freeInstance(&instance);
 
 Prereqs:
 
-* Visual Studio 2017 (and [LLVM Compiler Toolchain Extension](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain))
-* LLVM toolchain
+* [LLVM 8.0.1 or later](http://releases.llvm.org/download.html)
+* [Visual Studio 2019](https://visualstudio.microsoft.com/downloads/)
+* [LLVM Compiler Toolchain Extension](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain) (can also be installed from within Visual Studio)
 
 Steps:
 
@@ -63,7 +64,7 @@ Steps:
 * In the libcaffeine root directory:
     * `mkdir build`
     * `cd build`
-    * `cmake .. -G "Visual Studio 15 2017 Win64" -T LLVM`
+    * `cmake .. -G "Visual Studio 16 2019" -T LLVM`
     * `start libcaffeine.sln`
 * Build the solution in Visual Studio
 
