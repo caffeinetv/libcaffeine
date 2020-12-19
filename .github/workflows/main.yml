@@ -1,0 +1,107 @@
+name: CI Multiplatform Build
+
+on: [push, pull_request]
+
+# on: 
+#   push:
+#     branches:
+#       - master
+#   pull_request:
+#     branches:
+#       - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  macos64:
+    name: 'macOS 64-bit'
+    runs-on: [macos-latest]
+    steps:
+      - name: "Clone Repository"
+        uses: actions/checkout@v1
+      - name: "Dependencies: WebRTC"
+        run: |
+          curl -kL "https://github.com/caffeinetv/webrtc/releases/download/v70.2-libcaffeine/webrtc-prebuilt-windows.7z" -f --retry 5 -o webrtc.7z
+          7z -othird_party/webrtc x webrtc.7z
+      - name: "Configure"
+          run: |
+            mkdir build
+            cd build
+            cmake -DWEBRTC_ROOT_DIR="thirdparty/webrtc".. -G Xcode
+      - name: "Build"
+          run: |
+            make
+      - name: Package
+          # if: success() && (github.event_name != 'pull_request')
+          working-directory: ${{ github.workspace }}/build
+          run: |
+            FILE_DATE=$(date +%Y-%m-%d)
+            PACKAGE_NAME=libcaffeine-macos-$FILE_DATE
+            BIN_DIR="$PACKAGE_NAME/bin$(getconf LONG_BIT)"
+            LIB_DIR="$PACKAGE_NAME/lib$(getconf LONG_BIT)"
+            echo "PACKAGE_NAME=${PACKAGE_NAME}
+
+            mkdir $PACKAGE_NAME
+            cd $PACKAGE_NAME
+            mkdir "bin$(getconf LONG_BIT)"
+            cd ..
+            cp -R ../include $PACKAGE_NAME
+            cp -R RelWithDebInfo/libcaffeine.dylib  $BIN_DIR
+            cp -R Release/libcaffeiner.dylib  $BIN_DIR
+            cp -R Debug/libcaffeined.dylib  $BIN_DIR
+            cp -R MinSizeRel/libcaffeines.dylib  $BIN_DIR
+            cp -R CMakeFiles/Export/lib64 $PACKAGE_NAME
+            cp -R libcaffeineConfigVersion.cmake $LIB_DIR/cmake
+            cp -R libcaffeineConfig.cmake $LIB_DIR/cmake
+            cp -rf $BIN_DIR/ $LIB_DIR
+            cp -rf Debug/libcaffeine-staticd.a $LIB_DIR/libcaffeined.a 
+            cp -rf RelWithDebInfo/libcaffeine-static.a $LIB_DIR/libcaffeine.a 
+            7z a $PACKAGE_NAME.7z $PACKAGE_NAME
+            cd ..
+      - name: "Upload Artifacts"
+        # if: success() && (github.event_name != 'pull_request')
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: ${{ env.PACKAGE_NAME }}
+          path: build/${{ env.PACKAGE_NAME }}.7z
+
+  windows:
+    strategy:
+      matrix:
+        arch: [32, 64]
+        include:
+          - arch: 32
+            cmake_arch: "Win32"
+          - arch: 64
+            cmake_arch: "x64"
+    runs-on: windows-2019
+    steps:
+      - name: "Clone Repository"
+        uses: actions/checkout@v1
+      - name: "Dependencies: libCURL"
+        run: |
+          curl -kL "https://obsproject.com/downloads/dependencies2017.zip" -f --retry 5 -o obsdeps.zip
+          7z -othird_party/obsdeps x obsdeps.zip
+      - name: "Dependencies: WebRTC"
+        run: |
+          curl -kL "https://github.com/caffeinetv/webrtc/releases/download/v70.2-libcaffeine/webrtc-prebuilt-windows.7z" -f --retry 5 -o webrtc.7z
+          7z -othird_party/webrtc x webrtc.7z
+      - name: "Configure"
+        run: |
+          mkdir build"${{ matrix.cmake_arch }}"
+          cd build"${{ matrix.cmake_arch }}"
+          cmake -H. -Bbuild -G "Visual Studio 16 2019" -A "${{ matrix.cmake_arch }}" -T "ClangCL" -D BUILD_TESTS=OFF -D WEBRTC_ROOT_DIR="third_party/webrtc" -D DepsPath="third_party/obsdeps/win${{ matrix.arch }}" -D CMAKE_INSTALL_PREFIX=dist
+      - name: "Build"
+        run: |
+          msbuild /p:Configuration=RelWithDebInfo /p:PlatformTarget=x86 /t:Build /m .\build"${{ matrix.cmake_arch }}"\libcaffeine.sln
+      - name: "Package"
+        run: |
+          cmake --build build --target PACKAGE_7Z --config Release
+          ls build
+      - name: "Upload Artifacts"
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: libcaffeine-win${{ matrix.arch }}
+          path: build/libcaffeine.7z
