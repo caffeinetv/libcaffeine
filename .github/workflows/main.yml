@@ -1,14 +1,12 @@
 name: CI Multiplatform Build
 
-on: [push, pull_request]
-
-# on: 
-#   push:
-#     branches:
-#       - master
-#   pull_request:
-#     branches:
-#       - master
+on: 
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 defaults:
   run:
@@ -43,7 +41,7 @@ jobs:
             ls
             cd ..
       - name: Package
-          # if: success() && (github.event_name != 'pull_request')
+        if: success() && (github.event_name != 'pull_request')
         working-directory: ${{ github.workspace }}/build
         shell: bash
         run: |
@@ -72,7 +70,7 @@ jobs:
           ls
           cd ..
       - name: "Upload Artifacts"
-        # if: success() && (github.event_name != 'pull_request')
+        if: success() && (github.event_name != 'pull_request')
         uses: actions/upload-artifact@v2.2.0
         with:
           name: '${{ env.PACKAGE_NAME }}'
@@ -112,6 +110,7 @@ jobs:
           cmake --build build32 --target INSTALL --config Debug
           cmake --build build32 --target INSTALL --config RelWithDebInfo
       - name: "Package"
+        if: success() && (github.event_name != 'pull_request')
         working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
@@ -170,6 +169,7 @@ jobs:
           7z a "${env:PACKAGE_NAME}.7z" "${env:PACKAGE_NAME}"
           cd ..
       - name: "Upload Artifacts"
+        if: success() && (github.event_name != 'pull_request')
         uses: actions/upload-artifact@v2.2.0
         with:
           name: '${{ env.PACKAGE_NAME }}'
