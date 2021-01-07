@@ -59,7 +59,7 @@ Steps:
 * Download the latest version of webrtc-prebuilt-windows.7z from https://github.com/caffeinetv/webrtc/releases
 * Extract the file somewhere convenient
 * Set `WEBRTC_ROOT_DIR` environment variable to the directory you extracted the files to
-* Download obsdeps "https://obsproject.com/downloads/dependencies2017.zip" . Extract file 
+* Download obsdeps "https://obsproject.com/downloads/dependencies2019.zip" . Extract file 
 * Set `DepsPath` environment variable to directory you extracted files to. This is needed to get curl        
 * In the libcaffeine root directory:
     * `mkdir build64`
