@@ -19,6 +19,10 @@ goto :MAIN
         echo "Error: Missing required dependencies. Check if WEBRTC_ROOT_DIR env var is set."
         EXIT /b /1
     )
+    if not defined DepsPath (
+        echo "Error: Missing required dependencies. Check if DepsPath env var is set."
+        EXIT /b /1
+    )
     echo "Found all prerequisites."
     goto:EOF
 
@@ -32,40 +36,62 @@ goto :MAIN
     goto:EOF
     goto:EOF
 
+:: @function to find vs studio 
+:-checkVS
+    for /f "tokens=* USEBACKQ" %%f in (`call "%PROGRAMFILES(x86)%\Microsoft Visual Studio\Installer\vswhere" -version "[16.0,17.0)" -property installationPath`) DO (
+        set VSINSTALLATION=%%f
+    )
+    if "%VSINSTALLATION%" == "" (
+    echo Unable to find Visual Studio installation.
+    exit /b 1
+    )
+    echo "%VSINSTALLATION%" 
+    goto:EOF
+
 :: @function to build libcaffeine
 :-build
     call :-check
     echo "Building libcaffeine 64 bit"
     call :-clean %BUILD_DIR64%
-    cd %BUILD_DIR64%
-    cmake .. -G "Visual Studio 15 2017 Win64" -T LLVM
-    msbuild libcaffeine.sln /p:Configuration=Debug /p:Platform=x64 /t:Build /m
+    echo "Looking for Visual Studio path"
+    for /f "tokens=* USEBACKQ" %%f in (`call "%PROGRAMFILES(x86)%\Microsoft Visual Studio\Installer\vswhere" -version "[16.0,17.0)" -property installationPath`) DO (
+        set VSINSTALLATION=%%f
+    )
+    if "%VSINSTALLATION%" == "" (
+        echo Unable to find Visual Studio installation.
+        exit /b 1
+    )
+    echo "%VSINSTALLATION%"
+    echo "%VSINSTALLATION%\VC\Tools\Llvm\bin\clang.exe"
+    echo "changing slases"
+    set "VSINSTALLATION=%VSINSTALLATION:\=/%"
+    echo "%VSINSTALLATION%"
+   
+    cmake -H. -Bbuild64 -G "Visual Studio 16 2019" -A "x64" -T "ClangCL" -D BUILD_TESTS=OFF -DWEBRTC_ROOT_DIR="%WEBRTC_ROOT_DIR%" -DDepsPath="%DepsPath%\win64\include" -DCMAKE_INSTALL_PREFIX=dist  -DCMAKE_C_COMPILER="%VSINSTALLATION%/VC/Tools/Llvm/bin/clang.exe" -DCMAKE_CXX_COMPILER="%VSINSTALLATION%/VC/Tools/Llvm/bin/clang++.exe"
+    msbuild build64/libcaffeine.sln /p:Configuration=Debug /p:Platform=x64 /t:Build /m
     if %errorlevel% neq 0 (
         echo x64 Debug build failed.
         exit /b 1
     )
-    msbuild libcaffeine.sln /p:Configuration=RelWithDebInfo /p:Platform=x64 /t:Build /m
+    msbuild build64/libcaffeine.sln /p:Configuration=RelWithDebInfo /p:Platform=x64 /t:Build /m
     if %errorlevel% neq 0 (
         echo x64 RelWithDebInfo build failed.
         exit /b 1
     )
     echo "Successfully built libcaffeine 64 bit."
     echo "Now building libcaffeine 32 bit ...."
-    cd ..
     call :-clean %BUILD_DIR32%
-    cd %BUILD_DIR32%
-    cmake .. -G "Visual Studio 15 2017" -A Win32 -T LLVM
-    msbuild libcaffeine.sln /p:Configuration=Debug /p:PlatformTarget=x86 /t:Build /m
+    cmake -H. -Bbuild32 -G "Visual Studio 16 2019" -A "Win32" -T "ClangCL" -D BUILD_TESTS=OFF -D WEBRTC_ROOT_DIR="%WEBRTC_ROOT_DIR%" -D DepsPath="%DepsPath%\win32\include" -D CMAKE_INSTALL_PREFIX=dist -DCMAKE_C_COMPILER="%VSINSTALLATION%/VC/Tools/Llvm/bin/clang.exe" -DCMAKE_CXX_COMPILER="%VSINSTALLATION%/VC/Tools/Llvm/bin/clang++.exe"
+    msbuild build32/libcaffeine.sln /p:Configuration=Debug /p:PlatformTarget=x86 /t:Build /m
     if %errorlevel% neq 0 (
         echo x86 Debug build failed.
         exit /b 1
     )
-    msbuild libcaffeine.sln /p:Configuration=RelWithDebInfo /p:PlatformTarget=x86 /t:Build /m
+    msbuild build32/libcaffeine.sln /p:Configuration=RelWithDebInfo /p:PlatformTarget=x86 /t:Build /m
     if %errorlevel% neq 0 (
         echo x86 Debug build failed.
         exit /b 1
     )
-    cd ..
     echo "Successfully built libcaffeine 32 bit."
     goto:EOF
 
@@ -73,10 +99,13 @@ goto :MAIN
 :-package
     echo "Packaging ..."
     IF EXIST %DEST_DIR% (
+        echo "File already exists"
         del /s /q  %DEST_DIR%\*
         rmdir /Q /S %DEST_DIR%\
+    ) else (
+        mkdir %DEST_DIR%
     )
-    mkdir %DEST_DIR%
+    
     cd %DEST_DIR%
     mkdir %PACKAGE_NAME%
     cd %PACKAGE_NAME%
@@ -124,6 +153,7 @@ goto :MAIN
     echo "Supported options: "
     echo -help : Prints this output.
     echo -check : Checks prerequisites.
+    echo -checkVS : Visual studio exists.
     echo -build : Builds project.
     echo -package : Packages libcaffeine with 7z.
     echo -buildAndPackage : Builds and packages libcaffeine.
