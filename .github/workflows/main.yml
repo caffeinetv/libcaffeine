@@ -1,0 +1,176 @@
+name: CI Multiplatform Build
+
+on: 
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  macos64:
+    name: 'macOS 64-bit'
+    runs-on: [macos-latest]
+    steps:
+      - name: "Clone Repository"
+        uses: actions/checkout@v2.3.3
+      - name: "Dependencies: WebRTC"
+        run: |
+          curl -kL "https://github.com/caffeinetv/webrtc/releases/download/v70.2-libcaffeine/webrtc-prebuilt-macos.7z" -f --retry 5 -o webrtc.7z
+          7z -othird_party/webrtc x webrtc.7z
+      - name: "Configure"
+        run: |
+            mkdir build
+            cd build
+            cmake -DWEBRTC_ROOT_DIR="${{ github.workspace }}/third_party/webrtc" .. -G Xcode
+      - name: "Build"
+        run: |
+            cd  "${{ github.workspace }}/build"
+            ls
+            xcodebuild  -project libcaffeine.xcodeproj -target libcaffeine -configuration RelWithDebInfo
+            xcodebuild  -project libcaffeine.xcodeproj -target libcaffeine -configuration Release
+            xcodebuild  -project libcaffeine.xcodeproj -target libcaffeine -configuration Debug
+            xcodebuild  -project libcaffeine.xcodeproj -target libcaffeine -configuration MinSizeRel
+            xcodebuild  -project libcaffeine.xcodeproj -target libcaffeine-static -configuration RelWithDebInfo
+            xcodebuild  -project libcaffeine.xcodeproj -target libcaffeine-static -configuration Debug
+            ls
+            cd ..
+      - name: Package
+        if: success() && (github.event_name != 'pull_request')
+        working-directory: ${{ github.workspace }}/build
+        shell: bash
+        run: |
+          FILE_DATE=$(date +%Y-%m-%d)
+          PACKAGE_NAME=libcaffeine-macos-$FILE_DATE
+          BIN_DIR="$PACKAGE_NAME/bin$(getconf LONG_BIT)"
+          LIB_DIR="$PACKAGE_NAME/lib$(getconf LONG_BIT)"
+          echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_ENV
+          
+          mkdir $PACKAGE_NAME
+          cd $PACKAGE_NAME
+          mkdir "bin$(getconf LONG_BIT)"
+          cd ..
+          cp -R ../include $PACKAGE_NAME
+          cp -R RelWithDebInfo/libcaffeine.dylib  $BIN_DIR
+          cp -R Release/libcaffeiner.dylib  $BIN_DIR
+          cp -R Debug/libcaffeined.dylib  $BIN_DIR
+          cp -R MinSizeRel/libcaffeines.dylib  $BIN_DIR
+          cp -R CMakeFiles/Export/lib64 $PACKAGE_NAME
+          cp -R libcaffeineConfigVersion.cmake $LIB_DIR/cmake
+          cp -R libcaffeineConfig.cmake $LIB_DIR/cmake
+          cp -rf $BIN_DIR/ $LIB_DIR
+          cp -rf Debug/libcaffeine-staticd.a $LIB_DIR/libcaffeined.a 
+          cp -rf RelWithDebInfo/libcaffeine-static.a $LIB_DIR/libcaffeine.a 
+          7z a $PACKAGE_NAME.7z $PACKAGE_NAME
+          ls
+          cd ..
+      - name: "Upload Artifacts"
+        if: success() && (github.event_name != 'pull_request')
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: '${{ env.PACKAGE_NAME }}'
+          path: '${{ github.workspace }}/build/*'
+  win_86_64:
+    name: 'Windows 32 and 64 bit'
+    runs-on: windows-2019
+    env:
+      CMAKE_GENERATOR: "Visual Studio 16 2019"
+    steps:
+      - name: "Clone Repository"
+        uses: actions/checkout@v2.3.3
+      - name: "Dependencies: libCURL"
+        run: |
+          curl -kL "https://obsproject.com/downloads/dependencies2019.zip" -f --retry 5 -o obsdeps.zip
+          7z -othird_party/obsdeps x obsdeps.zip
+      - name: "Dependencies: WebRTC"
+        run: |
+          curl -kL "https://github.com/caffeinetv/webrtc/releases/download/v70.2-libcaffeine/webrtc-prebuilt-windows.7z" -f --retry 5 -o webrtc.7z
+          7z -othird_party/webrtc x webrtc.7z
+      - name: "Configure 64 bit build"
+        run: |
+          mkdir build64
+          cmake -H. -Bbuild64 -G "${{ env.CMAKE_GENERATOR }}" -A "x64" -T "ClangCL" -DBUILD_TESTS=OFF -DWEBRTC_ROOT_DIR="third_party/webrtc" -DDepsPath="third_party/obsdeps/win64" -DCMAKE_INSTALL_PREFIX=dist
+      - name: "Build"
+        run: |
+          ls build64
+          cmake --build build64 --target INSTALL --config Debug
+          cmake --build build64 --target INSTALL --config RelWithDebInfo
+      - name: "Configure 32 bit build"
+        run: |
+          mkdir build32
+          cmake -H. -Bbuild32 -G "${{ env.CMAKE_GENERATOR }}" -A "Win32" -T "ClangCL" -DBUILD_TESTS=OFF -DWEBRTC_ROOT_DIR="third_party/webrtc" -DDepsPath="third_party/obsdeps/win32" -DCMAKE_INSTALL_PREFIX=dist
+      - name: "Build 32 bit"
+        run: |
+          ls build32
+          cmake --build build32 --target INSTALL --config Debug
+          cmake --build build32 --target INSTALL --config RelWithDebInfo
+      - name: "Package"
+        if: success() && (github.event_name != 'pull_request')
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          $env:BUILD_DIR64="build64"
+          echo "${env:BUILD_DIR64}"
+          $env:BUILD_DIR32="build32"
+          $env:DEST_DIR="_dist"
+          $env:FILE_DATE=(Get-Date -format "yyyy-MM-dd")
+          $env:PACKAGE_NAME="libcaffeine-windows-${env:FILE_DATE}"
+          echo "PACKAGE_NAME=${env:PACKAGE_NAME}" >> ${env:GITHUB_ENV}
+          $env:BIN_DIR64="${env:PACKAGE_NAME}\bin64"
+          $env:LIB_DIR64="${env:PACKAGE_NAME}\lib64"
+          $env:BIN_DIR32="${env:PACKAGE_NAME}\bin32"
+          $env:LIB_DIR32="${env:PACKAGE_NAME}\lib32"
+          echo "${env:LIB_DIR32}"
+          
+          mkdir ${env:DEST_DIR}
+          cd ${env:DEST_DIR}
+          
+          mkdir ${env:PACKAGE_NAME}
+          cd ${env:PACKAGE_NAME}
+          mkdir "bin64"
+          mkdir "bin32"
+          cd ..
+          
+          echo "Packaging 64 bit..."
+          echo "${env:PACKAGE_NAME}\include"
+          xcopy  "${{ github.workspace }}\include" "${env:PACKAGE_NAME}\include" /E /I
+          echo "did it pass this point"
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\RelWithDebInfo\libcaffeine.dll" "${env:BIN_DIR64}\"
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\RelWithDebInfo\libcaffeine.pdb" "${env:BIN_DIR64}\"
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\Debug\libcaffeined.dll" "${env:BIN_DIR64}\"
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\Debug\libcaffeined.pdb" "${env:BIN_DIR64}\"
+          echo "did it pass next point"
+
+          xcopy "${{ github.workspace }}\${env:BUILD_DIR64}\CMakeFiles\Export\lib64\cmake\libcaffeineTarget.cmake" "${env:PACKAGE_NAME}\lib64\cmake\"  /I 
+          xcopy "${{ github.workspace }}\${env:BUILD_DIR64}\CMakeFiles\Export\lib64\cmake\libcaffeineTarget-relwithdebinfo.cmake" "${env:PACKAGE_NAME}\lib64\cmake\"  /I
+          xcopy "${{ github.workspace }}\${env:BUILD_DIR64}\CMakeFiles\Export\lib64\cmake\libcaffeineTarget-debug.cmake" "${env:PACKAGE_NAME}\lib64\cmake\" /E /I
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\libcaffeineConfigVersion.cmake" "${env:LIB_DIR64}\cmake\"
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\libcaffeineConfig.cmake" "${env:LIB_DIR64}\cmake\"
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\Debug\libcaffeined.lib" "${env:LIB_DIR64}\"
+          copy "${{ github.workspace }}\${env:BUILD_DIR64}\RelWithDebInfo\libcaffeine.lib" "${env:LIB_DIR64}\"
+          
+          echo "Packaging 32 bit..."
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\RelWithDebInfo\libcaffeine.dll" ${env:BIN_DIR32}\
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\RelWithDebInfo\libcaffeine.pdb" ${env:BIN_DIR32}\
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\Debug\libcaffeined.dll" ${env:BIN_DIR32}\
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\Debug\libcaffeined.pdb" ${env:BIN_DIR32}\
+          xcopy "${{ github.workspace }}\${env:BUILD_DIR32}\CMakeFiles\Export\lib32\cmake\libcaffeineTarget.cmake" "${env:PACKAGE_NAME}\lib32\cmake\"  /I
+          xcopy "${{ github.workspace }}\${env:BUILD_DIR32}\CMakeFiles\Export\lib32\cmake\libcaffeineTarget-relwithdebinfo.cmake" "${env:PACKAGE_NAME}\lib32\cmake\"  /I
+          xcopy "${{ github.workspace }}\${env:BUILD_DIR32}\CMakeFiles\Export\lib32\cmake\libcaffeineTarget-debug.cmake" "${env:PACKAGE_NAME}\lib32\cmake\"  /I
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\libcaffeineConfigVersion.cmake" ${env:LIB_DIR32}\cmake\
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\libcaffeineConfig.cmake" ${env:LIB_DIR32}\cmake\
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\Debug\libcaffeined.lib" ${env:LIB_DIR32}\
+          copy "${{ github.workspace }}\${env:BUILD_DIR32}\RelWithDebInfo\libcaffeine.lib" ${env:LIB_DIR32}\
+          7z a "${env:PACKAGE_NAME}.7z" "${env:PACKAGE_NAME}"
+          cd ..
+      - name: "Upload Artifacts"
+        if: success() && (github.event_name != 'pull_request')
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: '${{ env.PACKAGE_NAME }}'
+          path: '${{ github.workspace }}\_dist\*'

@@ -1,6 +1,6 @@
 // Copyright 2019 Caffeine Inc. All rights reserved.
-
-#pragma once
+#ifndef X264ENCODER_H_
+#define X264ENCODER_H_
 
 #include <cstdint>
 
@@ -30,7 +30,7 @@ namespace caff {
                 std::vector<webrtc::FrameType> const * frame_types) override;
 
         virtual char const * ImplementationName() const override;
-
+        
         virtual webrtc::VideoEncoder::ScalingSettings GetScalingSettings() const override;
 
         virtual int32_t SetChannelParameters(uint32_t packet_loss, int64_t rtt) override;
@@ -72,3 +72,4 @@ namespace caff {
     };
 
 }  // namespace caff
+#endif

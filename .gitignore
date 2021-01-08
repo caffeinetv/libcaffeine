@@ -4,3 +4,5 @@ build*/
 .DS_Store
 
 dist/
+third_party/webrtc/
+third_party/obsdeps/
