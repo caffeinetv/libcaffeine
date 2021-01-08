@@ -30,8 +30,8 @@ namespace caff {
                 std::vector<webrtc::FrameType> const * frame_types) override;
 
         virtual char const * ImplementationName() const override;
-        // Commenting this as it caused debug build error duplicate symbol error in ClangCL
-        // virtual webrtc::VideoEncoder::ScalingSettings GetScalingSettings() const override;
+        
+        virtual webrtc::VideoEncoder::ScalingSettings GetScalingSettings() const override;
 
         virtual int32_t SetChannelParameters(uint32_t packet_loss, int64_t rtt) override;
 

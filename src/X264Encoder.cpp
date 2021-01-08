@@ -481,7 +481,8 @@ namespace caff {
 
     int32_t X264Encoder::SetChannelParameters(uint32_t packetLoss, int64_t rtt) { return WEBRTC_VIDEO_CODEC_OK; }
 
-    // webrtc::VideoEncoder::ScalingSettings X264Encoder::GetScalingSettings() const {
-    //     return webrtc::VideoEncoder::ScalingSettings::kOff;
-    // }
+    webrtc::VideoEncoder::ScalingSettings X264Encoder::GetScalingSettings() const {
+        static constexpr auto kOffScalingSettings = webrtc::VideoEncoder::ScalingSettings::kOff;
+        return kOffScalingSettings;
+    }
 } // namespace caff
