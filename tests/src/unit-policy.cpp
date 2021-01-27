@@ -32,25 +32,25 @@ TEST_CASE("Aspect ratio check succeeds between 1:3 and 3:1") {
 
 TEST_CASE("Annotate title") {
     SUBCASE("uses the supplied title when it is not empty") {
-        CHECK(annotateTitle("Title", caff_RatingNone) == "Title");
+        CHECK(annotateTitle("Title") == "Title");
     }
 
     SUBCASE("uses the default title when an empty title is supplied") {
-        CHECK(annotateTitle("", caff_RatingNone) == defaultTitle);
+        CHECK(annotateTitle("") == defaultTitle);
     }
 
     SUBCASE("trims leading and trailing whitespace") {
-        CHECK(annotateTitle("  Title  ", caff_RatingNone) == "Title");
-        CHECK(annotateTitle("     ", caff_RatingNone) == defaultTitle);
+        CHECK(annotateTitle("  Title  ") == "Title");
+        CHECK(annotateTitle("     ") == defaultTitle);
     }
 
     SUBCASE("adds the 17+ tag when rated 17+") {
         std::string ratingTag = seventeenPlusTag;
-        CHECK(annotateTitle("Title", caff_RatingSeventeenPlus) == ratingTag + "Title");
-        CHECK(annotateTitle("", caff_RatingSeventeenPlus) == ratingTag + defaultTitle);
+        CHECK(annotateTitle("Title") == "Title");
+        CHECK(annotateTitle("") == defaultTitle);
     }
 
     SUBCASE("truncates titles longer than the max character limit") {
-        CHECK(annotateTitle(std::string(500, 'a'), caff_RatingNone) == std::string(maxTitleLength, 'a'));
+        CHECK(annotateTitle(std::string(500, 'a')) == std::string(maxTitleLength, 'a'));
     }
 }

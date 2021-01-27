@@ -22,14 +22,10 @@ namespace caff {
         }
     }
 
-    std::string annotateTitle(std::string title, caff_Rating rating) {
+    std::string annotateTitle(std::string title) {
         trim(title);
         if (title.empty()) {
             title = defaultTitle;
-        }
-
-        if (rating == caff_RatingSeventeenPlus) {
-            title.insert(0, seventeenPlusTag);
         }
 
         if (title.length() > maxTitleLength)

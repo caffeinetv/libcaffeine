@@ -37,5 +37,5 @@ namespace caff {
     // Helpers
     caff_Result checkAspectRatio(int32_t width, int32_t height);
 
-    std::string annotateTitle(std::string title, caff_Rating rating);
+    std::string annotateTitle(std::string title);
 } // namespace caff

@@ -401,7 +401,7 @@ namespace caff {
         }
 
         if (ratingChanged && state == State::Live) {
-            updateTitle();
+            updateContentRating();
         }
     }
 
@@ -662,7 +662,19 @@ namespace caff {
 
     std::string Broadcast::fullTitle() {
         std::lock_guard<std::mutex> lock(mutex);
-        return annotateTitle(title, rating);
+        return annotateTitle(title);
+    }
+
+    caffql::ContentRating Broadcast::getContentRating() {
+        std::lock_guard<std::mutex> lock(mutex);
+        switch (rating) {
+            case caff_RatingSeventeenPlus:
+                return caffql::ContentRating::ContentRatingFor17Plus;
+            case caff_RatingNone:
+                return caffql::ContentRating::ContentRatingForEveryone;
+            default:
+                return caffql::ContentRating::ContentRatingFor17Plus;
+        }
     }
 
     bool Broadcast::updateFeed() {
@@ -680,6 +692,15 @@ namespace caff {
                 sharedCredentials, clientId, caffql::ClientType::Capture, fullTitle());
         if (payload && payload->error) {
             LOG_ERROR("Error updating title: %s", payload->error->message().c_str());
+        }
+        return payload && !payload->error;
+    }
+
+    bool Broadcast::updateContentRating() {
+        auto payload = graphqlRequest<caffql::Mutation::ChangeStageContentRatingField>(
+                sharedCredentials, clientId, caffql::ClientType::Capture, getContentRating());
+        if (payload && payload->error) {
+            LOG_ERROR("Error updating rating: %s", payload->error->message().c_str());
         }
         return payload && !payload->error;
     }

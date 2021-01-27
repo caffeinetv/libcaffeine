@@ -76,6 +76,18 @@ namespace caffql {
         {Capability::Video, "VIDEO"},
     });
 
+    enum class ContentRating {
+        ContentRatingFor17Plus,
+        ContentRatingForEveryone,
+        Unknown = -1
+    };
+
+    NLOHMANN_JSON_SERIALIZE_ENUM(ContentRating, {
+        {ContentRating::Unknown, nullptr},
+        {ContentRating::ContentRatingFor17Plus, "SEVENTEEN_PLUS"},
+        {ContentRating::ContentRatingForEveryone, "EVERYONE"},
+    });
+
     /*
     This error will be returned when Reyes failed to retrieve streams for all of
     the feeds even after retrying.
@@ -576,6 +588,7 @@ namespace caffql {
         // The username of the owner of the stage.
         std::string username;
         std::string title;
+        ContentRating contentRating;
         bool live;
         /*
         For now, clients still need to upload their own images.
@@ -610,6 +623,7 @@ namespace caffql {
         json.at("id").get_to(value.id);
         json.at("username").get_to(value.username);
         json.at("title").get_to(value.title);
+        json.at("contentRating").get_to(value.contentRating);
         json.at("live").get_to(value.live);
         {
             auto it = json.find("broadcastId");
@@ -733,6 +747,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {
@@ -856,6 +871,23 @@ namespace caffql {
         json.at("stage").get_to(value.stage);
     }
 
+    struct ChangeStageContentRatingPayload {
+        optional<Error> error;
+        Stage stage;
+    };
+
+    inline void from_json(Json const & json, ChangeStageContentRatingPayload & value) {
+        {
+            auto it = json.find("error");
+            if (it != json.end()) {
+                it->get_to(value.error);
+            } else {
+                value.error.reset();
+            }
+        }
+        json.at("stage").get_to(value.stage);
+    }
+
     namespace Query {
 
         /*
@@ -883,6 +915,7 @@ namespace caffql {
                             id
                             username
                             title
+                            contentRating
                             live
                             broadcastId
                             controllingClient {
@@ -985,7 +1018,7 @@ namespace caffql {
     };
 
     struct StagePayload {
-        variant<AddFeedPayload, SetLiveHostingFeedPayload, UpdateFeedPayload, RemoveFeedPayload, ChangeStageTitlePayload, StartBroadcastPayload, StopBroadcastPayload, StageSubscriptionPayload, UnknownStagePayload> implementation;
+        variant<AddFeedPayload, SetLiveHostingFeedPayload, UpdateFeedPayload, RemoveFeedPayload, ChangeStageTitlePayload, ChangeStageContentRatingPayload, StartBroadcastPayload, StopBroadcastPayload, StageSubscriptionPayload, UnknownStagePayload> implementation;
 
         Stage const & stage() const {
             return visit([](auto const & implementation) -> Stage const & {
@@ -1011,6 +1044,8 @@ namespace caffql {
             value = {RemoveFeedPayload(json)};
         } else if (occupiedType == "ChangeStageTitlePayload") {
             value = {ChangeStageTitlePayload(json)};
+        } else if (occupiedType == "ChangeStageContentRatingPayload") {
+            value = {ChangeStageContentRatingPayload(json)};
         } else if (occupiedType == "StartBroadcastPayload") {
             value = {StartBroadcastPayload(json)};
         } else if (occupiedType == "StopBroadcastPayload") {
@@ -1031,7 +1066,7 @@ namespace caffql {
     meaningful information (i.e. it will be a zero value).
     */
     struct ErrorPayload {
-        variant<AddFeedPayload, SetLiveHostingFeedPayload, UpdateFeedPayload, RemoveFeedPayload, ChangeStageTitlePayload, StartBroadcastPayload, StopBroadcastPayload, StageSubscriptionPayload, UnknownErrorPayload> implementation;
+        variant<AddFeedPayload, SetLiveHostingFeedPayload, UpdateFeedPayload, RemoveFeedPayload, ChangeStageTitlePayload, ChangeStageContentRatingPayload, StartBroadcastPayload, StopBroadcastPayload, StageSubscriptionPayload, UnknownErrorPayload> implementation;
 
         optional<Error> const & error() const {
             return visit([](auto const & implementation) -> optional<Error> const & {
@@ -1064,6 +1099,8 @@ namespace caffql {
             value = {RemoveFeedPayload(json)};
         } else if (occupiedType == "ChangeStageTitlePayload") {
             value = {ChangeStageTitlePayload(json)};
+        } else if (occupiedType == "ChangeStageContentRatingPayload") {
+            value = {ChangeStageContentRatingPayload(json)};
         } else if (occupiedType == "StartBroadcastPayload") {
             value = {StartBroadcastPayload(json)};
         } else if (occupiedType == "StopBroadcastPayload") {
@@ -1126,6 +1163,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {
@@ -1256,6 +1294,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {
@@ -1378,6 +1417,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {
@@ -1501,6 +1541,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {
@@ -1589,6 +1630,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {
@@ -1651,6 +1693,95 @@ namespace caffql {
 
         };
 
+        // If a client is controlling the stage, then only that client may change the rating.
+        struct ChangeStageContentRatingField {
+
+            static Operation constexpr operation = Operation::Mutation;
+            
+            static Json request(Id const & clientId, ClientType clientType, ContentRating contentRating) {
+                Json query = R"(
+                    mutation ChangeStageContentRating(
+                        $clientId: ID!
+                        $clientType: ClientType!
+                        $contentRating: ContentRating!
+                    ) {
+                        changeStageContentRating(
+                            clientId: $clientId
+                            clientType: $clientType
+                            contentRating: $contentRating
+                        ) {
+                            error {
+                                __typename
+                                title
+                                message
+                            }
+                            stage {
+                                id
+                                username
+                                title
+                                contentRating
+                                live
+                                broadcastId
+                                controllingClient {
+                                    clientId
+                                    clientType
+                                }
+                                feeds {
+                                    id
+                                    clientId
+                                    clientType
+                                    gameId
+                                    sourceConnectionQuality
+                                    capabilities
+                                    role
+                                    restrictions
+                                    liveHost {
+                                        __typename
+                                        address
+                                        ...on LiveHosting {
+                                            volume
+                                            ownerId
+                                            ownerUsername
+                                        }
+                                    }
+                                    stream {
+                                        __typename
+                                        id
+                                        url
+                                        ...on BroadcasterStream {
+                                            sdpAnswer
+                                        }
+                                        ...on ViewerStream {
+                                            sdpOffer
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )";               
+                Json variables;
+                variables["clientId"] = clientId;
+                variables["clientType"] = clientType;
+                variables["contentRating"] = contentRating;
+                return {{"query", std::move(query)}, {"variables", std::move(variables)}};
+            }
+
+            using ResponseData = ChangeStageContentRatingPayload;
+
+            static GraphqlResponse<ResponseData> response(Json const & json) {
+                auto errors = json.find("errors");
+                if (errors != json.end()) {
+                    std::vector<GraphqlError> errorsList = *errors;
+                    return errorsList;
+                } else {
+                    auto const & data = json.at("data");
+                    return ResponseData(data.at("changeStageContentRating"));
+                }
+            }
+
+        };
+
         /*
         If multiple clients were in preview mode and had feeds on the stage, starting
         a broadcast will remove the feeds no longer in use for the live broadcast.
@@ -1680,6 +1811,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {
@@ -1769,6 +1901,7 @@ namespace caffql {
                                 id
                                 username
                                 title
+                                contentRating
                                 live
                                 broadcastId
                                 controllingClient {

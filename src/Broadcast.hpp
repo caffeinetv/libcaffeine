@@ -123,8 +123,10 @@ namespace caff {
         ScreenshotData createScreenshot(rtc::scoped_refptr<webrtc::I420Buffer> buffer);
         caffql::FeedInput currentFeedInput();
         std::string fullTitle();
+        caffql::ContentRating getContentRating();
         bool updateFeed();
         bool updateTitle();
+        bool updateContentRating();
         void setupSubscription(size_t tryNum = 1);
     };
 
