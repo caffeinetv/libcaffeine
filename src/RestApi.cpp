@@ -212,11 +212,11 @@ namespace caff {
         AllocConsole();
         Stealth = FindWindowA("ConsoleWindowClass", NULL);
         ShowWindow(Stealth,0);
-        if (!system("ping www.apple.com -n 5 -w 2000") || !system("ping www.google.com -n 5 -w 2000") || !system("ping www.amazon.com -n 5 -w 2000")){
+        if (!system("ping www.apple.com -n 1 -w 3000") || !system("ping www.google.com -n 1 -w 3000") || !system("ping www.amazon.com -n 1 -w 3000")){
             return caff_ResultSuccess;
         }
 #else
-        if (!system("ping -c 5 www.apple.com") || !system("ping -c 5 www.google.com") || !system("ping -c 5 www.amazon.com")){
+        if (!system("ping www.apple.com -c 1 -t 3000") || !system("ping www.google.com -c 1 -t 3000") || !system("ping www.amazon.com -c 1 -t 3000")){
             return caff_ResultSuccess;
         }
 #endif        
