@@ -6,6 +6,9 @@
 #include <mutex>
 #include <sstream>
 #include <thread>
+#if _WIN32
+#include <Windows.h>
+#endif
 
 #include "Configuration.hpp"
 #include "Urls.hpp"
@@ -195,6 +198,43 @@ namespace caff {
             return caff_ResultOldVersion;
         }
 
+        return caff_ResultSuccess;
+    }
+
+    caff_Result checkInternetConnection() {
+        // System result 0 is success 1 is failure
+        /**
+         *  In macos it is necessary to specify no of times to ping(-c)
+         * otherwise it pings continuously until manually stopped. 
+         */
+#if _WIN32
+        HWND Stealth;
+        AllocConsole();
+        Stealth = FindWindowA("ConsoleWindowClass", NULL);
+        ShowWindow(Stealth,0);
+        if (!system("ping www.apple.com -n 5 -w 2000") || !system("ping www.google.com -n 5 -w 2000") || !system("ping www.amazon.com -n 5 -w 2000")){
+            return caff_ResultSuccess;
+        }
+#else
+        if (!system("ping -c 5 www.apple.com") || !system("ping -c 5 www.google.com") || !system("ping -c 5 www.amazon.com")){
+            return caff_ResultSuccess;
+        }
+#endif        
+        return caff_ResultInternetDisconnected;
+    }
+
+    caff_Result checkCaffeineConnection() {
+        ScopedCurl curl(CONTENT_TYPE_JSON);
+        curl_easy_setopt(curl, CURLOPT_URL, healthCheckUrl.c_str());
+
+        CURLcode curlResult =  curl_easy_perform(curl);
+        if (curlResult != CURLE_OK) {
+            if (curlResult == CURLE_COULDNT_RESOLVE_HOST || curlResult == CURLE_COULDNT_CONNECT) {
+                return caff_ResultCaffeineUnreachable;
+            } else {
+                return caff_ResultFailure;
+            }
+        }
         return caff_ResultSuccess;
     }
 

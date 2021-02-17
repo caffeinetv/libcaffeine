@@ -100,6 +100,8 @@ typedef enum caff_Result {
     caff_ResultAspectTooNarrow,     //!< The video being sent is too narrow for Caffeine
     caff_ResultAspectTooWide,       //!< The video being sent is too wide for Caffeine
     caff_ResultDisconnected,        //!< Broadcast has been disconnected
+    caff_ResultInternetDisconnected, //!< Internet Connection Lost
+    caff_ResultCaffeineUnreachable, //!< Caffeine Unreachable 
     caff_ResultBroadcastFailed,     //!< Broadcast failed to start
 
     //! Used for bounds checking
@@ -244,6 +246,27 @@ TODO: differentiate clientVersion failure from libcaffeine version failure
 */
 CAFFEINE_API caff_Result caff_checkVersion();
 
+//! Check if connected to internet
+/*!
+This will send a ping to check internet connection.
+
+
+\return
+    - ::caff_ResultSuccess if the check succeeds
+    - ::caff_ResultInternetDisconnected if internet disconnected
+*/
+CAFFEINE_API caff_Result caff_checkInternetConnection();
+
+//! Check if connected to internet
+/*!
+This will send a request to caffeine health check api to determine if site is reachable.
+
+
+\return
+    - ::caff_ResultSuccess if the check succeeds
+    - ::caff_ResultCaffeineUnreachable if caffeine reachable
+*/
+CAFFEINE_API caff_Result caff_checkCaffeineConnection();
 
 //! Create a Caffeine instance
 /*!
@@ -363,6 +386,7 @@ username and password via caff_signIn().
     - ::caff_ResultRefreshTokenRequired
     - ::caff_ResultFailure
     - ::caff_ResultAlreadyBroadcasting
+    - ::caff_ResultInternetDisconnected
 
 \see caff_signIn()
 \see caff_getRefreshToken()
@@ -421,6 +445,7 @@ If there is an error that either prevents the broadcast from starting or interru
         - ::caff_ResultOldVersion if the version of libcaffeine or the application are no longer supported
         - ::caff_ResultEmailVerificationRequired if the user has not verified their email address
         - ::caff_ResultSuccess if the broadcast thread has started
+        - ::caff_ResultInternetDisconnected
 
 \see caff_setTitle()
 \see caff_setRating()
