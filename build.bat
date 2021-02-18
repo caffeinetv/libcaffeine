@@ -102,11 +102,14 @@ goto :MAIN
         echo "File already exists"
         del /s /q  %DEST_DIR%\*
         rmdir /Q /S %DEST_DIR%\
-    ) else (
-        mkdir %DEST_DIR%
     )
-    
+    mkdir %DEST_DIR%
     cd %DEST_DIR%
+    IF EXIST %PACKAGE_NAME% (
+        echo "File already exists"
+        del /s /q  %PACKAGE_NAME%\*
+        rmdir /Q /S %PACKAGE_NAME%\
+    ) 
     mkdir %PACKAGE_NAME%
     cd %PACKAGE_NAME%
     mkdir "bin64"

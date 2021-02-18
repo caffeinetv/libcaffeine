@@ -7,6 +7,13 @@
 #include <sstream>
 #include <thread>
 
+#if _WIN32
+#include <Windows.h>
+#include <functional>
+#include <future>
+#include <string>
+#endif
+
 #include "Configuration.hpp"
 #include "Urls.hpp"
 
@@ -195,6 +202,97 @@ namespace caff {
             return caff_ResultOldVersion;
         }
 
+        return caff_ResultSuccess;
+    }
+
+#if _WIN32
+    class w32_ping_async {
+    public:
+        w32_ping_async(const char * hostname, int timeout_milliseconds)
+            : result_p()
+            , result_f(result_p.get_future())
+            , async_thread([hostname = hostname, timeout_milliseconds = timeout_milliseconds, &result_p = result_p]() {
+                result_p.set_value(do_ping_async(hostname, timeout_milliseconds));
+            }) {}
+
+        virtual ~w32_ping_async() { async_thread.join(); }
+        bool result() { return result_f.get(); }
+
+    private:
+        static bool do_ping_async(const char * hostname, unsigned int timeout_milliseconds) {
+            if ((strlen(hostname) > 100) || (timeout_milliseconds > 10000)) {
+                return false;
+            }
+
+            char ping_command_line[256];
+            sprintf_s(ping_command_line, "ping %s -n 1 -w %u", hostname, timeout_milliseconds);
+
+            STARTUPINFOA startup_info;
+            ZeroMemory(&startup_info, sizeof(startup_info));
+            startup_info.cb = sizeof(startup_info);
+            PROCESS_INFORMATION process_info;
+            ZeroMemory(&process_info, sizeof(process_info));
+
+            bool ping_result = false;
+            if (CreateProcessA(
+                        NULL,
+                        ping_command_line,
+                        NULL,
+                        NULL,
+                        FALSE,
+                        CREATE_NO_WINDOW,
+                        NULL,
+                        NULL,
+                        &startup_info,
+                        &process_info)) {
+                if (WAIT_OBJECT_0 == WaitForSingleObject(process_info.hProcess, timeout_milliseconds + 1000)) {
+                    DWORD exit_code;
+                    GetExitCodeProcess(process_info.hProcess, &exit_code);
+                    ping_result = (0 == exit_code);
+                }
+                CloseHandle(process_info.hProcess);
+                CloseHandle(process_info.hThread);
+            }
+            return ping_result;
+        }
+
+        std::promise<bool> result_p;
+        std::future<bool> result_f;
+        std::thread async_thread;
+    };
+#endif
+
+    caff_Result checkInternetConnection() {
+#if _WIN32
+        // w32_ping_async::result() blocks until result is ready. 'true' is success 'false' is failure. 
+        if (w32_ping_async("www.apple.com", 3000).result() || w32_ping_async("www.google.com", 3000).result() || w32_ping_async("www.amazon.com", 3000).result()) {
+            return caff_ResultSuccess;
+        }
+#else
+        // System result 0 is success 1 is failure
+        /**
+         *  In macos it is necessary to specify no of times to ping(-c)
+         * otherwise it pings continuously until manually stopped. 
+         */
+        if (!system("ping www.apple.com -c 1 -t 3000") || !system("ping www.google.com -c 1 -t 3000") || !system("ping www.amazon.com -c 1 -t 3000")){
+            return caff_ResultSuccess;
+        }
+#endif        
+        return caff_ResultInternetDisconnected;
+    }
+
+    caff_Result checkCaffeineConnection() {
+        ScopedCurl curl(CONTENT_TYPE_JSON);
+        curl_easy_setopt(curl, CURLOPT_URL, healthCheckUrl.c_str());
+
+        CURLcode curlResult =  curl_easy_perform(curl);
+        if (curlResult != CURLE_OK) {
+            if (curlResult == CURLE_COULDNT_RESOLVE_HOST || curlResult == CURLE_COULDNT_CONNECT) {
+                return caff_ResultCaffeineUnreachable;
+            } else {
+                return caff_ResultFailure;
+            }
+        }
         return caff_ResultSuccess;
     }
 

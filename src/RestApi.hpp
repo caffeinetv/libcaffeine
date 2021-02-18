@@ -115,6 +115,10 @@ namespace caff {
 
     caff_Result checkVersion();
 
+    caff_Result checkInternetConnection();
+
+    caff_Result checkCaffeineConnection();
+
     AuthResponse signIn(char const * username, char const * password, char const * otp);
 
     AuthResponse refreshAuth(char const * refreshToken);

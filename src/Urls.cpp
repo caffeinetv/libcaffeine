@@ -30,6 +30,8 @@ namespace caff {
 
     std::string const encoderInfoUrl = lakituEndpoint + "/v2/encoderselection";
 
+    std::string const healthCheckUrl = apiEndpoint + "/healthcheck";
+
     std::string getUserUrl(std::string const & id) { return apiEndpoint + "/v1/users/" + id; }
 
     std::string broadcastUrl(std::string const & id) { return apiEndpoint + "/v1/broadcasts/" + id; }

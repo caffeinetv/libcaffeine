@@ -76,6 +76,10 @@ CAFFEINE_API char const * caff_resultString(caff_Result result) try {
         return "Disconnected from server";
     case caff_ResultBroadcastFailed:
         return "Broadcast failed";
+    case caff_ResultInternetDisconnected:
+        return "Internet Connection Lost";
+    case caff_ResultCaffeineUnreachable:
+        return "Caffeine unreachable";
     }
 }
 CATCHALL_RETURN(nullptr)
@@ -140,6 +144,11 @@ CATCHALL_RETURN(caff_ResultFailure)
 CAFFEINE_API caff_Result caff_checkVersion() try { return checkVersion(); }
 CATCHALL_RETURN(caff_ResultFailure)
 
+CAFFEINE_API caff_Result caff_checkInternetConnection() try { return checkInternetConnection(); }
+CATCHALL_RETURN(caff_ResultFailure)
+
+CAFFEINE_API caff_Result caff_checkCaffeineConnection() try { return checkCaffeineConnection(); }
+CATCHALL_RETURN(caff_ResultFailure)
 
 CAFFEINE_API caff_InstanceHandle caff_createInstance() try {
     auto instance = new Instance;
@@ -157,7 +166,10 @@ CAFFEINE_API caff_Result caff_signIn(
     if (isEmpty(password)) {
         return caff_ResultPasswordRequired;
     }
-
+    // check internet here
+    if(caff_checkInternetConnection() == caff_ResultInternetDisconnected) {
+        return caff_ResultInternetDisconnected;
+    }
     auto instance = reinterpret_cast<Instance *>(instanceHandle);
     return instance->signIn(username, password, otp);
 }
