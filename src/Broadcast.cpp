@@ -160,17 +160,28 @@ namespace caff {
 
         int targetBitrate = maxBitsPerSecond;
         int targetFps = maxFps;
+        int targetFrameHeight = maxFrameHeight;
+        int targetFrameWidth = maxFrameWidth;
 
         auto info = getEncoderInfo(sharedCredentials);
         if (info.has_value()) {
-            targetBitrate = info->setting.targetBitrate > 0 ? info->setting.targetBitrate : maxBitsPerSecond;
-
-            if (targetBitrate > maxBitsPerSecond && info->setting.framerate > maxFps) {
-                targetFps = info->setting.framerate;
+            if (info->setting.targetBitrate > maxBitsPerSecond) {
+                targetBitrate = info->setting.targetBitrate;
+                LOG_DEBUG("Setting target bitrate: %d", targetBitrate);
+                // Only allow increases in framerate and frame size if bandwith cap has been raised
+                if (info->setting.framerate > maxFps) {
+                    targetFps = info->setting.framerate;
+                    LOG_DEBUG("Setting target framerate: %d", targetFps);
+                }
+                if (info->setting.height > maxFrameHeight &&
+                    checkAspectRatio(info->setting.width, info->setting.height) == caff_ResultSuccess) {
+                    targetFrameWidth = info->setting.width;
+                    targetFrameHeight = info->setting.height;
+                    LOG_DEBUG("Setting target frame size: height = %d, width = %d",
+                              targetFrameHeight, targetFrameWidth);
+                }
             }
         }
-
-        LOG_DEBUG("Setting target bitrate: %d", targetBitrate);
 
         broadcastThread = std::thread([=] {
             setupSubscription();
@@ -178,6 +189,7 @@ namespace caff {
             LOG_DEBUG("Creating video track");
             videoCapturer = new VideoCapturer;
             videoCapturer->SetFramerateLimit(targetFps);
+            videoCapturer->SetFrameSizeLimit(targetFrameWidth, targetFrameHeight);
             auto videoSource = factory->CreateVideoSource(videoCapturer);
             auto videoTrack = factory->CreateVideoTrack("external_video", videoSource);
 
@@ -292,7 +304,9 @@ namespace caff {
                         webrtc::RtpParameters params = sender->GetParameters();
 
                         if (params.encodings.size() > 0) {
-                            params.encodings[0].max_bitrate_bps = params.encodings[0].min_bitrate_bps = targetBitrate;
+                            params.encodings[0].max_bitrate_bps = targetBitrate;
+                            params.encodings[0].min_bitrate_bps = targetBitrate;
+                            params.encodings[0].max_framerate = targetFps;
                             LOG_DEBUG("Setting video RTP sender min/max bitrate to target bitrate: %d", targetBitrate);
                         }
 
