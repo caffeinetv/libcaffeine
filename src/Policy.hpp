@@ -20,6 +20,7 @@ namespace caff {
     int32_t constexpr minAspectWidth = 1;
     int32_t constexpr minAspectHeight = 3;
     int32_t constexpr maxFrameHeight = 720;
+    int32_t constexpr maxFrameWidth = 1280;
     int32_t constexpr minFrameDimension = 360;
     int32_t constexpr maxFps = 30;
 
