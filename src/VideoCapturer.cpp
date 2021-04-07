@@ -62,7 +62,11 @@ namespace caff {
                 webrtc::ConvertVideoType(srcVideoType));
     }
 
-    VideoCapturer::VideoCapturer() : interFrameLimit(1'000'000us / (maxFps + 2)) {}
+     VideoCapturer::VideoCapturer()
+        : interFrameLimit(1'000'000us / (maxFps + 2))
+        , frameHeightMax(maxFrameHeight)
+        , frameWidthMax(maxFrameWidth)
+    {}
 
     cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const & format) {
         SetCaptureFormat(&format);
@@ -124,10 +128,15 @@ namespace caff {
             adaptedHeight = height * minFrameDimension / width;
         }
 
-        // And cap the maximum vertical resolution to be 720
-        if (adaptedHeight > maxFrameHeight) {
-            adaptedWidth = adaptedWidth * maxFrameHeight / adaptedHeight;
-            adaptedHeight = maxFrameHeight;
+        // Cap the maximum vertical resolution
+        if (adaptedHeight > frameHeightMax) {
+            adaptedWidth = adaptedWidth * frameHeightMax / adaptedHeight; //lock aspect ratio during scale down
+            adaptedHeight = frameHeightMax;
+        }
+        // Cap the maximum horizontal resolution
+        if (adaptedWidth > frameWidthMax) {
+            adaptedHeight = adaptedHeight * frameWidthMax / adaptedWidth; //lock aspect ratio during scale down
+            adaptedWidth = frameWidthMax;
         }
 
         // if the given input is a weird resolution that is an odd number, the adapted
@@ -185,6 +194,11 @@ namespace caff {
         // This value is fudged a bit (+2 frames) to allow for minor variance between frames.
         int32_t dropFps = framerate + 2;
         interFrameLimit = 1'000'000us / dropFps;
+    }
+
+    void VideoCapturer::SetFrameSizeLimit(int32_t width, int32_t height) {
+        frameHeightMax = height;
+        frameWidthMax = width;
     }
 
 } // namespace caff

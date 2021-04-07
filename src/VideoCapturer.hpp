@@ -33,10 +33,13 @@ namespace caff {
         virtual bool GetPreferredFourccs(std::vector<uint32_t> * fourccs) override;
 
         void SetFramerateLimit(int32_t framerate);
+        void SetFrameSizeLimit(int32_t width, int32_t height);
 
     private:
         std::chrono::microseconds lastTimestamp{ std::chrono::seconds::min() };
         std::chrono::microseconds interFrameLimit;
+        int32_t frameWidthMax;
+        int32_t frameHeightMax;
     };
 
 }  // namespace caff
