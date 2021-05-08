@@ -158,7 +158,7 @@ namespace caff {
         this->failedCallback = failedCallback;
         transitionState(State::Offline, State::Starting);
 
-        int targetBitrate = maxBitsPerSecond;
+        int targetMaxBitrate = maxBitsPerSecond;
         int targetFps = maxFps;
         int targetFrameHeight = maxFrameHeight;
         int targetFrameWidth = maxFrameWidth;
@@ -166,8 +166,8 @@ namespace caff {
         auto info = getEncoderInfo(sharedCredentials);
         if (info.has_value()) {
             if (info->setting.targetBitrate > maxBitsPerSecond) {
-                targetBitrate = info->setting.targetBitrate;
-                LOG_DEBUG("Setting target bitrate: %d", targetBitrate);
+                targetMaxBitrate = info->setting.targetBitrate;
+                LOG_DEBUG("Setting target max bitrate: %d", targetMaxBitrate);
                 // Only allow increases in framerate and frame size if bandwith cap has been raised
                 if (info->setting.framerate > maxFps) {
                     targetFps = info->setting.framerate;
@@ -183,6 +183,8 @@ namespace caff {
             }
         }
 
+        int targetMinBitrate = targetMaxBitrate * 3 / 4;
+
         broadcastThread = std::thread([=] {
             setupSubscription();
 
@@ -190,6 +192,7 @@ namespace caff {
             videoCapturer = new VideoCapturer;
             videoCapturer->SetFramerateLimit(targetFps);
             videoCapturer->SetFrameSizeLimit(targetFrameWidth, targetFrameHeight);
+            videoCapturer->EnableFrameAdaption(false);
             auto videoSource = factory->CreateVideoSource(videoCapturer);
             auto videoTrack = factory->CreateVideoTrack("external_video", videoSource);
 
@@ -224,9 +227,9 @@ namespace caff {
             peerConnection->AddStream(mediaStream);
 
             webrtc::BitrateSettings bitrateOptions;
-            bitrateOptions.start_bitrate_bps = targetBitrate;
-            bitrateOptions.max_bitrate_bps = targetBitrate;
-            bitrateOptions.min_bitrate_bps = targetBitrate;
+            bitrateOptions.start_bitrate_bps = targetMaxBitrate;
+            bitrateOptions.max_bitrate_bps = targetMaxBitrate;
+            bitrateOptions.min_bitrate_bps = targetMinBitrate;
             peerConnection->SetBitrate(bitrateOptions);
 
             rtc::scoped_refptr<CreateSessionDescriptionObserver> creationObserver =
@@ -304,10 +307,9 @@ namespace caff {
                         webrtc::RtpParameters params = sender->GetParameters();
 
                         if (params.encodings.size() > 0) {
-                            params.encodings[0].max_bitrate_bps = targetBitrate;
-                            params.encodings[0].min_bitrate_bps = targetBitrate;
-                            params.encodings[0].max_framerate = targetFps;
-                            LOG_DEBUG("Setting video RTP sender min/max bitrate to target bitrate: %d", targetBitrate);
+                            params.encodings[0].max_bitrate_bps = targetMaxBitrate;
+                            params.encodings[0].min_bitrate_bps = targetMinBitrate;
+                            LOG_DEBUG("Setting video RTP sender max bitrate to target bitrate: %d", targetMaxBitrate);
                         }
 
                         webrtc::RTCError ret = sender->SetParameters(params);

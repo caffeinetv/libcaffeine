@@ -34,6 +34,7 @@ namespace caff {
 
         void SetFramerateLimit(int32_t framerate);
         void SetFrameSizeLimit(int32_t width, int32_t height);
+        void EnableFrameAdaption(bool adaptFrames);
 
     private:
         std::chrono::microseconds lastTimestamp{ std::chrono::seconds::min() };

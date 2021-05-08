@@ -64,9 +64,9 @@ namespace caff {
 
      VideoCapturer::VideoCapturer()
         : interFrameLimit(1'000'000us / (maxFps + 2))
-        , frameHeightMax(maxFrameHeight)
         , frameWidthMax(maxFrameWidth)
-    {}
+        , frameHeightMax(maxFrameHeight)
+     {}
 
     cricket::CaptureState VideoCapturer::Start(cricket::VideoFormat const & format) {
         SetCaptureFormat(&format);
@@ -169,7 +169,7 @@ namespace caff {
 
         webrtc::VideoFrame frame(scaledBuffer, webrtc::kVideoRotation_0, translatedCameraTime);
 
-        OnFrame(frame, adaptedWidth, adaptedHeight);
+        OnFrame(frame, width, height);
 
         return scaledBuffer;
     }
@@ -201,4 +201,7 @@ namespace caff {
         frameWidthMax = width;
     }
 
+    void VideoCapturer::EnableFrameAdaption(bool adaptFrames) {
+        set_enable_video_adapter(adaptFrames);
+    }
 } // namespace caff
