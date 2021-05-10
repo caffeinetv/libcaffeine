@@ -4,7 +4,7 @@ setlocal
 set BUILD_DIR64="build64"
 set BUILD_DIR32="build32"
 set DEST_DIR="dist"
-set PACKAGE_NAME="libcaffeine-v0.7-windows"
+set PACKAGE_NAME="libcaffeine-v0.6.5-windows"
 set BIN_DIR64="%PACKAGE_NAME%\bin64"
 set LIB_DIR64="%PACKAGE_NAME%\lib64"
 set BIN_DIR32="%PACKAGE_NAME%\bin32"
