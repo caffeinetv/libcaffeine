@@ -32,7 +32,7 @@ namespace caff {
     // Stage
     char constexpr defaultTitle[] = "LIVE on Caffeine!";
     char constexpr seventeenPlusTag[] = "[17+] ";
-    size_t constexpr maxTitleLength = 60;
+    size_t constexpr maxTitleLength = 255;
 
 
     // Helpers
