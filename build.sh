@@ -5,7 +5,7 @@
 
 # define constants 
 BUILD_DIR="build"
-PACKAGE_NAME="libcaffeine-v0.6.6-macos"
+PACKAGE_NAME="libcaffeine-v0.6.7-macos"
 BIN_DIR="$PACKAGE_NAME/bin$(getconf LONG_BIT)"
 LIB_DIR="$PACKAGE_NAME/lib$(getconf LONG_BIT)"
 
